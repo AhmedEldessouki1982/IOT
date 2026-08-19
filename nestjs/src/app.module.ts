@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { LightModule } from './light/light.module';
+import { ConfigModule } from '@nestjs/config';
+import { DeviceModule } from './device/device.module';
 
 @Module({
-  imports: [LightModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DeviceModule],
 })
 export class AppModule {}

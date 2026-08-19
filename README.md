@@ -1,40 +1,45 @@
 # IoT Smart Light — Minimal End-to-End Proof of Concept
 
-A minimal IoT loop: **Python mock light → MQTT → NestJS → WebSocket → React UI**.
+A minimal IoT loop: **Python mock device → MQTT → NestJS → WebSocket → React UI**.
 
 ```
-        POST /light/toggle           publish "on"/"off"
-  UI ───────────────────►  NestJS  ───────────────────────►  Mosquitto
-   ▲                          │                                   │
-   │  socket.io "light:state"  │  subscribe devices/light1/state   │ subscribe cmd
-   └───────────────────────────┘◄──────────────────────────────────┘
-                                        publish JSON state     Mock light
+        POST /devices/:id/command        publish JSON command
+  UI ───────────────────────►  NestJS  ───────────────────────────►  Mosquitto
+   ▲                            │                                        │
+   │  socket.io "device:state"   │  subscribe devices/+/state (wildcard) │ subscribe cmd
+   └─────────────────────────────┘◄──────────────────────────────────────┘
+                                          publish JSON DeviceState     Mock device
 ```
 
 ## Parts
 
 | Folder       | Role                                                            |
 | ------------ | --------------------------------------------------------------- |
-| `mock-device`| Python script simulating one smart light (`light_switch.py`)    |
-| `nestjs`     | Backend: MQTT microservice + REST + Socket.IO gateway           |
+| `mock-device`| Python script simulating a smart switch (`light_switch.py`)     |
+| `nestjs`     | Backend: MQTT + REST + Socket.IO gateway                        |
 | `frontend`   | React + Vite + TypeScript + Tailwind + Zustand "Room Control" UI|
+| `mosquitto`  | MQTT broker config (local dev only)                             |
 
 ## 1. Start Mosquitto
 
-Via Docker Compose (recommended):
+The broker now uses a config file mounted into the container:
 
 ```bash
 docker compose up -d
 ```
 
-Or directly:
+The config lives in `mosquitto/config/mosquitto.conf`:
 
-```bash
-docker run -d --name mosquitto -p 1883:1883 eclipse-mosquitto:2
+```
+listener 1883
+allow_anonymous true
 ```
 
-The `eclipse-mosquitto:2` image listens on `1883` and allows anonymous access
-by default — no config file needed for this PoC.
+> **Why it's needed:** the `eclipse-mosquitto:2` image defaults to a
+> non-listening, `allow_anonymous false` setup, so it would refuse connections
+> without an explicit `listener` + `allow_anonymous`. **This is for LOCAL DEV
+> ONLY** — before any real deployment, replace anonymous access with
+> username/password authentication and/or TLS certificates.
 
 No Docker? Install Mosquitto natively instead:
 
@@ -45,9 +50,28 @@ sudo apt install mosquitto
 brew install mosquitto
 ```
 
-and start it with `mosquitto` (it listens on `1883` by default).
+and point it at the same config with `mosquitto -c mosquitto/config/mosquitto.conf`.
 
-## 2. Start the mock device
+## 2. Configure the backend (.env)
+
+Copy the committed example and tweak if needed:
+
+```bash
+cd nestjs
+cp .env.example .env   # already present if you're on this machine
+```
+
+`.env` variables (all optional — sensible defaults exist):
+
+| Variable      | Default                  | Purpose                       |
+| ------------- | ------------------------ | ----------------------------- |
+| `MQTT_URL`    | `mqtt://localhost:1883`  | MQTT broker URL               |
+| `HTTP_PORT`   | `3000`                   | HTTP + WebSocket listen port  |
+| `CORS_ORIGIN` | `http://localhost:5173`  | Allowed browser origin (REST + Socket.IO) |
+
+`.env` is git-ignored; only `.env.example` is committed.
+
+## 3. Start the mock device
 
 ```bash
 cd mock-device
@@ -56,15 +80,15 @@ pip install -r requirements.txt
 python light_switch.py
 ```
 
-On startup it publishes the initial state (`off`) to `devices/light1/state`,
-then subscribes to `devices/light1/cmd`. You should see logs like:
+On startup it publishes the initial state to `devices/light1/state`, then
+subscribes to `devices/light1/cmd`. You should see logs like:
 
 ```
-[command] devices/light1/cmd: on
-[publish] devices/light1/state: {'deviceId': 'light1', 'state': 'on', 'timestamp': '...'}
+[command] devices/light1/cmd: {'on': True}
+[publish] devices/light1/state: {'deviceId': 'light1', 'type': 'switch', 'state': {'on': True}, 'timestamp': '...'}
 ```
 
-## 3. Start the NestJS backend
+## 4. Start the NestJS backend
 
 ```bash
 cd nestjs
@@ -73,12 +97,41 @@ npm run start:dev
 ```
 
 Starts an HTTP server on `http://localhost:3000` and connects to the MQTT
-broker at `mqtt://localhost:1883`.
+broker using the `MQTT_URL` from `.env`.
 
-- `GET  /light/state` — last known state.
-- `POST /light/toggle` — flips the light and publishes the command.
+### Generic device API
 
-## 4. Start the frontend
+The backend is **device-agnostic** — there is no per-device module. Devices are
+discovered automatically from MQTT.
+
+| Method | Endpoint                 | Description                              |
+| ------ | ------------------------ | ---------------------------------------- |
+| `GET`  | `/devices`               | All known device states                  |
+| `GET`  | `/devices/:id`           | One device's state (404 if unknown)      |
+| `POST` | `/devices/:id/command`   | Send a JSON command object to a device   |
+
+Example:
+
+```bash
+curl http://localhost:3000/devices
+curl http://localhost:3000/devices/light1
+curl -X POST http://localhost:3000/devices/light1/command \
+     -H 'Content-Type: application/json' -d '{"on": false}'
+```
+
+### How devices register themselves
+
+The backend subscribes to the **wildcard topic `devices/+/state`** (single-level
+MQTT wildcard). Any device that publishes a `DeviceState` JSON payload to
+`devices/<newId>/state`:
+
+1. is added to the in-memory device map automatically, and
+2. has its state broadcast to all WebSocket clients as `device:state`.
+
+**To add a new device you need zero new NestJS code** — just publish to
+`devices/<newId>/state` (and subscribe to `devices/<newId>/cmd` for commands).
+
+## 5. Start the frontend
 
 ```bash
 cd frontend
@@ -88,32 +141,35 @@ npm run dev
 
 Open `http://localhost:5173` — a terminal-styled "Room Control" dashboard with
 four rooms. The **Reception → Main Light** toggle is live: it calls the NestJS
-API (`POST /light/toggle`), which drives the mock device over MQTT, and the UI
-updates via the `light:state` Socket.IO event (no polling). The other toggles
-and the temperature readout are dummy placeholders — purely local state.
-The header shows `[ONLINE]`/`[OFFLINE]` based on the WebSocket connection.
+API, which drives the mock device over MQTT, and the UI updates via the
+`device:state` Socket.IO event (no polling). The other toggles and the
+temperature readout are dummy placeholders — purely local state. The header
+shows `[ONLINE]`/`[OFFLINE]` based on the WebSocket connection.
 
 ## MQTT topics & message formats
 
-| Topic                       | Direction  | Payload                              |
-| --------------------------- | ---------- | ------------------------------------ |
-| `devices/light1/cmd`        | → device   | raw string: `"on"` or `"off"`        |
-| `devices/light1/state`      | device →   | JSON: `{"deviceId":"light1","state":"on","timestamp":"<ISO-8601>"}` |
+| Topic                   | Direction  | Payload                                              |
+| ----------------------- | ---------- | ---------------------------------------------------- |
+| `devices/light1/cmd`    | → device   | JSON: `{"on": true}` / `{"on": false}`               |
+| `devices/light1/state`  | device →   | JSON `DeviceState`: `{"deviceId":"light1","type":"switch","state":{"on":true},"timestamp":"<ISO-8601>"}` |
+| `devices/+/state`       | device →   | Wildcard subscription; NestJS routes by `deviceId` extracted from the topic |
 
 The device simulates a ~300 ms actuator delay between receiving a command and
 publishing the resulting state. The backend stores the latest state in memory
-and broadcasts it to all connected clients via the `light:state` Socket.IO
+and broadcasts it to all connected clients via the `device:state` Socket.IO
 event.
 
 ## Quick verification without the UI
 
 ```bash
-# subscribe to state, then publish a command
-mosquitto_sub -h localhost -t 'devices/light1/state' -v
-mosquitto_pub -h localhost -t 'devices/light1/cmd' -m on
+# subscribe to state, then publish a JSON command
+mosquitto_sub -h localhost -t 'devices/+/state' -v
+mosquitto_pub -h localhost -t 'devices/light1/cmd' -m '{"on": true}'
 ```
 
 ## Scope
 
-Single device (`light1`), single feature module, no auth, no database, no
-persistence — intentionally minimal.
+Single switch device (`light1`) simulating the generic contract; no auth, no
+database, no persistence — intentionally minimal. The generic device layer is
+already in place, so adding more switches, sensors, or locks is purely a
+firmware/device-side change.
