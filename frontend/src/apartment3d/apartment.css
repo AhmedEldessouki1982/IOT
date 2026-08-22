@@ -41,6 +41,41 @@ html[data-theme="light"] .apt-root {
 
 /* ---- top bar ---- */
 
+.apt-chip {
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  color: var(--apt-accent);
+  border: 1px solid var(--apt-accent);
+  background: var(--apt-accent-soft);
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
+}
+
+.apt-tod {
+  display: inline-flex;
+  border: 1px solid var(--apt-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.apt-tod button {
+  border: none;
+  background: transparent;
+  color: var(--apt-muted);
+  font-family: inherit;
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  padding: 0.32rem 0.65rem;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+.apt-tod button:hover {
+  color: var(--apt-fg);
+}
+.apt-tod button[data-active="true"] {
+  color: var(--apt-accent);
+  background: var(--apt-accent-soft);
+}
+
 .apt-topbar {
   position: relative;
   z-index: 10;
@@ -145,6 +180,10 @@ html[data-theme="light"] .apt-root {
 }
 
 .apt-roomnav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
   border: 1px solid transparent;
   background: transparent;
   color: var(--apt-muted);
@@ -166,6 +205,24 @@ html[data-theme="light"] .apt-root {
   color: var(--apt-accent);
   border-color: var(--apt-accent);
   background: var(--apt-accent-soft);
+}
+
+.apt-roomnav-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.58rem;
+  opacity: 0.75;
+}
+.apt-roomnav-meta i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--apt-border);
+}
+.apt-roomnav-meta i[data-any-on="true"] {
+  background: #33ff99;
+  box-shadow: 0 0 7px rgba(51, 255, 153, 0.8);
 }
 
 /* ---- device panel (right) ---- */
@@ -203,10 +260,18 @@ html[data-theme="light"] .apt-root {
 }
 
 .apt-panel-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin: 0;
   font-size: 0.82rem;
   letter-spacing: 0.18em;
   font-weight: 600;
+}
+
+.apt-panel-icon {
+  display: inline-flex;
+  color: var(--apt-accent);
 }
 
 .apt-panel-room {
@@ -475,11 +540,101 @@ html[data-theme="light"] .apt-sensor-tag {
   animation: apt-pulse 2.4s ease-in-out infinite;
 }
 
+/* ---- hint toast ---- */
+
+.apt-hint {
+  position: absolute;
+  left: 50%;
+  top: 3.6rem;
+  transform: translateX(-50%);
+  z-index: 9;
+  padding: 0.45rem 0.95rem;
+  border: 1px solid var(--apt-border);
+  border-radius: 999px;
+  background: var(--apt-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--apt-muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  animation: apt-hint-in 600ms ease-out both, apt-pulse 2.8s ease-in-out 800ms infinite;
+}
+
+@keyframes apt-hint-in {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ---- splash ---- */
+
+.apt-splash {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(212, 175, 106, 0.08), transparent 55%),
+    #0a0e13;
+  transition: opacity 800ms ease, visibility 800ms ease;
+}
+html[data-theme="light"] .apt-splash {
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(169, 126, 47, 0.09), transparent 55%),
+    #e9ecee;
+}
+.apt-splash.is-fading {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.apt-splash-mark {
+  font-size: 2.6rem;
+  color: var(--apt-accent);
+  animation: apt-mark-glow 2s ease-in-out infinite;
+}
+
+@keyframes apt-mark-glow {
+  0%, 100% { opacity: 0.65; text-shadow: 0 0 14px rgba(212, 175, 106, 0.35); }
+  50% { opacity: 1; text-shadow: 0 0 30px rgba(212, 175, 106, 0.75); }
+}
+
+.apt-splash-title {
+  font-size: 0.85rem;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: var(--apt-fg);
+}
+
+.apt-splash-sub {
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  color: var(--apt-muted);
+}
+
+.apt-splash-dots::after {
+  content: "";
+  animation: apt-dots 1.2s steps(4, end) infinite;
+}
+
+@keyframes apt-dots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75%, 100% { content: "..."; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .apt-panel,
   .apt-online.is-on i,
   .apt-readout.is-alarm,
-  .apt-offline-strip {
+  .apt-offline-strip,
+  .apt-hint,
+  .apt-splash-mark {
     animation: none;
   }
 }

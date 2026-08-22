@@ -26,6 +26,8 @@ export interface RoomDef {
   /** [xMin, zMin, xMax, zMax] floor rectangle */
   bounds: [number, number, number, number];
   floorColor: string;
+  /** glossy mirror-like floor (wood/laminate rooms) */
+  reflective?: boolean;
   /** camera pose used by room navigation */
   view: { position: Vec3; target: Vec3 };
 }
@@ -43,6 +45,7 @@ export const ROOMS: RoomDef[] = [
     name: "Living Room",
     bounds: [-0.5, -3.5, 5, 0],
     floorColor: "#c8a06a",
+    reflective: true,
     view: { position: [9.5, 6.5, -8.5], target: [2.2, 0.5, -1.7] },
   },
   {
@@ -57,6 +60,7 @@ export const ROOMS: RoomDef[] = [
     name: "Corridor",
     bounds: [-2.8, 0, 1, 3.5],
     floorColor: "#b59a70",
+    reflective: true,
     view: { position: [-1, 6, 9], target: [-0.9, 0.4, 1.8] },
   },
   {
@@ -64,6 +68,7 @@ export const ROOMS: RoomDef[] = [
     name: "Bedroom",
     bounds: [1, 0, 5, 3.5],
     floorColor: "#bd9460",
+    reflective: true,
     view: { position: [9.5, 6, 8.5], target: [3, 0.4, 1.8] },
   },
 ];

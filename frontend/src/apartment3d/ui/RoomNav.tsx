@@ -1,4 +1,7 @@
-import { ROOMS } from "../config/apartment";
+import { useMemo } from "react";
+import { DEVICES, ROOMS } from "../config/apartment";
+import { useDeviceStore } from "../store/useDeviceStore";
+import { defaultStateFor } from "../config/apartment";
 
 interface RoomNavProps {
   /** null = overview */
@@ -6,7 +9,26 @@ interface RoomNavProps {
   onChange: (id: string | null) => void;
 }
 
+const ACTIVATABLE = new Set(["ceilingLight", "lamp", "ac", "tv"]);
+
 export function RoomNav({ activeId, onChange }: RoomNavProps) {
+  const states = useDeviceStore((s) => s.states);
+
+  const perRoom = useMemo(() => {
+    const map = new Map<string, { total: number; on: number }>();
+    for (const room of ROOMS) map.set(room.id, { total: 0, on: 0 });
+    for (const d of DEVICES) {
+      const entry = map.get(d.roomId);
+      if (!entry) continue;
+      entry.total += 1;
+      if (ACTIVATABLE.has(d.kind)) {
+        const merged = { ...defaultStateFor(d.kind), ...(states[d.deviceId]?.state ?? {}) };
+        if (merged.on) entry.on += 1;
+      }
+    }
+    return map;
+  }, [states]);
+
   return (
     <nav className="apt-roomnav">
       <button
@@ -17,17 +39,24 @@ export function RoomNav({ activeId, onChange }: RoomNavProps) {
       >
         OVERVIEW
       </button>
-      {ROOMS.map((room) => (
-        <button
-          key={room.id}
-          type="button"
-          className="apt-roomnav-item"
-          data-active={activeId === room.id}
-          onClick={() => onChange(room.id)}
-        >
-          {room.name.toUpperCase()}
-        </button>
-      ))}
+      {ROOMS.map((room) => {
+        const stat = perRoom.get(room.id)!;
+        return (
+          <button
+            key={room.id}
+            type="button"
+            className="apt-roomnav-item"
+            data-active={activeId === room.id}
+            onClick={() => onChange(room.id)}
+          >
+            <span>{room.name.toUpperCase()}</span>
+            <span className="apt-roomnav-meta">
+              <i data-any-on={stat.on > 0} />
+              {stat.total}
+            </span>
+          </button>
+        );
+      })}
     </nav>
   );
 }

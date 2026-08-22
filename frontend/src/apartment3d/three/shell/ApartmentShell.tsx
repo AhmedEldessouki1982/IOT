@@ -1,3 +1,4 @@
+import { MeshReflectorMaterial } from "@react-three/drei";
 import { WALLS, WINDOWS, ROOMS, WALL_HEIGHT, WALL_THICKNESS } from "../../config/apartment";
 import type { WallRun } from "../../config/apartment";
 
@@ -21,7 +22,7 @@ function solidSegments(run: WallRun): Segment[] {
   return segs;
 }
 
-export function ApartmentShell() {
+export function ApartmentShell({ night }: { night: boolean }) {
   return (
     <group>
       {ROOMS.map((r) => {
@@ -29,7 +30,20 @@ export function ApartmentShell() {
         return (
           <mesh key={r.id} receiveShadow position={[(x0 + x1) / 2, -0.04, (z0 + z1) / 2]}>
             <boxGeometry args={[x1 - x0, 0.08, z1 - z0]} />
-            <meshStandardMaterial color={r.floorColor} roughness={0.85} />
+            {r.reflective ? (
+              <MeshReflectorMaterial
+                resolution={512}
+                blur={[280, 60]}
+                mixBlur={0.9}
+                mixStrength={night ? 3.5 : 1.6}
+                mirror={night ? 0.55 : 0.35}
+                color={r.floorColor}
+                metalness={0.25}
+                roughness={0.85}
+              />
+            ) : (
+              <meshStandardMaterial color={r.floorColor} roughness={0.85} />
+            )}
           </mesh>
         );
       })}
@@ -77,9 +91,9 @@ export function ApartmentShell() {
             <mesh>
               <boxGeometry args={[len, hgt, WALL_THICKNESS + 0.07]} />
               <meshStandardMaterial
-                color="#bcd7e8"
-                emissive="#9cc4e0"
-                emissiveIntensity={0.3}
+                color={night ? "#0d1620" : "#bcd7e8"}
+                emissive={night ? "#23364a" : "#9cc4e0"}
+                emissiveIntensity={night ? 0.55 : 0.3}
                 roughness={0.12}
                 metalness={0.1}
               />
@@ -95,6 +109,14 @@ export function ApartmentShell() {
           <meshStandardMaterial color="#5d4a38" roughness={0.65} />
         </mesh>
       </group>
+
+      {/* warm interior glow bleeding onto the sills at night */}
+      {night && (
+        <>
+          <pointLight position={[2.25, 1.7, -3.7]} color="#ffb45e" intensity={3} distance={3.5} decay={2} />
+          <pointLight position={[4.96, 1.7, 1.6]} color="#ffb45e" intensity={2.2} distance={3} decay={2} />
+        </>
+      )}
     </group>
   );
 }

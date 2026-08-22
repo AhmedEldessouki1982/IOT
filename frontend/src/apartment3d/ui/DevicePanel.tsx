@@ -1,7 +1,28 @@
 import type { ReactNode } from "react";
+import { Lightbulb, Lamp, Fan, Tv, Blinds, Thermometer, Droplets, Flame } from "lucide-react";
 import { DEVICES, ROOMS } from "../config/apartment";
+import type { DevicePlacement } from "../config/apartment";
 import { useMergedState, useRawState } from "../hooks/useDeviceState";
 import { useDeviceStore } from "../store/useDeviceStore";
+
+function kindIcon(p: DevicePlacement) {
+  switch (p.kind) {
+    case "ceilingLight":
+      return <Lightbulb size={15} strokeWidth={1.5} />;
+    case "lamp":
+      return <Lamp size={15} strokeWidth={1.5} />;
+    case "ac":
+      return <Fan size={15} strokeWidth={1.5} />;
+    case "tv":
+      return <Tv size={15} strokeWidth={1.5} />;
+    case "curtains":
+      return <Blinds size={15} strokeWidth={1.5} />;
+    case "sensor":
+      if (p.sensorOf === "humidity") return <Droplets size={15} strokeWidth={1.5} />;
+      if (p.sensorOf === "smoke") return <Flame size={15} strokeWidth={1.5} />;
+      return <Thermometer size={15} strokeWidth={1.5} />;
+  }
+}
 
 function PowerButton({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   return (
@@ -217,7 +238,10 @@ export function DevicePanel({ deviceId, onClose }: { deviceId: string; onClose: 
     <aside className="apt-panel">
       <header className="apt-panel-head">
         <div>
-          <h2>{placement.name.toUpperCase()}</h2>
+          <h2>
+            <span className="apt-panel-icon">{kindIcon(placement)}</span>
+            {placement.name.toUpperCase()}
+          </h2>
           <span className="apt-panel-room">{roomName.toUpperCase()}</span>
         </div>
         <button type="button" className="apt-close" onClick={onClose}>

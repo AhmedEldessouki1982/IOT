@@ -1,8 +1,19 @@
+import { useRef } from "react";
+import type { MeshStandardMaterial } from "three";
+import { useFrame } from "@react-three/fiber";
 import { useMergedState } from "../../hooks/useDeviceState";
 
 export function TVSet({ deviceId }: { deviceId: string }) {
   const state = useMergedState(deviceId, "tv");
   const on = Boolean(state.on);
+  const screen = useRef<MeshStandardMaterial>(null!);
+
+  useFrame(({ clock }) => {
+    if (!screen.current || !on) return;
+    const t = clock.elapsedTime;
+    // subtle broadcast flicker
+    screen.current.emissiveIntensity = 0.85 + Math.sin(t * 13.7) * 0.06 + Math.sin(t * 7.3) * 0.05;
+  });
 
   return (
     <group>
@@ -18,6 +29,7 @@ export function TVSet({ deviceId }: { deviceId: string }) {
       <mesh position={[0, 0, 0.034]}>
         <planeGeometry args={[1.42, 0.78]} />
         <meshStandardMaterial
+          ref={screen}
           color="#05070a"
           emissive={on ? "#8fc1ff" : "#000000"}
           emissiveIntensity={on ? 0.85 : 0}
