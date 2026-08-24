@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-/** Brand splash shown while the 3D engine boots; fades out once ready. */
-export function Splash({ ready }: { ready: boolean }) {
+/** Brand splash shown while the view boots; fades out once ready. */
+export function Splash({ ready, sub = "INITIALIZING DIGITAL TWIN" }: { ready: boolean; sub?: string }) {
   const [fading, setFading] = useState(false);
   const [removed, setRemoved] = useState(false);
 
@@ -21,7 +21,8 @@ export function Splash({ ready }: { ready: boolean }) {
       <div className="apt-splash-mark">⌂</div>
       <div className="apt-splash-title">SMART APARTMENT</div>
       <div className="apt-splash-sub">
-        INITIALIZING DIGITAL TWIN<span className="apt-splash-dots" />
+        {sub}
+        <span className="apt-splash-dots" />
       </div>
     </div>
   );

@@ -3,14 +3,12 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
-const ApartmentPage = lazy(() => import('./apartment3d/ApartmentPage'));
-
-const is3d = window.location.pathname.startsWith('/3d');
+const Apartment2DPage = lazy(() => import('./apartment2d/Apartment2DPage'));
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Suspense fallback={null}>
-      {is3d ? <ApartmentPage /> : <App />}
+      {window.location.pathname.startsWith('/2d') ? <Apartment2DPage /> : <App />}
     </Suspense>
   </React.StrictMode>,
 );

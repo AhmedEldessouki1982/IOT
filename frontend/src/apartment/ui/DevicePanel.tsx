@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
-import { Lightbulb, Lamp, Fan, Tv, Blinds, Thermometer, Droplets, Flame } from "lucide-react";
-import { DEVICES, ROOMS } from "../config/apartment";
-import type { DevicePlacement } from "../config/apartment";
+import { Lightbulb, Lamp, Fan, Tv, Blinds, Thermometer, Droplets, Flame, Lock } from "lucide-react";
+import type { DevicePlacement } from "../types";
 import { useMergedState, useRawState } from "../hooks/useDeviceState";
 import { useDeviceStore } from "../store/useDeviceStore";
 
@@ -17,6 +16,8 @@ function kindIcon(p: DevicePlacement) {
       return <Tv size={15} strokeWidth={1.5} />;
     case "curtains":
       return <Blinds size={15} strokeWidth={1.5} />;
+    case "lock":
+      return <Lock size={15} strokeWidth={1.5} />;
     case "sensor":
       if (p.sensorOf === "humidity") return <Droplets size={15} strokeWidth={1.5} />;
       if (p.sensorOf === "smoke") return <Flame size={15} strokeWidth={1.5} />;
@@ -134,15 +135,25 @@ function Stepper({
   );
 }
 
-export function DevicePanel({ deviceId, onClose }: { deviceId: string; onClose: () => void }) {
-  const placement = DEVICES.find((d) => d.deviceId === deviceId);
+export function DevicePanel({
+  deviceId,
+  onClose,
+  placements,
+  rooms,
+}: {
+  deviceId: string;
+  onClose: () => void;
+  placements: DevicePlacement[];
+  rooms: Array<{ id: string; name: string }>;
+}) {
+  const placement = placements.find((d) => d.deviceId === deviceId);
   const state = useMergedState(deviceId, placement?.kind ?? "sensor");
   const raw = useRawState(deviceId);
   const sendCommand = useDeviceStore((s) => s.sendCommand);
 
   if (!placement) return null;
 
-  const roomName = ROOMS.find((r) => r.id === placement.roomId)?.name ?? placement.roomId;
+  const roomName = rooms.find((r) => r.id === placement.roomId)?.name ?? placement.roomId;
   const num = (key: string, fallback: number) => Number(state[key] ?? fallback);
   const isOn = Boolean(state.on);
 
@@ -206,6 +217,24 @@ export function DevicePanel({ deviceId, onClose }: { deviceId: string; onClose: 
     );
   } else if (placement.kind === "tv") {
     body = <PowerButton on={isOn} onToggle={() => sendCommand(deviceId, { on: !isOn })} />;
+  } else if (placement.kind === "lock") {
+    const locked = state.locked !== false;
+    body = (
+      <>
+        <button
+          type="button"
+          className="apt-power"
+          data-on={locked}
+          onClick={() => sendCommand(deviceId, { locked: !locked })}
+        >
+          <span className="apt-power-dot" />
+          {locked ? "LOCKED" : "UNLOCKED"}
+        </button>
+        <div className="apt-readout">
+          MAIN DOOR · {locked ? "SECURE" : "OPEN — RE-LOCK?"}
+        </div>
+      </>
+    );
   } else if (placement.kind === "curtains") {
     body = (
       <SliderRow

@@ -4,7 +4,7 @@ import { getAllDevices, sendCommand } from "../api/devices";
 import type { DeviceState } from "../types";
 
 /* Module-level singleton socket — same mechanism as useLightStore, but on the
- * generic `device:state` event. Only imported by the /3d page (lazy chunk),
+ * generic `device:state` event. Imported only by the lazy apartment chunk,
  * so Home never opens this connection. */
 const socket = io("http://localhost:3000");
 
@@ -33,15 +33,19 @@ export const useDeviceStore = create<DeviceStore>((set) => ({
   sendCommand: async (deviceId, command) => {
     // optimistic merge; the device republishes authoritative state over MQTT,
     // which arrives here as a `device:state` event moments later.
+    // If the backend hasn't seen this device yet, synthesize a stub entry so
+    // controls stay responsive while offline.
     set((s) => {
       const prev = s.states[deviceId];
-      if (!prev) return s;
+      const base =
+        prev ??
+        ({ deviceId, type: "switch", state: {}, timestamp: new Date().toISOString() } as DeviceState);
       return {
         states: {
           ...s.states,
           [deviceId]: {
-            ...prev,
-            state: { ...prev.state, ...command },
+            ...base,
+            state: { ...base.state, ...command },
             timestamp: new Date().toISOString(),
           },
         },

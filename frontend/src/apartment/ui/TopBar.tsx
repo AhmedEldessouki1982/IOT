@@ -1,14 +1,21 @@
-import { DEVICES } from "../config/apartment";
 import { useThemeStore } from "../../store/useThemeStore";
-import type { TimeOfDay } from "../three/scene/ApartmentScene";
+import type { TimeOfDay } from "../types";
 
 interface TopBarProps {
   online: boolean;
   timeOfDay: TimeOfDay;
   onTimeOfDayChange: (t: TimeOfDay) => void;
+  title: string;
+  deviceCount: number;
 }
 
-export function TopBar({ online, timeOfDay, onTimeOfDayChange }: TopBarProps) {
+export function TopBar({
+  online,
+  timeOfDay,
+  onTimeOfDayChange,
+  title,
+  deviceCount,
+}: TopBarProps) {
   const theme = useThemeStore((s) => s.theme);
   const toggle = useThemeStore((s) => s.toggle);
 
@@ -19,8 +26,8 @@ export function TopBar({ online, timeOfDay, onTimeOfDayChange }: TopBarProps) {
           ← HOME
         </a>
         <span className="apt-sep" />
-        <span className="apt-title">SMART APARTMENT · DIGITAL TWIN</span>
-        <span className="apt-chip">{DEVICES.length} DEVICES</span>
+        <span className="apt-title">{title}</span>
+        <span className="apt-chip">{deviceCount} DEVICES</span>
       </div>
       <div className="apt-topbar-side">
         <div className="apt-tod" role="group" aria-label="time of day">

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useDeviceStore } from "../store/useDeviceStore";
-import { defaultStateFor } from "../config/apartment";
+import { defaultStateFor } from "../deviceDefaults";
 import type { DeviceKind } from "../types";
 
 /** Raw authoritative state for a device (undefined when backend hasn't seen it). */

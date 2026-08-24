@@ -1,0 +1,394 @@
+/* ============================================================
+   2D FLOORPLAN — modern colorful app styling
+   Soft pastel room cards, glazed windows, clean walls.
+   Reuses apt-* chrome from ../apartment/apartment.css;
+   everything here is fp-* scoped. Palette flips on data-tod.
+   Each room sets --room (accent) inline on its group.
+   ============================================================ */
+
+.fp-root {
+  /* stage / card */
+  --fp-bg: #eef1f6;
+  --fp-card: #ffffff;
+  --fp-ink: #334155;
+  --fp-muted: #94a3b8;
+
+  /* plan elements */
+  --fp-gridline: rgba(100, 116, 139, 0.14);
+  --fp-wall: #475569;
+  --fp-glass: #38bdf8;
+  --fp-door: #64748b;
+  --fp-label: #475569;
+  --fp-accent: #6366f1;
+  --fp-on: #10b981;
+  --fp-warm: #f59e0b;
+  --fp-danger: #ef4444;
+}
+
+.fp-root[data-tod="night"] {
+  --fp-bg: #070c18;
+  --fp-card: #101a30;
+  --fp-ink: #cbd5e1;
+  --fp-muted: #64748b;
+
+  --fp-gridline: rgba(148, 163, 184, 0.1);
+  --fp-wall: #8ea3bd;
+  --fp-glass: #38bdf8;
+  --fp-door: #7d8fa9;
+  --fp-label: #a8b8cc;
+  --fp-accent: #818cf8;
+  --fp-on: #34d399;
+  --fp-warm: #fbbf24;
+  --fp-danger: #f87171;
+}
+
+/* ---- stage ---- */
+
+.fp-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 50% 38%, color-mix(in srgb, var(--fp-accent) 5%, transparent), transparent 68%),
+    var(--fp-bg);
+  transition: background 0.6s ease;
+}
+
+.fp-svg {
+  width: min(96%, calc((100vh - 9rem) * (12.2 + 1.1) / (8.6 + 1.1)));
+  height: auto;
+  max-height: 94%;
+  user-select: none;
+  font-family: inherit;
+  border-radius: 22px;
+  box-shadow:
+    0 24px 60px -20px rgba(15, 23, 42, 0.28),
+    0 6px 18px -8px rgba(15, 23, 42, 0.18);
+}
+.fp-root[data-tod="night"] .fp-svg {
+  box-shadow:
+    0 24px 60px -18px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(148, 163, 184, 0.12);
+}
+
+/* ---- paper + grid ---- */
+
+.fp-paper {
+  fill: var(--fp-card);
+  transition: fill 0.5s ease;
+}
+
+.fp-gridline {
+  stroke: var(--fp-gridline);
+}
+
+/* ---- rooms ---- */
+
+.fp-roomgroup {
+  transition: opacity 0.35s ease;
+}
+.fp-roomgroup[data-dim="true"] {
+  opacity: 0.38;
+}
+.fp-roomgroup[data-focus="true"] .fp-floor {
+  filter: saturate(1.25);
+}
+
+.fp-floor {
+  fill: color-mix(in srgb, var(--room) 13%, var(--fp-card));
+  stroke: color-mix(in srgb, var(--room) 34%, transparent);
+  stroke-width: 0.03;
+  cursor: pointer;
+  transition: fill 0.35s ease;
+  rx: 0.16;
+}
+.fp-root[data-tod="night"] .fp-floor {
+  fill: color-mix(in srgb, var(--room) 17%, var(--fp-card));
+}
+.fp-floor:hover {
+  fill: color-mix(in srgb, var(--room) 24%, var(--fp-card));
+}
+
+.fp-furn {
+  fill: color-mix(in srgb, var(--room) 10%, var(--fp-card));
+  stroke: color-mix(in srgb, var(--room) 55%, var(--fp-ink));
+  stroke-width: 0.032;
+  pointer-events: none;
+}
+.fp-root[data-tod="night"] .fp-furn {
+  fill: color-mix(in srgb, var(--room) 14%, transparent);
+  stroke: color-mix(in srgb, var(--room) 62%, var(--fp-ink));
+}
+
+/* room label chip */
+.fp-roomname,
+.fp-roomarea {
+  fill: var(--fp-label);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--fp-card);
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.fp-roomname {
+  font-size: 0.235px;
+  font-weight: 700;
+  letter-spacing: 0.05px;
+  stroke-width: 0.09px;
+}
+.fp-roomarea {
+  font-size: 0.165px;
+  letter-spacing: 0.04px;
+  fill: color-mix(in srgb, var(--fp-muted) 90%, transparent);
+  stroke-width: 0.07px;
+}
+
+/* ---- walls / windows / doors ---- */
+
+.fp-walls,
+.fp-windows,
+.fp-doors {
+  pointer-events: none;
+}
+
+.fp-wall {
+  stroke: var(--fp-wall);
+  stroke-width: 0.085;
+  stroke-linecap: round;
+}
+
+.fp-window-casing {
+  stroke: color-mix(in srgb, var(--fp-glass) 45%, var(--fp-wall));
+  stroke-width: 0.13;
+  stroke-linecap: round;
+}
+.fp-window-core {
+  stroke: var(--fp-glass);
+  stroke-width: 0.062;
+  stroke-linecap: round;
+  opacity: 0.95;
+}
+
+.fp-door {
+  fill: none;
+  stroke: var(--fp-door);
+  stroke-width: 0.032;
+  opacity: 0.85;
+}
+.fp-hinge {
+  fill: var(--fp-door);
+}
+
+/* ---- entrance + chrome ---- */
+
+.fp-entrylabel {
+  fill: var(--fp-on);
+  font-size: 0.185px;
+  font-weight: 700;
+  letter-spacing: 0.13px;
+  pointer-events: none;
+}
+
+.fp-chrome {
+  opacity: 0.85;
+}
+.fp-compassdisc {
+  fill: none;
+  stroke: color-mix(in srgb, var(--fp-muted) 55%, transparent);
+  stroke-width: 0.03;
+}
+.fp-compass {
+  fill: var(--fp-muted);
+  font-size: 0.21px;
+  font-weight: 600;
+  text-anchor: middle;
+}
+.fp-compass-arrow {
+  fill: var(--fp-danger);
+}
+.fp-scalebar {
+  stroke: var(--fp-muted);
+  stroke-width: 0.035;
+}
+.fp-scalelabel {
+  fill: var(--fp-muted);
+  font-size: 0.19px;
+  letter-spacing: 0.04px;
+}
+
+/* ---- devices ---- */
+
+.fp-device .fp-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+.fp-device .fp-hit:hover {
+  stroke: color-mix(in srgb, var(--fp-accent) 55%, transparent);
+  stroke-width: 0.03;
+  stroke-dasharray: 0.08 0.06;
+}
+
+.fp-glow {
+  filter: blur(0.16px);
+  pointer-events: none;
+}
+.fp-glowbox {
+  fill: var(--fp-accent);
+  opacity: 0.32;
+  filter: blur(0.1px);
+  pointer-events: none;
+}
+
+.fp-dot {
+  fill: var(--fp-muted);
+  opacity: 0.55;
+}
+.fp-dot[data-on="true"] {
+  opacity: 1;
+}
+
+.fp-ac {
+  fill: var(--fp-card);
+  stroke: var(--fp-muted);
+  stroke-width: 0.024;
+}
+.fp-root[data-tod="night"] .fp-ac {
+  fill: color-mix(in srgb, var(--fp-card) 60%, transparent);
+}
+.fp-ac[data-on="true"] {
+  fill: color-mix(in srgb, var(--fp-glass) 16%, var(--fp-card));
+  stroke: var(--fp-glass);
+}
+.fp-acvent {
+  stroke: var(--fp-muted);
+  stroke-width: 0.025;
+  stroke-dasharray: 0.05 0.04;
+  opacity: 0.7;
+}
+.fp-acvent[data-on="true"] {
+  stroke: var(--fp-glass);
+}
+.fp-air {
+  fill: none;
+  stroke: var(--fp-glass);
+  stroke-width: 0.03;
+  stroke-linecap: round;
+  stroke-dasharray: 0.12 0.1;
+  animation: fp-drift 1.6s linear infinite;
+  opacity: 0.85;
+}
+.fp-air2 {
+  animation-delay: -0.8s;
+}
+@keyframes fp-drift {
+  to {
+    stroke-dashoffset: -0.44;
+  }
+}
+
+.fp-tv {
+  fill: color-mix(in srgb, var(--fp-ink) 22%, var(--fp-card));
+  stroke: var(--fp-ink);
+  stroke-width: 0.026;
+}
+.fp-tv[data-on="true"] {
+  fill: var(--fp-accent);
+  stroke: var(--fp-accent);
+  filter: drop-shadow(0 0 0.12px var(--fp-accent));
+}
+
+.fp-curtain-track {
+  stroke: var(--fp-muted);
+  stroke-width: 0.02;
+  stroke-dasharray: 0.04 0.06;
+}
+.fp-curtain {
+  stroke: var(--fp-warm);
+  stroke-width: 0.07;
+  stroke-linecap: butt;
+}
+
+.fp-sensor {
+  fill: var(--fp-card);
+  stroke: var(--fp-muted);
+  stroke-width: 0.03;
+}
+.fp-sensor[data-alarm="true"] {
+  stroke: var(--fp-danger);
+  fill: color-mix(in srgb, var(--fp-danger) 30%, transparent);
+  animation: fp-blink 0.7s step-end infinite;
+}
+.fp-sensortext {
+  fill: var(--fp-label);
+  font-size: 0.21px;
+  letter-spacing: 0.03px;
+  paint-order: stroke;
+  stroke: var(--fp-card);
+  stroke-width: 0.05px;
+  pointer-events: none;
+}
+.fp-alarm-text {
+  fill: var(--fp-danger);
+  animation: fp-blink 0.7s step-end infinite;
+}
+@keyframes fp-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.fp-shackle {
+  fill: none;
+  stroke: var(--fp-wall);
+  stroke-width: 0.035;
+}
+.fp-lockbody {
+  fill: var(--fp-muted);
+  opacity: 0.75;
+}
+.fp-keyhole {
+  fill: var(--fp-card);
+}
+.fp-lockbody[data-locked="true"],
+.fp-shackle[data-locked="true"] {
+  fill: var(--fp-on);
+  stroke: var(--fp-on);
+  opacity: 1;
+}
+.fp-lockbody[data-locked="false"],
+.fp-shackle[data-locked="false"] {
+  stroke: var(--fp-danger);
+  fill: transparent;
+  animation: fp-blink 1.1s step-end infinite;
+}
+.fp-lockbody[data-locked="false"] {
+  fill: color-mix(in srgb, var(--fp-danger) 18%, transparent);
+}
+
+.fp-micro {
+  fill: var(--fp-label);
+  font-size: 0.2px;
+  letter-spacing: 0.04px;
+  paint-order: stroke;
+  stroke: var(--fp-card);
+  stroke-width: 0.05px;
+  pointer-events: none;
+}
+
+.fp-selring {
+  fill: none;
+  stroke: var(--fp-accent);
+  stroke-width: 0.035;
+  stroke-dasharray: 0.09 0.07;
+  animation: fp-spin 6s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+@keyframes fp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* focused mode: dim other rooms' furniture via group opacity */
