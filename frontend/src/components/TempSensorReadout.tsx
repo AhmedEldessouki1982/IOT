@@ -10,6 +10,13 @@ interface TempSensorReadoutProps {
 
 const DEFAULT_TREND = [22.1, 22.4, 23.0, 23.8, 23.5, 24.2, 24.5, 24.3, 24.5];
 
+function tempColor(t: number, min: number, max: number): string {
+  const ratio = Math.max(0, Math.min(1, (t - min) / (max - min || 1)));
+  if (ratio < 0.33) return "#38bdf8"; // sky-400 — cool
+  if (ratio < 0.66) return "#facc15"; // yellow-400 — mild
+  return "#f97316"; // orange-500 — warm
+}
+
 export default function TempSensorReadout({
   label,
   value,
@@ -22,9 +29,10 @@ export default function TempSensorReadout({
   const avg = trend.reduce((a, b) => a + b, 0) / trend.length;
   const span = max - min || 1;
 
-  const bars = trend.map((v) => ({
-    pct: Math.max(10, Math.round(((v - min) / span) * 90)),
-    active: v >= avg,
+  const bars = trend.map((v, i) => ({
+    pct: Math.max(14, Math.round(((v - min) / span) * 86) + 14),
+    color: tempColor(v, min, max),
+    latest: i === trend.length - 1,
   }));
 
   return (
@@ -47,9 +55,13 @@ export default function TempSensorReadout({
         {bars.map((b, i) => (
           <div
             key={i}
-            className="spark-bar"
-            data-active={b.active}
-            style={{ height: `${b.pct}%`, animationDelay: `${i * 40}ms` }}
+            className={`spark-bar ${b.latest ? "spark-bar--latest" : ""}`}
+            style={{
+              height: `${b.pct}%`,
+              background: b.color,
+              boxShadow: b.latest ? `0 0 8px ${b.color}44` : undefined,
+              animationDelay: `${i * 50}ms`,
+            }}
           />
         ))}
       </div>
