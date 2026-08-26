@@ -7,6 +7,10 @@ import {
   UtensilsCrossed,
   Bath,
   BedDouble,
+  LayoutGrid,
+  Cpu,
+  Radio,
+  Map,
 } from "lucide-react";
 import DashboardHeader from "./components/DashboardHeader";
 import RoomContainer from "./components/RoomContainer";
@@ -35,10 +39,30 @@ export default function App() {
     <div>
       <DashboardHeader online={online} />
 
+      <div className="stat-strip">
+        <span className="stat-chip">
+          <span className="stat-chip-icon"><LayoutGrid size={13} strokeWidth={1.5} /></span>
+          <span className="stat-chip-value">4</span> Rooms
+        </span>
+        <span className="stat-chip">
+          <span className="stat-chip-icon"><Cpu size={13} strokeWidth={1.5} /></span>
+          <span className="stat-chip-value">7</span> Devices
+        </span>
+        <span className="stat-chip">
+          <span className="stat-chip-icon"><Radio size={13} strokeWidth={1.5} /></span>
+          <span className="stat-chip-value">{online ? "1" : "0"}</span> Live
+        </span>
+        <span className="stat-strip-spacer" />
+        <a href="/2d" className="floorplan-btn">
+          <Map size={13} strokeWidth={2} />
+          Floorplan
+        </a>
+      </div>
+
       <main className="dashboard-main">
         <RoomContainer
           name="Reception"
-          icon={<DoorClosed size={15} strokeWidth={1.5} />}
+          icon={<DoorClosed size={16} strokeWidth={1.5} />}
         >
           <DeviceToggle
             label="Main Light"
@@ -56,7 +80,7 @@ export default function App() {
 
         <RoomContainer
           name="Dining Area"
-          icon={<UtensilsCrossed size={15} strokeWidth={1.5} />}
+          icon={<UtensilsCrossed size={16} strokeWidth={1.5} />}
         >
           <DeviceToggle
             label="Ceiling Light"
@@ -71,7 +95,7 @@ export default function App() {
 
         <RoomContainer
           name="Bathroom"
-          icon={<Bath size={15} strokeWidth={1.5} />}
+          icon={<Bath size={16} strokeWidth={1.5} />}
         >
           <DeviceToggle
             label="Light"
@@ -81,7 +105,7 @@ export default function App() {
 
         <RoomContainer
           name="Master Bedroom"
-          icon={<BedDouble size={15} strokeWidth={1.5} />}
+          icon={<BedDouble size={16} strokeWidth={1.5} />}
         >
           <DeviceToggle
             label="Main Light"
@@ -96,8 +120,7 @@ export default function App() {
       </main>
 
       <footer className="dashboard-footer">
-        4 rooms &middot; 7 devices &middot;{" "}
-        <a href="/2d">Open floorplan &rarr;</a>
+        Smart Apartment &middot; IoT Control Panel
       </footer>
     </div>
   );

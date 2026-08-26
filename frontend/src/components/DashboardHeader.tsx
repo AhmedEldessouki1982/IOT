@@ -13,13 +13,13 @@ export default function DashboardHeader({ online }: DashboardHeaderProps) {
     <header className="dashboard-header">
       <div className="header-brand">
         <span className="header-brand-icon">
-          <Home size={16} strokeWidth={2} />
+          <Home size={18} strokeWidth={2} />
         </span>
         <h1>Smart Apartment</h1>
       </div>
       <div className="header-actions">
-        <span className="header-badge">
-          <span className="header-dot" data-online={online} />
+        <span className="header-status" data-online={online}>
+          <span className="header-status-dot" />
           {online ? "Online" : "Offline"}
         </span>
         <button
