@@ -1,12 +1,12 @@
 import { Children, type ReactNode } from "react";
 
-interface RoomContainerProps {
+interface RoomCardProps {
   name: string;
   icon?: ReactNode;
   children: ReactNode;
 }
 
-export default function RoomContainer({ name, icon, children }: RoomContainerProps) {
+export default function RoomCard({ name, icon, children }: RoomCardProps) {
   const count = Children.count(children);
 
   return (

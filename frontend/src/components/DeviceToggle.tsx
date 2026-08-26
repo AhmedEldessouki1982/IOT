@@ -1,20 +1,15 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
+import DeviceRow from "./DeviceRow";
 
 interface DeviceToggleProps {
   label: string;
   defaultState?: boolean;
   state?: boolean;
-  icon?: ReactNode;
+  icon?: React.ReactNode;
   onToggle?: (on: boolean) => void;
 }
 
-export default function DeviceToggle({
-  label,
-  defaultState = false,
-  state,
-  icon,
-  onToggle,
-}: DeviceToggleProps) {
+export default function DeviceToggle({ label, defaultState = false, state, icon, onToggle }: DeviceToggleProps) {
   const [internal, setInternal] = useState(defaultState);
   const on = state ?? internal;
 
@@ -25,23 +20,22 @@ export default function DeviceToggle({
   };
 
   return (
-    <div className="device-row">
-      <div className="device-info">
-        <span className="device-icon" data-on={on}>
-          {icon}
-        </span>
-        <span className="device-label">{label}</span>
-      </div>
-      <button
-        type="button"
-        onClick={handleClick}
-        data-on={on}
-        aria-pressed={on}
-        aria-label={`${label}: ${on ? "on" : "off"}`}
-        className="toggle"
-      >
-        <span className="toggle-knob" />
-      </button>
-    </div>
+    <DeviceRow
+      label={label}
+      icon={icon}
+      iconAttrs={{ "data-on": String(on) }}
+      status={
+        <button
+          type="button"
+          onClick={handleClick}
+          data-on={on}
+          aria-pressed={on}
+          aria-label={`${label}: ${on ? "on" : "off"}`}
+          className="toggle"
+        >
+          <span className="toggle-knob" />
+        </button>
+      }
+    />
   );
 }

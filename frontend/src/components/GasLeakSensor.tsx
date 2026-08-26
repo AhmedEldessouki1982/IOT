@@ -1,33 +1,26 @@
-import type { ReactNode } from "react";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
+import DeviceRow from "./DeviceRow";
 
 interface GasLeakSensorProps {
   detected?: boolean;
-  icon?: ReactNode;
+  icon?: React.ReactNode;
 }
 
 export default function GasLeakSensor({ detected = false, icon }: GasLeakSensorProps) {
   return (
-    <div className="device-row">
-      <div className="device-info">
-        <span className="device-icon" data-gas={detected ? "danger" : "safe"}>
-          {icon}
+    <DeviceRow
+      label="Gas Leak Sensor"
+      icon={icon}
+      iconAttrs={{ "data-gas": detected ? "danger" : "safe" }}
+      status={
+        <span className={`gas-badge ${detected ? "gas-badge--danger" : "gas-badge--safe"}`}>
+          {detected ? (
+            <><AlertTriangle size={12} strokeWidth={2} /> Detected</>
+          ) : (
+            <><ShieldCheck size={12} strokeWidth={2} /> Safe</>
+          )}
         </span>
-        <span className="device-label">Gas Leak Sensor</span>
-      </div>
-      <span className={`gas-badge ${detected ? "gas-badge--danger" : "gas-badge--safe"}`}>
-        {detected ? (
-          <>
-            <AlertTriangle size={12} strokeWidth={2} />
-            Detected
-          </>
-        ) : (
-          <>
-            <ShieldCheck size={12} strokeWidth={2} />
-            Safe
-          </>
-        )}
-      </span>
-    </div>
+      }
+    />
   );
 }
