@@ -11,11 +11,13 @@ import {
   Cpu,
   Radio,
   Map,
+  Flame,
 } from "lucide-react";
 import DashboardHeader from "./components/DashboardHeader";
 import RoomContainer from "./components/RoomContainer";
 import DeviceToggle from "./components/DeviceToggle";
 import TempSensorReadout from "./components/TempSensorReadout";
+import GasLeakSensor from "./components/GasLeakSensor";
 import { useHomeStore } from "./store/useHomeStore";
 import { useThemeStore } from "./store/useThemeStore";
 
@@ -46,7 +48,7 @@ export default function App() {
         </span>
         <span className="stat-chip">
           <span className="stat-chip-icon"><Cpu size={13} strokeWidth={1.5} /></span>
-          <span className="stat-chip-value">7</span> Devices
+          <span className="stat-chip-value">9</span> Devices
         </span>
         <span className="stat-chip">
           <span className="stat-chip-icon"><Radio size={13} strokeWidth={1.5} /></span>
@@ -90,6 +92,13 @@ export default function App() {
             label="Pendant Light"
             defaultState
             icon={<Lightbulb size={15} strokeWidth={1.5} />}
+          />
+          <DeviceToggle
+            label="Lamp"
+            icon={<Lightbulb size={15} strokeWidth={1.5} />}
+          />
+          <GasLeakSensor
+            icon={<Flame size={15} strokeWidth={1.5} />}
           />
         </RoomContainer>
 

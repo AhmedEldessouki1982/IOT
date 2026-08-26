@@ -509,6 +509,46 @@ html[data-theme="dark"] .dashboard-header {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15), 0 0 6px rgba(255, 255, 255, 0.3);
 }
 
+/* ---- gas leak sensor ---- */
+
+.device-icon[data-gas="safe"] {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.device-icon[data-gas="danger"] {
+  background: var(--danger-soft);
+  color: var(--danger);
+  animation: gas-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes gas-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.gas-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+.gas-badge--safe {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.gas-badge--danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  animation: gas-pulse 1.2s ease-in-out infinite;
+}
+
 /* ================================================================
    SENSOR READOUT — big number + sparkline stat card
    ================================================================ */
@@ -618,7 +658,9 @@ html[data-theme="dark"] .dashboard-header {
    ================================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .header-status[data-online="true"] .header-status-dot {
+  .header-status[data-online="true"] .header-status-dot,
+  .device-icon[data-gas="danger"],
+  .gas-badge--danger {
     animation: none;
   }
   .toggle-knob {
