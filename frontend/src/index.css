@@ -510,7 +510,7 @@ html[data-theme="dark"] .dashboard-header {
 }
 
 /* ================================================================
-   SENSOR READOUT + GAUGE — featured metric treatment
+   SENSOR READOUT — big number + sparkline stat card
    ================================================================ */
 
 .sensor-readout {
@@ -523,54 +523,70 @@ html[data-theme="dark"] .dashboard-header {
   gap: 10px;
 }
 
-.gauge-wrapper {
-  display: flex;
-  justify-content: center;
-  padding: 8px 0 4px;
-  margin: 4px 12px 0;
-  border-radius: var(--radius-sm);
-  background:
-    radial-gradient(ellipse at 50% 60%, var(--blue-soft) 0%, transparent 70%);
-  transition: background 0.3s ease;
-}
-
-html[data-theme="dark"] .gauge-wrapper {
-  background:
-    radial-gradient(ellipse at 50% 60%, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
-}
-
-/* ---- gauge SVG ---- */
-
-.gauge-seg {
-  transition: opacity 0.4s ease;
-}
-
-.gauge-label {
-  font-size: 9px;
-  font-weight: 500;
-  fill: var(--text-muted);
-  text-anchor: middle;
-  dominant-baseline: middle;
-}
-
-.gauge-value {
-  font-size: 18px;
-  font-weight: 600;
+/* big number — the visual anchor */
+.sensor-big-number {
+  margin: 6px 0 2px;
+  font-size: 32px;
+  font-weight: 700;
   font-family: var(--font-mono);
-  fill: var(--text);
-  text-anchor: middle;
-  dominant-baseline: auto;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
 
-.gauge-unit {
-  font-size: 9px;
+.sensor-unit {
+  font-size: 14px;
   font-weight: 500;
-  fill: var(--text-muted);
-  text-anchor: middle;
-  dominant-baseline: hanging;
+  color: var(--text-muted);
+  margin-left: 2px;
 }
 
+/* trend delta */
+.sensor-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.sensor-trend-icon {
+  flex-shrink: 0;
+}
+
+.sensor-trend-icon--up {
+  color: var(--teal);
+}
+
+.sensor-trend-icon--down {
+  color: var(--amber);
+}
+
+.sensor-trend-icon--flat {
+  color: var(--text-muted);
+}
+
+.sensor-trend-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* sparkline */
+.sensor-sparkline {
+  width: 100%;
+  height: 44px;
+  margin: 0 -2px;
+}
+
+.sparkline-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* min/max footer */
 .sensor-footer {
   display: flex;
   justify-content: space-between;
@@ -602,8 +618,7 @@ html[data-theme="dark"] .gauge-wrapper {
    ================================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .header-status[data-online="true"] .header-status-dot,
-  .gauge-seg {
+  .header-status[data-online="true"] .header-status-dot {
     animation: none;
   }
   .toggle-knob {
