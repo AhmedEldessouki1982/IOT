@@ -267,6 +267,20 @@ export function Floorplan({ selectedId, focusedRoomId, onSelect, onRoomFocus }: 
         <pattern id="fp-grid" width={GRID} height={GRID} patternUnits="userSpaceOnUse">
           <path d={`M ${GRID} 0 L 0 0 0 ${GRID}`} fill="none" className="fp-gridline" strokeWidth={0.014} />
         </pattern>
+        {ROOMS_2D.map((room) => (
+          <radialGradient
+            key={room.id}
+            id={`fp-floor-${room.id}`}
+            cx="50%"
+            cy="38%"
+            r="72%"
+            gradientUnits="objectBoundingBox"
+          >
+            <stop offset="0%" stopColor={room.color} stopOpacity="0.22" />
+            <stop offset="62%" stopColor={room.color} stopOpacity="0.13" />
+            <stop offset="100%" stopColor={room.color} stopOpacity="0.02" />
+          </radialGradient>
+        ))}
       </defs>
 
       <rect x={-M} y={-M} width={ENVELOPE.w + 2 * M} height={ENVELOPE.d + 2 * M} className="fp-paper" />
@@ -275,6 +289,7 @@ export function Floorplan({ selectedId, focusedRoomId, onSelect, onRoomFocus }: 
       {/* rooms — floor + furniture + label chip share the room accent color */}
       {ROOMS_2D.map((room) => {
         const [x0, z0, x1, z1] = room.bounds;
+        const cx = (x0 + x1) / 2;
         const dimmed = focusedRoomId !== null && focusedRoomId !== room.id;
         const focused = focusedRoomId === room.id;
         const area = ((x1 - x0) * (z1 - z0)).toFixed(1);
@@ -293,6 +308,7 @@ export function Floorplan({ selectedId, focusedRoomId, onSelect, onRoomFocus }: 
               height={z1 - z0}
               rx={0.16}
               className="fp-floor"
+              fill={`url(#fp-floor-${room.id})`}
               onClick={(e) => {
                 e.stopPropagation();
                 onRoomFocus(focused ? null : room.id);
@@ -302,8 +318,16 @@ export function Floorplan({ selectedId, focusedRoomId, onSelect, onRoomFocus }: 
               {(FURNITURE[room.id] ?? []).map((fp, i) => footprintEl(fp, `${room.id}-${i}`))}
             </g>
             <g className="fp-chip" pointerEvents="none">
+              <rect
+                x={cx - 0.55}
+                y={z0 + 0.12}
+                width={1.1}
+                height={0.74}
+                rx={0.1}
+                className="fp-labelchip"
+              />
               <text
-                x={(x0 + x1) / 2}
+                x={cx}
                 y={z0 + 0.44}
                 textAnchor="middle"
                 className="fp-roomname"
@@ -311,7 +335,7 @@ export function Floorplan({ selectedId, focusedRoomId, onSelect, onRoomFocus }: 
                 {room.name.toUpperCase()}
               </text>
               <text
-                x={(x0 + x1) / 2}
+                x={cx}
                 y={z0 + 0.72}
                 textAnchor="middle"
                 className="fp-roomarea"

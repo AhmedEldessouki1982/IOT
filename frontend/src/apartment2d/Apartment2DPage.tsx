@@ -9,7 +9,6 @@ import { DevicePanel } from "./ui/DevicePanel";
 import { Splash } from "./ui/Splash";
 import { HintToast } from "./ui/HintToast";
 import { Floorplan } from "./Floorplan";
-import "./apt.css";
 import "./apartment2d.css";
 
 const TOD_KEY = "apt-time-of-day";

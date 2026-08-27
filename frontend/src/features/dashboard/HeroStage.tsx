@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Map, Maximize2, Eye } from "lucide-react";
 import { Floorplan } from "../../apartment2d/Floorplan";
-import "../../apartment2d/apt.css";
 import "../../apartment2d/apartment2d.css";
 
 interface HeroStageProps {
