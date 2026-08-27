@@ -9,7 +9,7 @@ import { DEVICES_2D } from "./apartment2d/config/apartment";
 import { useHomeStore } from "./store/useHomeStore";
 import { useThemeStore } from "./store/useThemeStore";
 import RoomCard from "./features/rooms/RoomCard";
-import DeviceRenderer from "./features/devices/DeviceRenderer";
+import CardDevice from "./features/devices/CardDevice";
 import DemoBadge from "./shared/DemoBadge";
 
 function TopBar({
@@ -50,7 +50,7 @@ function TopBar({
             <Home size={16} strokeWidth={2} />
           </span>
           <span className="cc-brand-text">
-            <h1>NOVA RESIDENCE</h1>
+            <h1>FOXWARE</h1>
             <span>Smart Home · Digital Twin</span>
           </span>
         </div>
@@ -189,7 +189,7 @@ export default function App() {
                       </div>
                       <div className="cc-room-body" onClick={(e) => e.stopPropagation()}>
                         {room.devices.map((dev) => (
-                          <DeviceRenderer key={dev.id} config={dev} />
+                          <CardDevice key={dev.id} config={dev} />
                         ))}
                       </div>
                     </div>
@@ -213,7 +213,7 @@ export default function App() {
                 {(focusedRoomId ? ROOMS.filter((r) => r.id === focusedRoomId) : ROOMS).map((room) => (
                   <RoomCard key={room.id} name={room.name} icon={room.icon}>
                     {room.devices.map((dev) => (
-                      <DeviceRenderer key={dev.id} config={dev} />
+                      <CardDevice key={dev.id} config={dev} />
                     ))}
                   </RoomCard>
                 ))}
@@ -236,7 +236,7 @@ export default function App() {
               {ROOMS.map((room) => (
                 <RoomCard key={room.id} name={room.name} icon={room.icon}>
                   {room.devices.map((dev) => (
-                    <DeviceRenderer key={dev.id} config={dev} />
+                    <CardDevice key={dev.id} config={dev} />
                   ))}
                 </RoomCard>
               ))}
@@ -356,7 +356,7 @@ export default function App() {
       </div>
 
       <footer className="cc-footer">
-        NOVA RESIDENCE · IoT Command Center · {new Date().getFullYear()} · Premium Engineering
+        FOXWARE · IoT Command Center · {new Date().getFullYear()} · Premium Engineering
       </footer>
     </div>
   );

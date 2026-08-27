@@ -1,58 +1,21 @@
 import {
-  Lightbulb,
-  Thermometer,
   DoorClosed,
   UtensilsCrossed,
   Bath,
   BedDouble,
-  Flame,
 } from "lucide-react";
 import { createElement, type ReactNode } from "react";
+import type { DeviceConfig } from "../devices/deviceKinds";
 
 /* ------------------------------------------------------------------ */
-/*  Device definitions per room                                        */
+/*  Room data                                                          */
 /* ------------------------------------------------------------------ */
-
-export interface LightDevice {
-  kind: "light";
-  id: string;
-  label: string;
-  defaultOn?: boolean;
-}
-
-export interface TempDevice {
-  kind: "temp";
-  id: string;
-  label: string;
-  value: number;
-  unit: string;
-  trend: number[];
-}
-
-export interface GasDevice {
-  kind: "gas";
-  id: string;
-  label: string;
-  detected?: boolean;
-}
-
-export type DeviceConfig = LightDevice | TempDevice | GasDevice;
 
 export interface RoomConfig {
   id: string;
   name: string;
   icon: ReactNode;
   devices: DeviceConfig[];
-}
-
-/* ------------------------------------------------------------------ */
-/*  Room data                                                          */
-/* ------------------------------------------------------------------ */
-
-const LIGHT_ICON = { icon: Lightbulb, size: 15, strokeWidth: 1.5 };
-
-function lightIcon() {
-  return createElement(LIGHT_ICON.icon, LIGHT_ICON);
 }
 
 const DEFAULT_TREND = [22.1, 22.4, 23.0, 23.8, 23.5, 24.2, 24.5, 24.3, 24.5];
@@ -99,12 +62,4 @@ export const ROOMS: RoomConfig[] = [
 
 export function totalDevices(rooms: RoomConfig[]): number {
   return rooms.reduce((n, r) => n + r.devices.length, 0);
-}
-
-export function deviceIcon(kind: DeviceConfig["kind"]): ReactNode {
-  switch (kind) {
-    case "light": return lightIcon();
-    case "temp": return createElement(Thermometer, { size: 15, strokeWidth: 1.5 });
-    case "gas": return createElement(Flame, { size: 15, strokeWidth: 1.5 });
-  }
 }

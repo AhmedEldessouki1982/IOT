@@ -12,7 +12,7 @@ import {
 import type { Footprint } from "./config/apartment";
 import type { DevicePlacement } from "./types";
 import { useMergedState } from "./hooks/useDeviceState";
-import { kelvinToHex } from "./utils/kelvin";
+import { Device, toCanonicalKind, type DeviceProps } from "../features/devices";
 
 /* ============================================================== geometry */
 
@@ -104,8 +104,6 @@ function footprintEl(fp: Footprint, key: string) {
 
 /* ============================================================ device node */
 
-const deg = (rad: number) => (rad * 180) / Math.PI;
-
 function DeviceNode({
   placement,
   selected,
@@ -118,111 +116,21 @@ function DeviceNode({
   const s = useMergedState(placement.deviceId, placement.kind);
   const [x, , z] = placement.position;
   const rot = placement.rotationY ?? 0;
-  const num = (k: string, f: number) => Number(s[k] ?? f);
 
-  let glyph = null;
-  let hitR = 0.42;
+  const kind = toCanonicalKind(placement);
+  const glyph = (
+    <Device
+      {...({
+        kind,
+        variant: "floorplan",
+        state: s,
+        rot,
+        width: placement.width,
+      } as DeviceProps)}
+    />
+  );
 
-  if (placement.kind === "ceilingLight" || placement.kind === "lamp") {
-    const on = Boolean(s.on);
-    const brightness = num("brightness", 80);
-    const scale = placement.kind === "lamp" ? 0.62 : 1;
-    const color = kelvinToHex(num("kelvin", 3400));
-    glyph = (
-      <>
-        {on && (
-          <circle
-            r={(0.42 + (brightness / 100) * 0.9) * scale}
-            fill={color}
-            opacity={0.24 + brightness / 400}
-            className="fp-glow"
-          />
-        )}
-        <circle r={0.11} className="fp-dot" data-on={on} style={on ? { fill: color } : undefined} />
-        {on && <circle r={0.2} fill="none" stroke={color} strokeWidth={0.03} opacity={0.7} />}
-      </>
-    );
-  } else if (placement.kind === "ac") {
-    const on = Boolean(s.on);
-    glyph = (
-      <g transform={`rotate(${deg(rot)})`}>
-        {on && (
-          <>
-            <path d="M -0.16 0.2 q 0.16 0.12 0.32 0" className="fp-air" />
-            <path d="M -0.16 0.32 q 0.16 0.12 0.32 0" className="fp-air fp-air2" />
-            <text y={-0.22} textAnchor="middle" className="fp-micro">
-              {num("tempC", 23)}° {String(s.mode ?? "cool").toUpperCase()}
-            </text>
-          </>
-        )}
-        <rect x={-0.21} y={-0.075} width={0.42} height={0.15} rx={0.05} className="fp-ac" data-on={on} />
-        <line x1={-0.13} y1={0.03} x2={0.13} y2={0.03} className="fp-acvent" data-on={on} />
-      </g>
-    );
-  } else if (placement.kind === "tv") {
-    const on = Boolean(s.on);
-    glyph = (
-      <g transform={`rotate(${deg(rot)})`}>
-        {on && <rect x={-0.19} y={-0.12} width={0.38} height={0.24} className="fp-glowbox" />}
-        <rect x={-0.17} y={-0.1} width={0.34} height={0.2} rx={0.02} className="fp-tv" data-on={on} />
-      </g>
-    );
-  } else if (placement.kind === "curtains") {
-    const open = num("open", 70) / 100;
-    const L = placement.width ?? 1.8;
-    const panel = (L * (1 - open)) / 2;
-    glyph = (
-      <g transform={`rotate(${deg(rot)})`}>
-        <line x1={-L / 2} y1={0} x2={L / 2} y2={0} className="fp-curtain-track" />
-        <line x1={-L / 2} y1={0} x2={-L / 2 + panel} y2={0} className="fp-curtain" />
-        <line x1={L / 2 - panel} y1={0} x2={L / 2} y2={0} className="fp-curtain" />
-      </g>
-    );
-    hitR = Math.max(0.3, L / 3);
-  } else if (placement.kind === "lock") {
-    const locked = s.locked !== false;
-    glyph = (
-      <g>
-        {locked && <circle r={0.34} fill="var(--fp-lock-glow)" opacity={0.25} className="fp-glow" />}
-        <path d="M -0.06 -0.03 v -0.07 a 0.06 0.06 0 0 1 0.12 0 v 0.07" className="fp-shackle" data-locked={locked} />
-        <rect x={-0.095} y={-0.03} width={0.19} height={0.16} rx={0.04} className="fp-lockbody" data-locked={locked} />
-        <circle cy={0.045} r={0.025} className="fp-keyhole" />
-        {!locked && (
-          <text y={-0.28} textAnchor="middle" className="fp-micro fp-alarm-text">
-            UNLOCKED
-          </text>
-        )}
-      </g>
-    );
-  } else {
-    // sensor
-    const metric = placement.sensorOf ?? "tempC";
-    const alarm = metric === "smoke" && s.smoke === "alarm";
-    const readout =
-      metric === "tempC"
-        ? `${num("tempC", 24.5).toFixed(1)}°`
-        : metric === "humidity"
-          ? `${num("humidity", 48).toFixed(0)}%`
-          : alarm
-            ? "ALERT"
-            : "CLEAR";
-    glyph = (
-      <g>
-        <rect
-          x={-0.085}
-          y={-0.085}
-          width={0.17}
-          height={0.17}
-          transform="rotate(45)"
-          className="fp-sensor"
-          data-alarm={alarm}
-        />
-        <text x={0.26} y={0.07} className={`fp-sensortext${alarm ? " fp-alarm-text" : ""}`}>
-          {readout}
-        </text>
-      </g>
-    );
-  }
+  const hitR = placement.kind === "curtains" ? Math.max(0.3, (placement.width ?? 1.8) / 3) : 0.42;
 
   return (
     <g transform={`translate(${x} ${z})`} className="fp-device">
