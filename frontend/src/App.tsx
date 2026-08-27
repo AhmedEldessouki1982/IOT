@@ -1,16 +1,16 @@
 import { useEffect, useState, useMemo } from "react";
 import { Home, Sparkles, Zap, Shield, Flame, Thermometer } from "lucide-react";
-import NavRail, { type NavTab } from "./components/premium/NavRail";
-import HeroStage from "./components/premium/HeroStage";
-import RoomDock from "./components/premium/RoomDock";
-import InspectorPanel from "./components/premium/InspectorPanel";
-import { ROOMS } from "./rooms";
+import NavRail, { type NavTab } from "./features/dashboard/NavRail";
+import HeroStage from "./features/dashboard/HeroStage";
+import RoomDock from "./features/rooms/RoomDock";
+import InspectorPanel from "./features/dashboard/InspectorPanel";
+import { ROOMS } from "./features/rooms/roomsConfig";
 import { DEVICES_2D } from "./apartment2d/config/apartment";
 import { useHomeStore } from "./store/useHomeStore";
 import { useThemeStore } from "./store/useThemeStore";
-import { useDeviceStore } from "./apartment/store/useDeviceStore";
-import RoomCard from "./components/RoomCard";
-import DeviceRenderer from "./components/DeviceRenderer";
+import RoomCard from "./features/rooms/RoomCard";
+import DeviceRenderer from "./features/devices/DeviceRenderer";
+import DemoBadge from "./shared/DemoBadge";
 
 function TopBar({
   online,
@@ -100,7 +100,7 @@ function Placeholder({ icon: Icon, title, desc }: { icon: any; title: string; de
   return (
     <div className="cc-placeholder">
       <Icon size={28} strokeWidth={1.4} style={{ color: "var(--cc-accent)", margin: "0 auto", display: "block" }} />
-      <h3 style={{ marginTop: 12 }}>{title}</h3>
+      <h3>{title}</h3>
       <p>{desc}</p>
     </div>
   );
@@ -109,10 +109,7 @@ function Placeholder({ icon: Icon, title, desc }: { icon: any; title: string; de
 export default function App() {
   const online = useHomeStore((s) => s.online);
   const homeLoad = useHomeStore((s) => s.load);
-  const deviceOnline = useDeviceStore((s) => s.online);
   const theme = useThemeStore((s) => s.theme);
-
-  const isOnline = online || deviceOnline;
 
   const [activeTab, setActiveTab] = useState<NavTab>("overview");
   const [focusedRoomId, setFocusedRoomId] = useState<string | null>(null);
@@ -131,7 +128,6 @@ export default function App() {
     return ROOMS.filter((r) => r.id === focusedRoomId);
   }, [focusedRoomId]);
 
-  // keep selection in sync: if room changes, clear device if not in room
   useEffect(() => {
     if (selectedId && focusedRoomId) {
       const dev = DEVICES_2D.find((d) => d.deviceId === selectedId);
@@ -143,7 +139,7 @@ export default function App() {
 
   return (
     <div className="cc-root">
-      <TopBar online={isOnline} activeTab={activeTab} onTabChange={setActiveTab} />
+      <TopBar online={online} activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div className="cc-shell">
         <NavRail active={activeTab} onChange={setActiveTab} />
@@ -256,23 +252,15 @@ export default function App() {
                       <button
                         key={d.deviceId}
                         type="button"
+                        className="cc-dev-item"
+                        data-selected={selectedId === d.deviceId}
                         onClick={() => setSelectedId(d.deviceId)}
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          padding: "10px 14px",
-                          background: selectedId === d.deviceId ? "var(--cc-accent-soft)" : "var(--cc-surface-2)",
-                          border: `1px solid ${selectedId === d.deviceId ? "var(--cc-accent-glow)" : "var(--cc-border)"}`,
-                          borderRadius: "var(--cc-radius-sm)",
-                          color: "var(--cc-text)",
-                          cursor: "pointer",
-                          textAlign: "left",
-                          fontSize: 12,
-                          fontWeight: 500,
-                        }}
                       >
-                        <span>{d.name}</span>
-                        <span style={{ color: "var(--cc-text-muted)", fontSize: 11 }}>{d.roomId}</span>
+                        <span className="cc-dev-item-label">
+                          <span className={`cc-live-dot--sm`} data-live={d.deviceId === "light1" ? "true" : "false"} />
+                          <span>{d.name}</span>
+                        </span>
+                        <span className="cc-dev-item-meta">{d.roomId}</span>
                       </button>
                     ))}
                   </div>
@@ -283,6 +271,10 @@ export default function App() {
 
           {activeTab === "scenes" && (
             <div style={{ maxWidth: 720 }}>
+              <div className="cc-section-head">
+                <h3>Scenes</h3>
+                <DemoBadge variant="preview" />
+              </div>
               <Placeholder icon={Sparkles} title="Scenes" desc="One-tap atmospheres — Evening, Away, Night, Entertain. Backend scenes not yet exposed; visual architecture ready." />
               <div className="cc-scene-grid">
                 {[
@@ -303,6 +295,13 @@ export default function App() {
 
           {activeTab === "energy" && (
             <div style={{ display: "grid", gap: 16, maxWidth: 720 }}>
+              <div className="cc-section-head">
+                <div>
+                  <h3>Energy</h3>
+                  <p style={{ margin: 0, fontSize: 12, color: "var(--cc-text-muted)" }}>Whole-home consumption</p>
+                </div>
+                <DemoBadge variant="demo" />
+              </div>
               <div className="cc-energy-card">
                 <div className="cc-energy-head">
                   <div>
@@ -313,7 +312,7 @@ export default function App() {
                 </div>
                 <div className="cc-energy-main">
                   <span className="cc-energy-value">1.2 kW</span>
-                  <span style={{ fontSize: 12, color: "var(--cc-text-muted)" }}>now</span>
+                  <span className="cc-dev-item-meta">now</span>
                 </div>
                 <svg viewBox="0 0 200 44" preserveAspectRatio="none" style={{ width: "100%", height: 44, display: "block" }}>
                   <defs>
@@ -332,19 +331,23 @@ export default function App() {
 
           {activeTab === "security" && (
             <div style={{ maxWidth: 720 }}>
+              <div className="cc-section-head">
+                <h3>Security</h3>
+                <DemoBadge variant="preview" />
+              </div>
               <Placeholder icon={Shield} title="Security" desc="Access, locks and sensors. The apartment's smart lock is live on the floorplan — tap the entrance door to control it." />
               <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
                 <div className="cc-control-row">
                   <span className="cc-control-label"><Shield size={14} /> Main Entrance · Smart Lock</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", padding: "4px 10px", borderRadius: 999, background: "var(--cc-success-soft)", color: "var(--cc-success)", border: "1px solid rgba(34,197,94,0.2)" }}>LOCKED</span>
+                  <span className="cc-status-pill cc-status-pill--success">LOCKED</span>
                 </div>
                 <div className="cc-control-row">
                   <span className="cc-control-label"><Flame size={14} /> Smoke · Kitchen</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--cc-success)" }}>Clear</span>
+                  <span className="cc-status-pill cc-status-pill--muted">Clear</span>
                 </div>
                 <div className="cc-control-row">
                   <span className="cc-control-label"><Thermometer size={14} /> Gas · Dining</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--cc-success)" }}>Safe</span>
+                  <span className="cc-status-pill cc-status-pill--muted">Safe</span>
                 </div>
               </div>
             </div>
@@ -352,7 +355,7 @@ export default function App() {
         </main>
       </div>
 
-      <footer style={{ textAlign: "center", padding: "16px 24px 24px", fontSize: 11, color: "var(--cc-text-dim)", letterSpacing: "0.06em" }}>
+      <footer className="cc-footer">
         NOVA RESIDENCE · IoT Command Center · {new Date().getFullYear()} · Premium Engineering
       </footer>
     </div>

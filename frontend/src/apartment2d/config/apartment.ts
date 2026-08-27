@@ -1,4 +1,4 @@
-import type { DeviceKind, Vec3, DevicePlacement } from "../../apartment/types";
+import type { DeviceKind, Vec3, DevicePlacement } from "../types";
 
 /**
  * REAL APARTMENT CONFIGURATION — 2D FLOORPLAN

@@ -1,8 +1,8 @@
 import { Lightbulb, Thermometer, Flame, Fan, SlidersHorizontal, Activity, ShieldCheck, AlertTriangle } from "lucide-react";
-import { ROOMS } from "../../rooms";
+import { ROOMS } from "../rooms/roomsConfig";
 import { DEVICES_2D, ROOMS_2D } from "../../apartment2d/config/apartment";
-import { useMergedState, useRawState } from "../../apartment/hooks/useDeviceState";
-import { useDeviceStore } from "../../apartment/store/useDeviceStore";
+import { useMergedState, useRawState } from "../../apartment2d/hooks/useDeviceState";
+import { useDeviceStore } from "../../apartment2d/store/useDeviceStore";
 import { useHomeStore } from "../../store/useHomeStore";
 import EnvOverview from "./EnvOverview";
 
@@ -72,24 +72,14 @@ function PremiumSlider({
 
 function Seg({ options, value, onChange }: { options: string[]; value: unknown; onChange: (v: string) => void }) {
   return (
-    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    <div className="cc-seg-row">
       {options.map((o) => (
         <button
           key={o}
           type="button"
+          className="cc-seg-btn"
+          data-active={value === o}
           onClick={() => onChange(o)}
-          style={{
-            padding: "6px 12px",
-            borderRadius: 999,
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            border: "1px solid var(--cc-border)",
-            background: value === o ? "var(--cc-accent-soft)" : "var(--cc-surface-2)",
-            color: value === o ? "var(--cc-accent)" : "var(--cc-text-muted)",
-            cursor: "pointer",
-          }}
         >
           {o}
         </button>
@@ -105,7 +95,6 @@ function DeviceDetail({ deviceId, onClose }: { deviceId: string; onClose: () => 
   const raw = useRawState(deviceId);
   const send = useDeviceStore((s) => s.sendCommand);
 
-  // also support light1 via home store for backward compat
   const homeDevice = useHomeStore((s) => s.device);
   const homeToggle = useHomeStore((s) => s.toggle);
   const isLight1 = deviceId === "light1";
@@ -125,7 +114,10 @@ function DeviceDetail({ deviceId, onClose }: { deviceId: string; onClose: () => 
       <>
         <Section title="Power">
           <div className="cc-control-row">
-            <span className="cc-control-label"><Lightbulb size={14} /> {displayName}</span>
+            <span className="cc-control-label">
+              <Lightbulb size={14} /> {displayName}
+              {isLight1 && <span className="cc-badge cc-badge--live" style={{ marginLeft: 6 }}>Live</span>}
+            </span>
             <PremiumPower on={isOn} onToggle={toggle} />
           </div>
         </Section>
@@ -142,16 +134,7 @@ function DeviceDetail({ deviceId, onClose }: { deviceId: string; onClose: () => 
             <PremiumPower on={isOn} onToggle={() => send(deviceId, { on: !isOn })} />
           </div>
         </Section>
-        <div className="cc-slider-wrap">
-          <div className="cc-slider-head"><span className="cc-slider-label">Target</span><span className="cc-slider-value">{num("tempC", 23)}°C</span></div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button className="cc-icon-btn" onClick={() => send(deviceId, { tempC: num("tempC", 23) - 1 })} disabled={num("tempC", 23) <= 16}>−</button>
-            <div style={{ flex: 1, height: 4, background: "var(--cc-border-strong)", borderRadius: 2, position: "relative" }}>
-              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${((num("tempC", 23) - 16) / 14) * 100}%`, background: "var(--cc-accent)", borderRadius: 2 }} />
-            </div>
-            <button className="cc-icon-btn" onClick={() => send(deviceId, { tempC: num("tempC", 23) + 1 })} disabled={num("tempC", 23) >= 30}>+</button>
-          </div>
-        </div>
+        <PremiumSlider label="Target" value={num("tempC", 23)} unit="°C" min={16} max={30} step={1} disabled={!isOn} onChange={(v) => send(deviceId, { tempC: v })} />
         <Section title="Mode"><Seg options={["cool", "heat", "dry", "fan"]} value={state.mode} onChange={(v) => send(deviceId, { mode: v })} /></Section>
         <Section title="Fan"><Seg options={["auto", "low", "medium", "high"]} value={state.fan} onChange={(v) => send(deviceId, { fan: v })} /></Section>
       </>
@@ -161,10 +144,10 @@ function DeviceDetail({ deviceId, onClose }: { deviceId: string; onClose: () => 
     const alarm = metric === "smoke" && state.smoke === "alarm";
     const readout = metric === "tempC" ? `${num("tempC", 24.5).toFixed(1)}°C` : metric === "humidity" ? `${num("humidity", 48).toFixed(0)}%` : alarm ? "ALERT" : "CLEAR";
     body = (
-      <div style={{ padding: 16, background: alarm ? "var(--cc-danger-soft)" : "var(--cc-surface-2)", border: `1px solid ${alarm ? "var(--cc-danger)" : "var(--cc-border)"}`, borderRadius: "var(--cc-radius-sm)", textAlign: "center" }}>
-        <div style={{ fontSize: 11, letterSpacing: "0.12em", color: "var(--cc-text-muted)", fontWeight: 600 }}>{metric.toUpperCase()}</div>
-        <div style={{ fontSize: 28, fontWeight: 700, color: alarm ? "var(--cc-danger)" : "var(--cc-accent)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>{readout}</div>
-        <div style={{ fontSize: 11, color: "var(--cc-text-muted)", marginTop: 6 }}>{alarm ? "Smoke detected — ventilate immediately" : "Nominal · last update just now"}</div>
+      <div className={`cc-sensor-readout${alarm ? " is-alarm" : ""}`}>
+        <div className="cc-sensor-readout-label">{metric.toUpperCase()}</div>
+        <div className="cc-sensor-readout-value">{readout}</div>
+        <div className="cc-sensor-readout-sub">{alarm ? "Smoke detected — ventilate immediately" : "Nominal · last update just now"}</div>
       </div>
     );
   } else {
@@ -185,7 +168,7 @@ function DeviceDetail({ deviceId, onClose }: { deviceId: string; onClose: () => 
         <button
           type="button"
           onClick={onClose}
-          style={{ position: "absolute", top: 12, right: 12, background: "var(--cc-surface-2)", border: "1px solid var(--cc-border)", borderRadius: 8, width: 28, height: 28, display: "grid", placeItems: "center", color: "var(--cc-text-muted)", cursor: "pointer" }}
+          className="cc-inspector-close"
         >
           ×
         </button>
@@ -215,56 +198,33 @@ function RoomDetail({ roomId, onSelectDevice }: { roomId: string; onSelectDevice
               <button
                 key={d.id}
                 type="button"
+                className="cc-dev-item"
                 onClick={() => d.kind !== "temp" && onSelectDevice(d.id)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  width: "100%",
-                  padding: "12px 14px",
-                  background: "var(--cc-surface-2)",
-                  border: "1px solid var(--cc-border)",
-                  borderRadius: "var(--cc-radius-sm)",
-                  color: "var(--cc-text)",
-                  cursor: d.kind === "temp" ? "default" : "pointer",
-                  textAlign: "left",
-                }}
+                style={{ cursor: d.kind === "temp" ? "default" : "pointer" }}
               >
-                <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 500 }}>
+                <span className="cc-dev-item-label">
                   {d.kind === "light" ? <Lightbulb size={14} /> : d.kind === "temp" ? <Thermometer size={14} /> : <Flame size={14} />}
-                  {d.label}
+                  <span>{d.label}</span>
                 </span>
-                <span style={{ fontSize: 11, color: "var(--cc-text-muted)" }}>{d.kind === "temp" ? "sensor" : "tap →"}</span>
+                <span className="cc-dev-item-meta">{d.kind === "temp" ? "sensor" : "tap →"}</span>
               </button>
             ))}
           </Section>
         ) : devices.length === 0 ? (
-          <div style={{ fontSize: 12, color: "var(--cc-text-muted)", textAlign: "center", padding: 16 }}>No devices mapped to this room.</div>
+          <div className="cc-empty-msg">No devices mapped to this room.</div>
         ) : (
           <Section title="Spatial devices">
             {devices.map((d) => (
               <button
                 key={d.deviceId}
                 type="button"
+                className="cc-dev-item"
                 onClick={() => onSelectDevice(d.deviceId)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  width: "100%",
-                  padding: "12px 14px",
-                  background: "var(--cc-surface-2)",
-                  border: "1px solid var(--cc-border)",
-                  borderRadius: "var(--cc-radius-sm)",
-                  color: "var(--cc-text)",
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}
               >
-                <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 500 }}>
+                <span className="cc-dev-item-label">
                   <Activity size={14} /> {d.name}
                 </span>
-                <span style={{ fontSize: 11, color: "var(--cc-text-muted)" }}>tap →</span>
+                <span className="cc-dev-item-meta">tap →</span>
               </button>
             ))}
           </Section>
@@ -293,7 +253,7 @@ export default function InspectorPanel({ selectedId, focusedRoomId, onCloseDevic
     return <RoomDetail roomId={focusedRoomId} onSelectDevice={onSelectDevice} />;
   }
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div className="cc-inspector-stack">
       <EnvOverview />
       <div className="cc-inspector">
         <div className="cc-inspector-head">
@@ -302,20 +262,18 @@ export default function InspectorPanel({ selectedId, focusedRoomId, onCloseDevic
           <p className="cc-inspector-sub">Tap a room or device on the floorplan to inspect</p>
         </div>
         <div className="cc-inspector-body">
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="cc-room-list">
             {ROOMS.map((r) => (
-              <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--cc-border-subtle)", fontSize: 12 }}>
-                <span style={{ color: "var(--cc-text-2)", fontWeight: 500 }}>{r.name}</span>
-                <span style={{ color: "var(--cc-text-muted)", fontVariantNumeric: "tabular-nums" }}>{r.devices.length} devices</span>
+              <div key={r.id} className="cc-room-list-row">
+                <span className="cc-room-list-name">{r.name}</span>
+                <span className="cc-room-list-count">{r.devices.length} devices</span>
               </div>
             ))}
           </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            <span style={{ flex: 1, padding: "10px 12px", background: "var(--cc-accent-soft)", border: "1px solid var(--cc-accent-glow)", borderRadius: "var(--cc-radius-sm)", fontSize: 11, fontWeight: 600, color: "var(--cc-accent)", textAlign: "center" }}>
-              <ShieldCheck size={12} style={{ verticalAlign: -2, marginRight: 6 }} />All systems secure
-            </span>
+          <div className="cc-status-banner">
+            <ShieldCheck size={12} style={{ verticalAlign: -2, marginRight: 6 }} />All systems secure
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--cc-text-muted)", justifyContent: "center", marginTop: 4 }}>
+          <div className="cc-status-footer">
             <AlertTriangle size={12} /> Gas sensor · Safe · Dining Area
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { ROOMS } from "../../rooms";
+import { ROOMS } from "./roomsConfig";
 
 interface RoomDockProps {
   activeId: string | null;

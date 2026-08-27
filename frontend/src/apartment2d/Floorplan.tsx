@@ -10,9 +10,9 @@ import {
   WINDOWS,
 } from "./config/apartment";
 import type { Footprint } from "./config/apartment";
-import type { DevicePlacement } from "../apartment/types";
-import { useMergedState } from "../apartment/hooks/useDeviceState";
-import { kelvinToHex } from "../apartment/utils/kelvin";
+import type { DevicePlacement } from "./types";
+import { useMergedState } from "./hooks/useDeviceState";
+import { kelvinToHex } from "./utils/kelvin";
 
 /* ============================================================== geometry */
 

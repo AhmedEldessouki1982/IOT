@@ -1,14 +1,15 @@
-import type { DeviceConfig } from "../rooms";
-import { deviceIcon } from "../rooms";
-import DeviceToggle from "./DeviceToggle";
-import TempSensorReadout from "./TempSensorReadout";
-import GasLeakSensor from "./GasLeakSensor";
-import { useHomeStore } from "../store/useHomeStore";
+import type { DeviceConfig } from "../rooms/roomsConfig";
+import { deviceIcon } from "../rooms/roomsConfig";
+import DeviceToggle from "../../shared/DeviceToggle";
+import TempSensorReadout from "../../shared/TempSensorReadout";
+import GasLeakSensor from "../../shared/GasLeakSensor";
+import { useHomeStore } from "../../store/useHomeStore";
 
 export default function DeviceRenderer({ config }: { config: DeviceConfig }) {
   const device = useHomeStore((s) => s.device);
   const toggle = useHomeStore((s) => s.toggle);
   const icon = deviceIcon(config.kind);
+  const isLive = config.id === "light1";
 
   switch (config.kind) {
     case "light":
@@ -16,9 +17,10 @@ export default function DeviceRenderer({ config }: { config: DeviceConfig }) {
         <DeviceToggle
           label={config.label}
           defaultState={config.defaultOn}
-          state={config.id === "light1" ? device?.state.on === true : undefined}
-          onToggle={config.id === "light1" ? toggle : undefined}
+          state={isLive ? device?.state.on === true : undefined}
+          onToggle={isLive ? toggle : undefined}
           icon={icon}
+          badge={isLive ? "live" : "demo"}
         />
       );
     case "temp":

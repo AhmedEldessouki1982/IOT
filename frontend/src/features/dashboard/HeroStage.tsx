@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Map, Maximize2, Eye } from "lucide-react";
 import { Floorplan } from "../../apartment2d/Floorplan";
-import { useDeviceStore } from "../../apartment/store/useDeviceStore";
-import "../../apartment/apartment.css";
+import "../../apartment2d/apt.css";
 import "../../apartment2d/apartment2d.css";
 
 interface HeroStageProps {
@@ -13,12 +12,6 @@ interface HeroStageProps {
 }
 
 export default function HeroStage({ selectedId, focusedRoomId, onSelect, onRoomFocus }: HeroStageProps) {
-  const load = useDeviceStore((s) => s.load);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
   const [expanded, setExpanded] = useState(false);
   const [tod, setTod] = useState<"day" | "night">(() => (localStorage.getItem("apt-time-of-day") as "day" | "night") || "day");
 
@@ -37,39 +30,19 @@ export default function HeroStage({ selectedId, focusedRoomId, onSelect, onRoomF
             <p>Interactive spatial view · {focusedRoomId ? `Focused · ${focusedRoomId}` : "Tap a room to focus · tap a device to control"}</p>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <div style={{ display: "inline-flex", background: "var(--cc-surface-2)", border: "1px solid var(--cc-border)", borderRadius: 999, padding: 2 }}>
+        <div className="cc-hero-controls">
+          <div className="cc-tod-toggle">
             <button
               type="button"
+              data-active={tod === "day"}
               onClick={() => { if (tod !== "day") toggleTod(); }}
-              style={{
-                padding: "4px 10px",
-                borderRadius: 999,
-                fontSize: 11,
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-                background: tod === "day" ? "var(--cc-surface)" : "transparent",
-                color: tod === "day" ? "var(--cc-text)" : "var(--cc-text-muted)",
-                boxShadow: tod === "day" ? "0 1px 4px rgba(0,0,0,0.15)" : "none",
-              }}
             >
               ☀ Day
             </button>
             <button
               type="button"
+              data-active={tod === "night"}
               onClick={() => { if (tod !== "night") toggleTod(); }}
-              style={{
-                padding: "4px 10px",
-                borderRadius: 999,
-                fontSize: 11,
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-                background: tod === "night" ? "var(--cc-surface)" : "transparent",
-                color: tod === "night" ? "var(--cc-text)" : "var(--cc-text-muted)",
-                boxShadow: tod === "night" ? "0 1px 4px rgba(0,0,0,0.15)" : "none",
-              }}
             >
               ☾ Night
             </button>

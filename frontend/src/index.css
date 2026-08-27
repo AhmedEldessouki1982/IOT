@@ -1251,6 +1251,329 @@ html[data-theme="light"] .cc-power-btn[data-on="true"] {
 }
 
 /* ================================================================
+   BADGES & MICRO-INDICATORS
+   ================================================================ */
+
+.cc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.cc-badge--live {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--cc-success, #22c55e);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+.cc-badge--demo {
+  background: rgba(251, 191, 36, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+.cc-badge--preview {
+  background: var(--cc-accent-soft, rgba(34, 211, 238, 0.1));
+  color: var(--cc-accent, #22d3ee);
+  border: 1px solid var(--cc-accent-glow, rgba(34, 211, 238, 0.2));
+}
+
+.cc-badge-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cc-badge-header h3,
+.cc-badge-header h4 {
+  margin: 0;
+}
+
+/* micro-dot indicator on device rows */
+.cc-live-dot--sm {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cc-live-dot--sm[data-live="true"] {
+  background: var(--cc-success, #22c55e);
+  box-shadow: 0 0 5px rgba(34, 197, 94, 0.6);
+}
+.cc-live-dot--sm[data-live="false"] {
+  background: var(--cc-text-dim, rgba(255,255,255,0.25));
+}
+
+/* ================================================================
+   DEVICE LIST ITEM (replaces inline-styled buttons)
+   ================================================================ */
+
+.cc-dev-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--cc-surface-2, rgba(255,255,255,0.04));
+  border: 1px solid var(--cc-border, rgba(255,255,255,0.08));
+  border-radius: var(--cc-radius-sm, 6px);
+  color: var(--cc-text, #e2e8f0);
+  cursor: pointer;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+.cc-dev-item:hover {
+  border-color: var(--cc-accent-glow, rgba(34, 211, 238, 0.3));
+  background: var(--cc-accent-soft, rgba(34, 211, 238, 0.06));
+}
+.cc-dev-item[data-selected="true"] {
+  border-color: var(--cc-accent-glow, rgba(34, 211, 238, 0.3));
+  background: var(--cc-accent-soft, rgba(34, 211, 238, 0.06));
+}
+.cc-dev-item-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cc-dev-item-meta {
+  color: var(--cc-text-muted, rgba(255,255,255,0.45));
+  font-size: 11px;
+}
+
+/* ================================================================
+   STATUS PILL (replaces inline LOCKED / CLEAR / Safe pills)
+   ================================================================ */
+
+.cc-status-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.cc-status-pill--success {
+  background: var(--cc-success-soft, rgba(34, 197, 94, 0.1));
+  color: var(--cc-success, #22c55e);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+.cc-status-pill--muted {
+  background: transparent;
+  color: var(--cc-success, #22c55e);
+  font-weight: 600;
+}
+
+/* ================================================================
+   HERO CONTROLS / DAY-NIGHT TOGGLE
+   ================================================================ */
+
+.cc-hero-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cc-tod-toggle {
+  display: inline-flex;
+  background: var(--cc-surface-2, rgba(255,255,255,0.04));
+  border: 1px solid var(--cc-border, rgba(255,255,255,0.08));
+  border-radius: 999px;
+  padding: 2px;
+}
+.cc-tod-toggle button {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  background: transparent;
+  color: var(--cc-text-muted, rgba(255,255,255,0.45));
+  transition: all 0.15s;
+}
+.cc-tod-toggle button[data-active="true"] {
+  background: var(--cc-surface, rgba(255,255,255,0.06));
+  color: var(--cc-text, #e2e8f0);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+/* ================================================================
+   FOOTER
+   ================================================================ */
+
+.cc-footer {
+  text-align: center;
+  padding: 16px 24px 24px;
+  font-size: 11px;
+  color: var(--cc-text-dim, rgba(255,255,255,0.2));
+  letter-spacing: 0.06em;
+}
+
+/* ================================================================
+   SECTION HEADER ROW
+   ================================================================ */
+
+.cc-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.cc-section-head h3 {
+  margin: 0;
+}
+.cc-section-head-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ================================================================
+   INSPECTOR EXTRAS
+   ================================================================ */
+
+.cc-inspector-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cc-inspector-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--cc-surface-2, rgba(255,255,255,0.04));
+  border: 1px solid var(--cc-border, rgba(255,255,255,0.08));
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: var(--cc-text-muted, rgba(255,255,255,0.45));
+  cursor: pointer;
+  font-size: 16px;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+.cc-inspector-close:hover { color: var(--cc-text, #e2e8f0); }
+
+.cc-sensor-readout {
+  padding: 16px;
+  background: var(--cc-surface-2, rgba(255,255,255,0.04));
+  border: 1px solid var(--cc-border, rgba(255,255,255,0.08));
+  border-radius: var(--cc-radius-sm, 6px);
+  text-align: center;
+}
+.cc-sensor-readout.is-alarm {
+  background: var(--cc-danger-soft, rgba(239,68,68,0.08));
+  border-color: var(--cc-danger, #ef4444);
+}
+.cc-sensor-readout-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--cc-text-muted, rgba(255,255,255,0.45));
+  font-weight: 600;
+}
+.cc-sensor-readout-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--cc-accent, #22d3ee);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.cc-sensor-readout.is-alarm .cc-sensor-readout-value {
+  color: var(--cc-danger, #ef4444);
+}
+.cc-sensor-readout-sub {
+  font-size: 11px;
+  color: var(--cc-text-muted, rgba(255,255,255,0.45));
+  margin-top: 6px;
+}
+
+.cc-seg-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.cc-seg-btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--cc-border, rgba(255,255,255,0.08));
+  background: var(--cc-surface-2, rgba(255,255,255,0.04));
+  color: var(--cc-text-muted, rgba(255,255,255,0.45));
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.cc-seg-btn:hover { color: var(--cc-text, #e2e8f0); }
+.cc-seg-btn[data-active="true"] {
+  background: var(--cc-accent-soft, rgba(34, 211, 238, 0.1));
+  color: var(--cc-accent, #22d3ee);
+}
+
+.cc-room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cc-room-list-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--cc-border-subtle, rgba(255,255,255,0.05));
+  font-size: 12px;
+}
+.cc-room-list-name { color: var(--cc-text-2, rgba(255,255,255,0.75)); font-weight: 500; }
+.cc-room-list-count { color: var(--cc-text-muted, rgba(255,255,255,0.45)); font-variant-numeric: tabular-nums; }
+
+.cc-status-banner {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--cc-accent-soft, rgba(34, 211, 238, 0.1));
+  border: 1px solid var(--cc-accent-glow, rgba(34, 211, 238, 0.2));
+  border-radius: var(--cc-radius-sm, 6px);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cc-accent, #22d3ee);
+  text-align: center;
+  justify-content: center;
+}
+
+.cc-status-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--cc-text-muted, rgba(255,255,255,0.45));
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.cc-empty-msg {
+  font-size: 12px;
+  color: var(--cc-text-muted, rgba(255,255,255,0.45));
+  text-align: center;
+  padding: 16px;
+}
+
+/* ================================================================
    LEGACY COMPAT — keep old dashboard classes functional
    ================================================================ */
 

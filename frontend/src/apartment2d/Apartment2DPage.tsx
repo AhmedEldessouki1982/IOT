@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { DEVICES_2D, ROOMS_2D } from "./config/apartment";
-import { useDeviceStore } from "../apartment/store/useDeviceStore";
+import { useDeviceStore } from "./store/useDeviceStore";
 import { useThemeStore } from "../store/useThemeStore";
-import type { TimeOfDay } from "../apartment/types";
-import { TopBar } from "../apartment/ui/TopBar";
-import { RoomNav } from "../apartment/ui/RoomNav";
-import { DevicePanel } from "../apartment/ui/DevicePanel";
-import { Splash } from "../apartment/ui/Splash";
-import { HintToast } from "../apartment/ui/HintToast";
+import type { TimeOfDay } from "./types";
+import { TopBar } from "./ui/TopBar";
+import { RoomNav } from "./ui/RoomNav";
+import { DevicePanel } from "./ui/DevicePanel";
+import { Splash } from "./ui/Splash";
+import { HintToast } from "./ui/HintToast";
 import { Floorplan } from "./Floorplan";
-import "./../apartment/apartment.css";
+import "./apt.css";
 import "./apartment2d.css";
 
 const TOD_KEY = "apt-time-of-day";
