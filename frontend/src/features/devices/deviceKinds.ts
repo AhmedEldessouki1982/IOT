@@ -45,7 +45,10 @@ export type DeviceConfig = LightConfig | GasLeakConfig | RoomTempConfig;
 /*  Default icons                                                       */
 /* ------------------------------------------------------------------ */
 
-const ICONS: Record<DeviceKind, { icon: typeof Lightbulb; size: number; strokeWidth: number }> = {
+const ICONS: Record<
+  DeviceKind,
+  { icon: typeof Lightbulb; size: number; strokeWidth: number }
+> = {
   light: { icon: Lightbulb, size: 15, strokeWidth: 1.5 },
   "gas-leak": { icon: Flame, size: 15, strokeWidth: 1.6 },
   "room-temp": { icon: Thermometer, size: 15, strokeWidth: 1.6 },

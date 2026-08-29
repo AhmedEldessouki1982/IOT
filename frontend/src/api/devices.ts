@@ -9,7 +9,8 @@ export interface DeviceState {
 
 export async function getDevice(deviceId: string): Promise<DeviceState> {
   const res = await fetch(`${BASE_URL}/devices/${deviceId}`);
-  if (!res.ok) throw new Error(`GET /devices/${deviceId} failed: ${res.status}`);
+  if (!res.ok)
+    throw new Error(`GET /devices/${deviceId} failed: ${res.status}`);
   return res.json();
 }
 

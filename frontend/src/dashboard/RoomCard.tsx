@@ -1,21 +1,82 @@
 import type { DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
+import {
+  Sofa,
+  UtensilsCrossed,
+  Bath,
+  Footprints,
+  BedSingle,
+  BedDouble,
+  Crown,
+  Droplets,
+} from "lucide-react";
+import { useHomeStore } from "../store/useHomeStore";
+import type { CSSProperties } from "react";
+
+const ROOM_ICON: Record<string, typeof Sofa> = {
+  reception: Sofa,
+  kitchen: UtensilsCrossed,
+  toilet: Bath,
+  corridor: Footprints,
+  bed1: BedSingle,
+  bed2: BedDouble,
+  master: Crown,
+  ensuite: Droplets,
+};
+
+const ROOM_SPAN: Record<string, string> = {
+  reception: "room-card--wide",
+  kitchen: "room-card--wide",
+  toilet: "room-card--narrow",
+  corridor: "room-card--narrow",
+  bed1: "room-card--narrow",
+  bed2: "room-card--narrow",
+  master: "room-card--narrow",
+  ensuite: "room-card--narrow",
+};
 
 interface RoomCardProps {
+  id: string;
   name: string;
   devices: DeviceConfig[];
-  /** light id => on state for dummy (non-live) lights, shared across the grid */
+  index?: number;
   dummyOn?: Record<string, boolean>;
-  /** toggle a dummy light by id */
   onDummyToggle?: (id: string) => void;
 }
 
-/** One room card — header + a list of that room's device rows. Nothing else. */
-export default function RoomCard({ name, devices, dummyOn, onDummyToggle }: RoomCardProps) {
+/** Bento room card — icon + name + meta, warm wash when any light is on. */
+export default function RoomCard({ id, name, devices, index = 0, dummyOn, onDummyToggle }: RoomCardProps) {
+  const Icon = ROOM_ICON[id] ?? BedSingle;
+  const spanClass = ROOM_SPAN[id] ?? "room-card--wide";
+
+  const liveOn = useHomeStore((s) => s.device?.state.on === true);
+  const lights = devices.filter((d) => d.kind === "light");
+  const lightsOn = lights.filter((d) => {
+    if (d.kind !== "light") return false;
+    if ((d as { deviceId?: string }).deviceId === "light1") return liveOn;
+    return dummyOn?.[d.id] ?? false;
+  }).length;
+  const hasActiveLight = lightsOn > 0;
+
   return (
-    <section className="room-card">
+    <section
+      className={`room-card ${spanClass}`}
+      data-on={hasActiveLight ? "true" : "false"}
+      style={{ "--i": index } as CSSProperties}
+    >
       <header className="room-card-head">
-        <h2 className="room-card-name">{name}</h2>
+        <div className="room-card-title">
+          <span className="room-card-icon" aria-hidden="true">
+            <Icon size={15} strokeWidth={1.7} />
+          </span>
+          <h2 className="room-card-name">{name}</h2>
+        </div>
+        <span className="room-card-meta">
+          <span className="room-card-count">
+            {devices.length} · {lights.length ? `${lightsOn} on` : "—"}
+          </span>
+          <span className="room-card-dot" aria-hidden="true" />
+        </span>
       </header>
       <ul className="room-card-list">
         {devices.map((config) => (

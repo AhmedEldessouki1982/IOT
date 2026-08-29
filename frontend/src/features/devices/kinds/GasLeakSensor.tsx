@@ -34,7 +34,10 @@ export default function GasLeakSensor({ label, current }: GasLeakSensorProps) {
         </span>
         <span className="device-label">{label}</span>
       </div>
-      <span className="gasleak-status" data-state={detected ? "danger" : "safe"}>
+      <span
+        className="gasleak-status"
+        data-state={detected ? "danger" : "safe"}
+      >
         {detected ? "Leak Detected" : "Safe"}
       </span>
     </div>

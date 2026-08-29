@@ -2,42 +2,56 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 }
 
 /* ================================================================
-   DESIGN SYSTEM — single fixed dark palette
-   Near-black, cyan accent. No theme switching.
+   DESIGN SYSTEM — visual delight edition
+   Signature: glass bento + spatial light. One risk: dual-accent
+   (cyan = system, amber = warm light) with ambient bloom.
+   2026 references: Apple Home tiles, Home Assistant Lovelace glass,
+   Tellasio cyan neomorphism.
    ================================================================ */
 
 :root {
   --cc-bg: #07090e;
   --cc-bg-2: #0a0d14;
+  --cc-bg-3: #0d1320;
   --cc-surface: #11151f;
   --cc-surface-2: #181d2b;
+  --cc-surface-3: #1e2538;
   --cc-surface-hover: #222a3d;
-  --cc-glass: rgba(17, 21, 31, 0.72);
+  --cc-glass: rgba(17, 21, 31, 0.64);
+  --cc-glass-strong: rgba(17, 21, 31, 0.82);
+  --cc-glass-border: rgba(255, 255, 255, 0.075);
   --cc-border: rgba(255, 255, 255, 0.06);
-  --cc-border-strong: rgba(255, 255, 255, 0.1);
+  --cc-border-strong: rgba(255, 255, 255, 0.11);
   --cc-border-subtle: rgba(255, 255, 255, 0.035);
   --cc-text: #eef2f8;
   --cc-text-2: #b8bfd4;
   --cc-text-3: #7a8299;
   --cc-text-muted: #5a627d;
+  --cc-text-faint: #3c435c;
   --cc-accent: #22d3ee;
   --cc-accent-2: #06b6d4;
   --cc-accent-soft: rgba(34, 211, 238, 0.08);
-  --cc-accent-glow: rgba(34, 211, 238, 0.18);
+  --cc-accent-glow: rgba(34, 211, 238, 0.16);
+  --cc-accent-glow-strong: rgba(34, 211, 238, 0.28);
+  --cc-amber: #f59e0b;
+  --cc-amber-soft: rgba(245, 158, 11, 0.09);
+  --cc-amber-glow: rgba(245, 158, 11, 0.22);
   --cc-success: #22c55e;
   --cc-danger: #ef4444;
-  --cc-warning: #f59e0b;
   --cc-shadow-soft: 0 2px 16px rgba(0, 0, 0, 0.4);
-  --cc-radius-lg: 16px;
+  --cc-shadow-card: 0 8px 24px rgba(0, 0, 0, 0.42), 0 1px 0 rgba(255,255,255,0.04) inset;
+  --cc-radius-lg: 18px;
   --cc-radius: 12px;
   --cc-radius-sm: 8px;
   --cc-radius-pill: 999px;
   --cc-ease: 180ms ease;
   --cc-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --cc-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html,
@@ -48,44 +62,89 @@ body {
   color: var(--cc-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ambient stage */
+.dash {
+  min-height: 100vh;
+  padding: 36px 36px 40px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(900px 520px at 8% -6%, rgba(34, 211, 238, 0.07), transparent 62%),
+    radial-gradient(800px 480px at 92% 2%, rgba(99, 102, 241, 0.05), transparent 60%),
+    radial-gradient(700px 400px at 50% 115%, rgba(245, 158, 11, 0.04), transparent 60%),
+    linear-gradient(180deg, var(--cc-bg-2), var(--cc-bg));
+}
+
+/* subtle grid texture */
+.dash::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(1200px 700px at 50% 0%, black 38%, transparent 78%);
 }
 
 /* ================================================================
-   PAGE — header + card grid
+   HEADER — display type + live clock
    ================================================================ */
-
-.dash {
-  min-height: 100vh;
-  padding: 32px 36px;
-  box-sizing: border-box;
-  background:
-    radial-gradient(1200px 600px at 12% -10%, rgba(34, 211, 238, 0.05), transparent 60%),
-    var(--cc-bg);
-}
 
 .dash-head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
-  max-width: 1240px;
-  margin: 0 auto 28px;
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto 30px;
+  position: relative;
+  z-index: 1;
 }
 
 .dash-greeting h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 34px;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  /* subtle display ink trap feel */
+}
+
+.dash-greeting-top {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.dash-clock {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--cc-text-3);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--cc-border-subtle);
+  padding: 4px 8px;
+  border-radius: 999px;
 }
 
 .dash-greeting p {
-  margin: 0;
-  display: flex;
+  margin: 10px 0 0;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
+  letter-spacing: 0.02em;
   color: var(--cc-text-muted);
 }
 
@@ -94,73 +153,192 @@ body {
   height: 8px;
   border-radius: 50%;
   background: var(--cc-success);
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.65);
+  animation: statusPulse 2.8s ease-in-out infinite;
+}
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.78; transform: scale(0.92); }
 }
 .dash-greeting p[data-online="false"] {
   color: var(--cc-danger);
 }
 .dash-greeting p[data-online="false"] .dash-status-dot {
   background: var(--cc-danger);
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+  animation: none;
 }
 
 .dash-summary {
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--cc-text-3);
+  color: var(--cc-text-faint);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--cc-border-subtle);
+  padding: 7px 10px;
+  border-radius: 999px;
   white-space: nowrap;
 }
 
-/* ---- card grid (2 col desktop, 1 col mobile) ---- */
+/* ================================================================
+   BENTO GRID — 12-col bento, cards span 6 / 4
+   2-col feel on desktop, true 1-col on mobile
+   ================================================================ */
 
 .dash-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  max-width: 1240px;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 18px;
+  max-width: 1280px;
   margin: 0 auto;
   align-items: start;
+  position: relative;
+  z-index: 1;
 }
 
+/* default span */
 .room-card {
-  background: linear-gradient(180deg, var(--cc-glass), rgba(17, 21, 31, 0.55));
-  border: 1px solid var(--cc-border);
+  grid-column: span 6;
+  background: linear-gradient(180deg, var(--cc-glass), rgba(17, 21, 31, 0.5));
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  border: 1px solid var(--cc-glass-border);
   border-radius: var(--cc-radius-lg);
-  padding: 20px 20px 8px;
-  box-shadow: var(--cc-shadow-soft);
+  padding: 18px 18px 10px;
+  box-shadow: var(--cc-shadow-card);
+  position: relative;
+  overflow: hidden;
   transition:
     transform 220ms var(--cc-ease-spring),
     border-color var(--cc-ease),
     background var(--cc-ease),
     box-shadow var(--cc-ease);
   will-change: transform;
+  /* entrance */
+  animation: cardIn 520ms var(--cc-ease-out) both;
+  animation-delay: calc(var(--i, 0) * 52ms);
 }
-.room-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--cc-accent-2);
-  background: linear-gradient(180deg, var(--cc-surface-2), rgba(17, 21, 31, 0.6));
-  box-shadow:
-    0 18px 40px -12px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(34, 211, 238, 0.12),
-    0 0 22px -6px var(--cc-accent-glow);
-}
-.room-card:active {
-  transform: translateY(-1px);
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* top hairline sheen */
+.room-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  opacity: 0.9;
+}
+
+/* amber warm wash when any light is on (wired via data-on) */
+.room-card[data-on="true"] {
+  border-color: rgba(245, 158, 11, 0.18);
+  background:
+    radial-gradient(420px 220px at 18% 0%, var(--cc-amber-soft), transparent 68%),
+    linear-gradient(180deg, var(--cc-glass-strong), rgba(17, 21, 31, 0.52));
+}
+
+.room-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(34, 211, 238, 0.22);
+  background: linear-gradient(180deg, rgba(24, 29, 43, 0.92), rgba(17, 21, 31, 0.58));
+  box-shadow:
+    0 18px 40px -12px rgba(0, 0, 0, 0.62),
+    0 0 0 1px rgba(34, 211, 238, 0.14),
+    0 0 28px -8px var(--cc-accent-glow-strong);
+}
+.room-card:active { transform: translateY(-1px); }
+
+/* bento rhythm: give variety without breaking scan */
+.room-card--wide { grid-column: span 6; }
+.room-card--narrow { grid-column: span 4; }
+.room-card--full { grid-column: span 12; }
+
+/* header — icon + name + meta */
 .room-card-head {
-  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--cc-border-subtle);
 }
 
+.room-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.room-card-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--cc-border-subtle);
+  color: var(--cc-text-2);
+  flex-shrink: 0;
+}
+.room-card[data-on="true"] .room-card-icon {
+  background: var(--cc-amber-soft);
+  border-color: rgba(245, 158, 11, 0.22);
+  color: var(--cc-amber);
+  box-shadow: 0 0 12px var(--cc-amber-glow);
+}
+
 .room-card-name {
   margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.room-card-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--cc-text-muted);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--cc-border-subtle);
+  padding: 4px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.room-card-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cc-text-faint);
+  box-shadow: none;
+  transition: all var(--cc-ease);
+}
+.room-card[data-on="true"] .room-card-dot {
+  background: var(--cc-amber);
+  box-shadow: 0 0 10px var(--cc-amber-glow);
 }
 
 .room-card-list {
@@ -172,7 +350,7 @@ body {
 }
 
 .room-card-item {
-  padding: 12px 2px;
+  padding: 11px 2px;
   border-bottom: 1px solid var(--cc-border-subtle);
 }
 .room-card-item:last-child {
@@ -204,61 +382,63 @@ body {
   color: var(--cc-text-2);
 }
 
-/* ---- light bulb: bright when on, dim when off ---- */
+/* light bulb: bright when on, dim when off */
 .device-row:has(.toggle) .device-icon {
   color: var(--cc-text-3);
-  opacity: 0.55;
+  opacity: 0.52;
   transition: color var(--cc-ease), opacity var(--cc-ease), filter var(--cc-ease);
 }
 .device-row:has(.toggle) .device-icon[data-on="true"] {
-  color: var(--cc-accent);
+  color: var(--cc-amber);
   opacity: 1;
-  filter: drop-shadow(0 0 5px var(--cc-accent-glow));
+  filter: drop-shadow(0 0 6px var(--cc-amber-glow));
 }
 .device-row:has(.toggle) .device-icon[data-on="false"] svg {
   fill: none;
-  opacity: 0.6;
+  opacity: 0.62;
 }
 
 .device-label {
   font-size: 13px;
   font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--cc-text-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* ---- on/off toggle ---- */
-
+/* toggle */
 .toggle {
   position: relative;
-  width: 36px;
-  height: 21px;
+  width: 38px;
+  height: 22px;
   border-radius: var(--cc-radius-pill);
-  background: var(--cc-border-strong);
-  border: 1px solid var(--cc-border);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
   cursor: pointer;
-  transition: background var(--cc-ease);
+  transition: background var(--cc-ease), border-color var(--cc-ease), box-shadow var(--cc-ease);
   padding: 0;
   flex-shrink: 0;
 }
 .toggle[data-on="true"] {
   background: var(--cc-accent);
   border-color: var(--cc-accent);
+  box-shadow: 0 0 14px var(--cc-accent-glow);
 }
 .toggle-knob {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #fff;
-  transition: transform var(--cc-ease-spring);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.28);
+  transition: transform 260ms var(--cc-ease-spring);
 }
 .toggle[data-on="true"] .toggle-knob {
-  transform: translateX(15px);
+  transform: translateX(16px);
   background: #06121a;
 }
 .toggle:focus-visible {
@@ -276,75 +456,92 @@ body {
 }
 .cc-live-dot--sm[data-live="true"] {
   background: var(--cc-success);
-  box-shadow: 0 0 5px rgba(34, 197, 94, 0.6);
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
 }
 .cc-live-dot--sm[data-live="false"] {
-  background: var(--cc-text-dim, #3c435c);
+  background: var(--cc-text-faint);
 }
 
 /* ================================================================
    SENSOR ROWS
    ================================================================ */
 
-/* gas leak — quiet by default, red only when triggered */
 .gasleak-status {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
   color: var(--cc-text-3);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--cc-border-subtle);
+  padding: 4px 7px;
+  border-radius: 999px;
 }
 .gasleak-status[data-state="danger"] {
-  color: var(--cc-danger);
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.22);
 }
 .device-row.gasleak[data-state="danger"] .device-icon {
   color: var(--cc-danger);
 }
-.device-icon[data-on="false"] svg {
-  color: var(--cc-text-3);
-}
 
-/* room temperature — number + unit, small sparkline */
 .roomtemp-value {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.roomtemp-spark {
-  opacity: 0.85;
-}
+.roomtemp-spark { opacity: 0.9; }
 .roomtemp-num {
   font-family: var(--font-mono);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--cc-text);
 }
 .roomtemp-unit {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--cc-text-3);
 }
 
 /* ================================================================
-   RESPONSIVE
+   RESPONSIVE — bento collapses gracefully
    ================================================================ */
 
+@media (max-width: 1080px) {
+  .room-card,
+  .room-card--narrow,
+  .room-card--wide {
+    grid-column: span 6;
+  }
+}
+
 @media (max-width: 860px) {
-  .dash {
-    padding: 24px 20px;
-  }
-  .dash-grid {
-    grid-template-columns: 1fr;
-  }
+  .dash { padding: 24px 18px 28px; }
   .dash-head {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 14px;
+  }
+  .dash-greeting h1 { font-size: 28px; }
+  .dash-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .room-card,
+  .room-card--narrow,
+  .room-card--wide,
+  .room-card--full {
+    grid-column: 1 / -1;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .toggle-knob {
-    transition: none;
-  }
+  .room-card { animation: none; }
+  .toggle-knob { transition: none; }
+  .dash-status-dot { animation: none; }
 }

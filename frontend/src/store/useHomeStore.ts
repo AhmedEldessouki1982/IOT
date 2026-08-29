@@ -44,7 +44,11 @@ export const useHomeStore = create<HomeStore>((set) => ({
         timestamp: new Date().toISOString(),
       };
       return {
-        device: { ...base, state: { ...base.state, on: next }, timestamp: new Date().toISOString() },
+        device: {
+          ...base,
+          state: { ...base.state, on: next },
+          timestamp: new Date().toISOString(),
+        },
       };
     });
     const on = useHomeStore.getState().device?.state.on ?? false;
