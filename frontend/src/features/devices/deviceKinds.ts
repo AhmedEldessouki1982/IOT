@@ -1,103 +1,57 @@
 import { createElement, type ReactNode } from "react";
-import { Lightbulb, Thermometer, Flame } from "lucide-react";
+import { Lightbulb, Flame, Thermometer } from "lucide-react";
 
 /**
- * Canonical device kinds shared by the room-card dashboard AND the 2D
- * floorplan. One component per kind (in ./kinds) renders either a DOM card
- * (variant="card") or an SVG floorplan glyph (variant="floorplan"), so the two
- * presentation contexts never keep their own per-kind switch.
- *
- *   canonical      dashboard (roomsConfig)   floorplan (DevicePlacement)
- *   --------       -----------------------   -----------------------------
- *   light     <->  light                     ceilingLight
- *   lamp      ->   (n/a / modeled as light)  lamp
- *   ac        ->   (n/a / modeled as light)  ac
- *   tv        ->   (n/a)                     tv
- *   curtains  ->   (n/a)                     curtains
- *   lock      ->   (n/a)                     lock
- *   temp      <->  temp                      sensor (sensorOf=tempC)
- *   gas       <->  gas                       sensor (sensorOf=smoke)
+ * Canonical device kinds, each mapped to exactly one reusable component in
+ * KIND_COMPONENTS. `Device` is the presentational dispatcher — components
+ * never dispatch by kind, they only render themselves.
  */
-export type DeviceKind =
-  | "light"
-  | "lamp"
-  | "ac"
-  | "tv"
-  | "curtains"
-  | "lock"
-  | "temp"
-  | "gas";
-
-export type DeviceVariant = "card" | "floorplan";
+export type DeviceKind = "light" | "gas-leak" | "room-temp";
 
 /* ------------------------------------------------------------------ */
-/*  Dashboard device config (source of truth for room card data)       */
+/*  Device configs — discriminated by `kind`, source of truth per kind */
 /* ------------------------------------------------------------------ */
 
 export interface LightConfig {
   kind: "light";
   id: string;
+  /** MQTT device id this light rounds-trips with the backend (`light1`). */
+  deviceId?: string;
   label: string;
   defaultOn?: boolean;
 }
 
-export interface TempConfig {
-  kind: "temp";
+export interface GasLeakConfig {
+  kind: "gas-leak";
   id: string;
   label: string;
-  value: number;
-  unit: string;
-  trend: number[];
-}
-
-export interface GasConfig {
-  kind: "gas";
-  id: string;
-  label: string;
+  /** Dummy value for now; swap for a backend reading later. */
   detected?: boolean;
 }
 
-export type DeviceConfig = LightConfig | TempConfig | GasConfig;
-
-const LIGHT_ICON = { icon: Lightbulb, size: 15, strokeWidth: 1.5 };
-
-export function deviceIcon(kind: DeviceConfig["kind"]): ReactNode {
-  switch (kind) {
-    case "light":
-      return createElement(LIGHT_ICON.icon, LIGHT_ICON);
-    case "temp":
-      return createElement(Thermometer, { size: 15, strokeWidth: 1.5 });
-    case "gas":
-      return createElement(Flame, { size: 15, strokeWidth: 1.5 });
-  }
+export interface RoomTempConfig {
+  kind: "room-temp";
+  id: string;
+  label: string;
+  /** degrees Celsius — dummy value for now. */
+  current?: number;
+  /** optional recent samples °C for the sparkline. */
+  history?: number[];
 }
 
-/* ---------------------------------------------------------- floorplan */
+export type DeviceConfig = LightConfig | GasLeakConfig | RoomTempConfig;
 
-/** radians -> degrees for SVG `rotate()` transforms on floorplan glyphs. */
-export const deg = (rad: number) => (rad * 180) / Math.PI;
+/* ------------------------------------------------------------------ */
+/*  Default icons                                                       */
+/* ------------------------------------------------------------------ */
 
-/** map a floorplan placement to its canonical device kind. */
-export function toCanonicalKind(placement: {
-  kind: string;
-  sensorOf?: string;
-}): DeviceKind {
-  switch (placement.kind) {
-    case "ceilingLight":
-      return "light";
-    case "lamp":
-      return "lamp";
-    case "ac":
-      return "ac";
-    case "tv":
-      return "tv";
-    case "curtains":
-      return "curtains";
-    case "lock":
-      return "lock";
-    case "sensor":
-      return placement.sensorOf === "smoke" ? "gas" : "temp";
-    default:
-      return "light";
-  }
+const ICONS: Record<DeviceKind, { icon: typeof Lightbulb; size: number; strokeWidth: number }> = {
+  light: { icon: Lightbulb, size: 15, strokeWidth: 1.5 },
+  "gas-leak": { icon: Flame, size: 15, strokeWidth: 1.6 },
+  "room-temp": { icon: Thermometer, size: 15, strokeWidth: 1.6 },
+};
+
+export function deviceIcon(kind: DeviceKind): ReactNode {
+  const c = ICONS[kind];
+  return createElement(c.icon, c);
 }

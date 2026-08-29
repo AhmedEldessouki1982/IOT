@@ -1,44 +1,54 @@
 import { useHomeStore } from "../../store/useHomeStore";
 import type { DeviceConfig } from "./deviceKinds";
 import { deviceIcon } from "./deviceKinds";
-import { Device } from "./index";
+import { Device, type DeviceProps } from "./index";
 
-/** Room-card device — wires the live `useHomeStore` (only `light1` is real),
- *  then delegates rendering to the shared per-kind `Device` component. */
-export default function CardDevice({ config }: { config: DeviceConfig }) {
+interface CardDeviceProps {
+  config: DeviceConfig;
+  /** external state override for non-live (dummy) lights — shared local state */
+  state?: boolean;
+  onToggle?: (on: boolean) => void;
+}
+
+/** One reusable row per device — dispatches by kind. Live lights (`light1`)
+ *  round-trip through `useHomeStore`; dummy lights use the shared local state
+ *  passed down; sensors render straight from their config. */
+export default function CardDevice({ config, state, onToggle }: CardDeviceProps) {
   const device = useHomeStore((s) => s.device);
   const toggle = useHomeStore((s) => s.toggle);
   const icon = deviceIcon(config.kind);
 
-  switch (config.kind) {
-    case "light": {
-      const isLive = config.id === "light1";
-      return (
-        <Device
-          kind="light"
-          variant="card"
-          label={config.label}
-          defaultOn={config.defaultOn}
-          state={isLive ? device?.state.on === true : undefined}
-          onToggle={isLive ? toggle : undefined}
-          icon={icon}
-          badge={isLive ? "live" : "demo"}
-        />
-      );
-    }
-    case "temp":
-      return (
-        <Device
-          kind="temp"
-          variant="card"
-          label={config.label}
-          value={config.value}
-          unit={config.unit}
-          trend={config.trend}
-          icon={icon}
-        />
-      );
-    case "gas":
-      return <Device kind="gas" variant="card" detected={config.detected} icon={icon} />;
+  if (config.kind === "light") {
+    const isLive = config.deviceId === "light1";
+    const props: DeviceProps = {
+      kind: "light",
+      variant: "card",
+      label: config.label,
+      defaultOn: config.defaultOn,
+      state: isLive ? device?.state.on === true : state,
+      onToggle: isLive ? () => toggle() : onToggle,
+      icon,
+      badge: isLive ? "live" : "demo",
+    };
+    return <Device {...props} />;
   }
+
+  if (config.kind === "gas-leak") {
+    const props: DeviceProps = {
+      kind: "gas-leak",
+      variant: "card",
+      label: config.label,
+      current: config.detected ?? false,
+    };
+    return <Device {...props} />;
+  }
+
+  const props: DeviceProps = {
+    kind: "room-temp",
+    variant: "card",
+    label: config.label,
+    current: config.current ?? 22,
+    history: config.history,
+  };
+  return <Device {...props} />;
 }
