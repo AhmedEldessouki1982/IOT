@@ -39,7 +39,6 @@
   --cc-accent-glow: rgba(34, 211, 238, 0.16);
   --cc-accent-glow-strong: rgba(34, 211, 238, 0.28);
   --cc-amber: #f59e0b;
-  --cc-amber-soft: rgba(245, 158, 11, 0.09);
   --cc-amber-glow: rgba(245, 158, 11, 0.22);
   --cc-success: #22c55e;
   --cc-danger: #ef4444;
@@ -52,6 +51,79 @@
   --cc-ease: 180ms ease;
   --cc-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --cc-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ink: the translucent "white" that underpins glass surfaces & borders */
+  --cc-ink: rgba(255, 255, 255, 0.06);
+  --cc-ink-subtle: rgba(255, 255, 255, 0.03);
+  --cc-ink-strong: rgba(255, 255, 255, 0.14);
+  --cc-knob: #ffffff;
+  --cc-grid-line: rgba(255, 255, 255, 0.028);
+  --cc-hud-corners: rgba(34, 211, 238, 0.5);
+
+  /* per-room accent (set inline per card); falls back to cyan */
+  --cc-room-accent: #22d3ee;
+  --cc-room-accent-soft: rgba(34, 211, 238, 0.1);
+  --cc-room-accent-glow: rgba(34, 211, 238, 0.28);
+
+  /* glass card surface stops (theme-aware, avoids dark-only hardcodes) */
+  --cc-surface-glass: rgba(17, 21, 31, 0.5);
+  --cc-surface-glass-strong: rgba(17, 21, 31, 0.52);
+  --cc-hover-surface-top: rgba(24, 29, 43, 0.92);
+  --cc-hover-surface-base: rgba(17, 21, 31, 0.58);
+}
+
+/* ================================================================
+   LIGHT THEME — the same tokens reminted for high ambient light.
+   Applied via data-theme set on <html> (see inline head script +
+   useThemeStore). The dark set above is the default so the page
+   renders correctly before any script runs.
+   ================================================================ */
+:root[data-theme="light"] {
+  --cc-bg: #eef1f6;
+  --cc-bg-2: #e7ebf1;
+  --cc-bg-3: #dfe5ed;
+  --cc-surface: #ffffff;
+  --cc-surface-2: #f6f8fb;
+  --cc-surface-3: #eef2f7;
+  --cc-surface-hover: #ffffff;
+  --cc-glass: rgba(255, 255, 255, 0.72);
+  --cc-glass-strong: rgba(255, 255, 255, 0.9);
+  --cc-glass-border: rgba(15, 23, 42, 0.09);
+  --cc-border: rgba(15, 23, 42, 0.08);
+  --cc-border-strong: rgba(15, 23, 42, 0.14);
+  --cc-border-subtle: rgba(15, 23, 42, 0.05);
+  --cc-text: #0f172a;
+  --cc-text-2: #334155;
+  --cc-text-3: #64748b;
+  --cc-text-muted: #64748b;
+  --cc-text-faint: #94a3b8;
+  --cc-accent: #0891b2;
+  --cc-accent-2: #0e7490;
+  --cc-accent-soft: rgba(8, 145, 178, 0.1);
+  --cc-accent-glow: rgba(8, 145, 178, 0.18);
+  --cc-accent-glow-strong: rgba(8, 145, 178, 0.26);
+  --cc-amber: #d97706;
+  --cc-amber-glow: rgba(217, 119, 6, 0.26);
+  --cc-success: #16a34a;
+  --cc-danger: #dc2626;
+  --cc-shadow-soft: 0 2px 14px rgba(15, 23, 42, 0.08);
+  --cc-shadow-card: 0 8px 24px rgba(15, 23, 42, 0.1), 0 1px 0 rgba(255,255,255,0.8) inset;
+
+  --cc-ink: rgba(15, 23, 42, 0.06);
+  --cc-ink-subtle: rgba(15, 23, 42, 0.03);
+  --cc-ink-strong: rgba(15, 23, 42, 0.13);
+  --cc-knob: #ffffff;
+  --cc-grid-line: rgba(15, 23, 42, 0.04);
+  --cc-hud-corners: rgba(8, 145, 178, 0.55);
+
+  --cc-room-accent: #0891b2;
+  --cc-room-accent-soft: rgba(8, 145, 178, 0.1);
+  --cc-room-accent-glow: rgba(8, 145, 178, 0.22);
+
+  --cc-surface-glass: rgba(255, 255, 255, 0.7);
+  --cc-surface-glass-strong: rgba(255, 255, 255, 0.85);
+  --cc-hover-surface-top: #ffffff;
+  --cc-hover-surface-base: #f6f8fb;
 }
 
 html,
@@ -87,8 +159,8 @@ body {
   pointer-events: none;
   opacity: 0.22;
   background-image:
-    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    linear-gradient(var(--cc-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cc-grid-line) 1px, transparent 1px);
   background-size: 28px 28px;
   mask-image: radial-gradient(1200px 700px at 50% 0%, black 38%, transparent 78%);
 }
@@ -126,15 +198,29 @@ body {
 }
 
 .dash-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  background: var(--cc-ink-subtle);
+  border: 1px solid var(--cc-border-subtle);
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+.dash-time {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--cc-text);
+  line-height: 1;
+}
+.dash-date {
+  font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.08em;
   color: var(--cc-text-3);
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--cc-border-subtle);
-  padding: 4px 8px;
-  border-radius: 999px;
+  line-height: 1.2;
 }
 
 .dash-greeting p {
@@ -176,11 +262,17 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--cc-text-faint);
-  background: rgba(255,255,255,0.03);
+  background: var(--cc-ink-subtle);
   border: 1px solid var(--cc-border-subtle);
   padding: 7px 10px;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+.dash-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 /* ================================================================
@@ -202,7 +294,7 @@ body {
 /* default span */
 .room-card {
   grid-column: span 6;
-  background: linear-gradient(180deg, var(--cc-glass), rgba(17, 21, 31, 0.5));
+  background: linear-gradient(180deg, var(--cc-glass), var(--cc-surface-glass));
   backdrop-filter: blur(14px) saturate(1.15);
   -webkit-backdrop-filter: blur(14px) saturate(1.15);
   border: 1px solid var(--cc-glass-border);
@@ -232,28 +324,40 @@ body {
   position: absolute;
   inset: 0 0 auto 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  background: linear-gradient(90deg, transparent, var(--cc-ink-strong), transparent);
   opacity: 0.9;
 }
 
 /* amber warm wash when any light is on (wired via data-on) */
 .room-card[data-on="true"] {
-  border-color: rgba(245, 158, 11, 0.18);
+  border-color: color-mix(in srgb, var(--cc-room-accent) 28%, transparent);
   background:
-    radial-gradient(420px 220px at 18% 0%, var(--cc-amber-soft), transparent 68%),
-    linear-gradient(180deg, var(--cc-glass-strong), rgba(17, 21, 31, 0.52));
+    radial-gradient(420px 220px at 18% 0%, color-mix(in srgb, var(--cc-room-accent) 12%, transparent), transparent 68%),
+    linear-gradient(180deg, var(--cc-glass-strong), var(--cc-surface-glass-strong));
 }
 
 .room-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(34, 211, 238, 0.22);
-  background: linear-gradient(180deg, rgba(24, 29, 43, 0.92), rgba(17, 21, 31, 0.58));
+  border-color: color-mix(in srgb, var(--cc-room-accent) 32%, transparent);
+  background: linear-gradient(180deg, var(--cc-hover-surface-top), var(--cc-hover-surface-base));
   box-shadow:
-    0 18px 40px -12px rgba(0, 0, 0, 0.62),
-    0 0 0 1px rgba(34, 211, 238, 0.14),
-    0 0 28px -8px var(--cc-accent-glow-strong);
+    0 18px 40px -12px rgba(0, 0, 0, 0.32),
+    0 0 0 1px color-mix(in srgb, var(--cc-room-accent) 22%, transparent),
+    0 0 28px -8px color-mix(in srgb, var(--cc-room-accent) 26%, transparent);
 }
 .room-card:active { transform: translateY(-1px); }
+
+/* per-room accent: icon badge + dot glow when the room's light is on */
+.room-card[data-on="true"] .room-card-icon {
+  background: color-mix(in srgb, var(--cc-room-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--cc-room-accent) 32%, transparent);
+  color: var(--cc-room-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--cc-room-accent) 26%, transparent);
+}
+.room-card[data-on="true"] .room-card-dot {
+  background: var(--cc-room-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cc-room-accent) 26%, transparent);
+}
 
 /* bento rhythm: give variety without breaking scan */
 .room-card--wide { grid-column: span 6; }
@@ -284,16 +388,10 @@ body {
   border-radius: 9px;
   display: grid;
   place-items: center;
-  background: rgba(255,255,255,0.04);
+  background: var(--cc-ink-subtle);
   border: 1px solid var(--cc-border-subtle);
   color: var(--cc-text-2);
   flex-shrink: 0;
-}
-.room-card[data-on="true"] .room-card-icon {
-  background: var(--cc-amber-soft);
-  border-color: rgba(245, 158, 11, 0.22);
-  color: var(--cc-amber);
-  box-shadow: 0 0 12px var(--cc-amber-glow);
 }
 
 .room-card-name {
@@ -321,7 +419,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--cc-text-muted);
-  background: rgba(255,255,255,0.03);
+  background: var(--cc-ink-subtle);
   border: 1px solid var(--cc-border-subtle);
   padding: 4px 7px;
   border-radius: 999px;
@@ -335,10 +433,6 @@ body {
   background: var(--cc-text-faint);
   box-shadow: none;
   transition: all var(--cc-ease);
-}
-.room-card[data-on="true"] .room-card-dot {
-  background: var(--cc-amber);
-  box-shadow: 0 0 10px var(--cc-amber-glow);
 }
 
 .room-card-list {
@@ -414,8 +508,8 @@ body {
   width: 38px;
   height: 22px;
   border-radius: var(--cc-radius-pill);
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--cc-ink);
+  border: 1px solid var(--cc-ink-strong);
   cursor: pointer;
   transition: background var(--cc-ease), border-color var(--cc-ease), box-shadow var(--cc-ease);
   padding: 0;
@@ -433,7 +527,7 @@ body {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--cc-knob);
   box-shadow: 0 1px 6px rgba(0,0,0,0.28);
   transition: transform 260ms var(--cc-ease-spring);
 }
@@ -474,7 +568,7 @@ body {
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--cc-text-3);
-  background: rgba(255,255,255,0.03);
+  background: var(--cc-ink-subtle);
   border: 1px solid var(--cc-border-subtle);
   padding: 4px 7px;
   border-radius: 999px;
@@ -538,6 +632,95 @@ body {
   .room-card--full {
     grid-column: 1 / -1;
   }
+}
+
+/* ================================================================
+   LIGHT THEME — ambient stage soften for day-time legibility
+   ================================================================ */
+:root[data-theme="light"] .dash {
+  background:
+    radial-gradient(900px 520px at 8% -6%, rgba(8, 145, 178, 0.08), transparent 62%),
+    radial-gradient(800px 480px at 92% 2%, rgba(99, 102, 241, 0.06), transparent 60%),
+    radial-gradient(700px 400px at 50% 115%, rgba(217, 119, 6, 0.05), transparent 60%),
+    linear-gradient(180deg, var(--cc-bg-2), var(--cc-bg));
+}
+:root[data-theme="light"] .dash::before {
+  mask-image: radial-gradient(1200px 700px at 50% 0%, rgba(0,0,0,0.25) 38%, transparent 78%);
+}
+
+/* ================================================================
+   COMMAND-CENTER HUD — theme toggle + corner brackets
+   ================================================================ */
+
+/* segmented light/dark switch */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--cc-radius-pill);
+  background: var(--cc-ink-subtle);
+  border: 1px solid var(--cc-border-subtle);
+}
+.theme-toggle-opt {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--cc-radius-pill);
+  background: transparent;
+  color: var(--cc-text-3);
+  cursor: pointer;
+  z-index: 1;
+  transition: color var(--cc-ease);
+}
+.theme-toggle-opt[aria-pressed="true"] {
+  color: var(--cc-text);
+}
+.theme-toggle-icon {
+  position: relative;
+  z-index: 2;
+}
+.theme-knob {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--cc-radius-pill);
+  background: var(--cc-surface-hover);
+  border: 1px solid var(--cc-border-strong);
+  box-shadow: var(--cc-shadow-soft);
+  z-index: 1;
+}
+.theme-toggle-opt:focus-visible {
+  outline: 2px solid var(--cc-accent);
+  outline-offset: 2px;
+}
+
+/* HUD corner brackets — tasteful sci-fi frame on each card (robust: uses
+   4 small L-shaped linear-gradient corners, no mask quirks) */
+.room-card::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  border-radius: calc(var(--cc-radius-lg) - 6px);
+  opacity: 0;
+  transition: opacity var(--cc-ease);
+  background:
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top left / 18px 2px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top left / 2px 18px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top right / 18px 2px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top right / 2px 18px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom left / 18px 2px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom left / 2px 18px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom right / 18px 2px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom right / 2px 18px;
+  background-repeat: no-repeat;
+}
+.room-card:hover::after {
+  opacity: 0.55;
 }
 
 @media (prefers-reduced-motion: reduce) {

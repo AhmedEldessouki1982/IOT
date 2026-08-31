@@ -40,8 +40,7 @@ export class TuyaService implements OnModuleInit, OnModuleDestroy {
   private readonly retryBaseMs = 2000;
 
   constructor(config: ConfigService) {
-    this.mappedId =
-      config.get<string>("TUYA_DEVICE_ID_MAPPING") ?? "switch1";
+    this.mappedId = config.get<string>("TUYA_DEVICE_ID_MAPPING") ?? "switch1";
 
     const tuyaId = config.get<string>("TUYA_DEVICE_ID") ?? "";
     const localKey = config.get<string>("TUYA_LOCAL_KEY") ?? "";
@@ -82,9 +81,7 @@ export class TuyaService implements OnModuleInit, OnModuleDestroy {
     this.device.on("connected", () => {
       this.connected = true;
       this.clearRetry();
-      this.logger.log(
-        `Tuya device ${this.mappedId} connected (id=${tuyaId})`,
-      );
+      this.logger.log(`Tuya device ${this.mappedId} connected (id=${tuyaId})`);
     });
     this.device.on("disconnected", () => {
       this.connected = false;
@@ -120,9 +117,7 @@ export class TuyaService implements OnModuleInit, OnModuleDestroy {
    */
   async setState(on: boolean): Promise<void> {
     if (!this.enabled || !this.device) {
-      this.logger.warn(
-        `Ignoring setState(${on}) — Tuya bridge is disabled`,
-      );
+      this.logger.warn(`Ignoring setState(${on}) — Tuya bridge is disabled`);
       return;
     }
     if (!this.connected) {
@@ -132,9 +127,7 @@ export class TuyaService implements OnModuleInit, OnModuleDestroy {
       return;
     }
     await this.device.set({ dps: ON_OFF_DPS, set: on });
-    this.logger.log(
-      `Tuya ${this.mappedId}: set DPS${ON_OFF_DPS} -> ${on}`,
-    );
+    this.logger.log(`Tuya ${this.mappedId}: set DPS${ON_OFF_DPS} -> ${on}`);
   }
 
   private async connectWithRetry(attempt = 0): Promise<void> {
@@ -157,9 +150,7 @@ export class TuyaService implements OnModuleInit, OnModuleDestroy {
   private scheduleReconnect(attempt = 0): void {
     if (!this.enabled || this.retryTimer) return;
     const delay = this.retryBaseMs * Math.pow(2, Math.min(attempt, 5));
-    this.logger.warn(
-      `Tuya device ${this.mappedId} reconnecting in ${delay}ms`,
-    );
+    this.logger.warn(`Tuya device ${this.mappedId} reconnecting in ${delay}ms`);
     this.retryTimer = setTimeout(async () => {
       this.retryTimer = null;
       await this.connectWithRetry(attempt);
@@ -178,9 +169,7 @@ export class TuyaService implements OnModuleInit, OnModuleDestroy {
     const topic = `devices/${this.mappedId}/cmd`;
     this.mqtt.subscribe(topic, (err) => {
       if (err) {
-        this.logger.error(
-          `Failed to subscribe to ${topic}: ${err.message}`,
-        );
+        this.logger.error(`Failed to subscribe to ${topic}: ${err.message}`);
         return;
       }
       this.logger.log(`Tuya bridge subscribed to ${topic}`);

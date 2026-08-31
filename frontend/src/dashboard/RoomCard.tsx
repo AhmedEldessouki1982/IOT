@@ -35,6 +35,19 @@ const ROOM_SPAN: Record<string, string> = {
   ensuite: "room-card--narrow",
 };
 
+/* Per-room accent — each card glows in its own hue when a light is on,
+   a subtle command-center touch without breaking the shared palette. */
+const ROOM_ACCENT: Record<string, string> = {
+  reception: "#22d3ee",
+  kitchen: "#f59e0b",
+  toilet: "#60a5fa",
+  corridor: "#a78bfa",
+  bed1: "#34d399",
+  bed2: "#f472b6",
+  master: "#c084fc",
+  ensuite: "#38bdf8",
+};
+
 interface RoomCardProps {
   id: string;
   name: string;
@@ -48,6 +61,7 @@ interface RoomCardProps {
 export default function RoomCard({ id, name, devices, index = 0, dummyOn, onDummyToggle }: RoomCardProps) {
   const Icon = ROOM_ICON[id] ?? BedSingle;
   const spanClass = ROOM_SPAN[id] ?? "room-card--wide";
+  const accent = ROOM_ACCENT[id] ?? "#22d3ee";
 
   const liveOn = useHomeStore((s) => s.device?.state.on === true);
   const lights = devices.filter((d) => d.kind === "light");
@@ -62,7 +76,7 @@ export default function RoomCard({ id, name, devices, index = 0, dummyOn, onDumm
     <section
       className={`room-card ${spanClass}`}
       data-on={hasActiveLight ? "true" : "false"}
-      style={{ "--i": index } as CSSProperties}
+      style={{ "--i": index, "--cc-room-accent": accent } as CSSProperties}
     >
       <header className="room-card-head">
         <div className="room-card-title">
