@@ -9,9 +9,11 @@ import {
   BedDouble,
   Crown,
   Droplets,
+  ChevronRight,
 } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
-import type { CSSProperties } from "react";
+import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
+import { motion } from "framer-motion";
 
 const ROOM_ICON: Record<string, typeof Sofa> = {
   reception: Sofa,
@@ -48,6 +50,9 @@ const ROOM_ACCENT: Record<string, string> = {
   ensuite: "#38bdf8",
 };
 
+export const ROOM_ICON_MAP = ROOM_ICON;
+export const ROOM_ACCENT_MAP = ROOM_ACCENT;
+
 interface RoomCardProps {
   id: string;
   name: string;
@@ -55,10 +60,14 @@ interface RoomCardProps {
   index?: number;
   dummyOn?: Record<string, boolean>;
   onDummyToggle?: (id: string) => void;
+  /** Opens the full-screen room detail view for this room. */
+  onExpand?: (id: string) => void;
 }
 
-/** Bento room card — icon + name + meta, warm wash when any light is on. */
-export default function RoomCard({ id, name, devices, index = 0, dummyOn, onDummyToggle }: RoomCardProps) {
+/** Bento room card — icon + name + meta, warm wash when any light is on.
+ *  Clicking the card (anywhere but a device control) opens the room detail
+ *  view; `layoutId` gives that transition a shared-element feel. */
+export default function RoomCard({ id, name, devices, index = 0, dummyOn, onDummyToggle, onExpand }: RoomCardProps) {
   const Icon = ROOM_ICON[id] ?? BedSingle;
   const spanClass = ROOM_SPAN[id] ?? "room-card--wide";
   const accent = ROOM_ACCENT[id] ?? "#22d3ee";
@@ -72,11 +81,26 @@ export default function RoomCard({ id, name, devices, index = 0, dummyOn, onDumm
   }).length;
   const hasActiveLight = lightsOn > 0;
 
+  const stopRowClick = (e: MouseEvent) => e.stopPropagation();
+
+  const handleCardKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onExpand?.(id);
+    }
+  };
+
   return (
-    <section
+    <motion.section
+      layoutId={`room-card-${id}`}
       className={`room-card ${spanClass}`}
       data-on={hasActiveLight ? "true" : "false"}
       style={{ "--i": index, "--cc-room-accent": accent } as CSSProperties}
+      onClick={() => onExpand?.(id)}
+      onKeyDown={handleCardKeyDown}
+      role={onExpand ? "button" : undefined}
+      tabIndex={onExpand ? 0 : undefined}
+      aria-label={onExpand ? `Open ${name} details` : undefined}
     >
       <header className="room-card-head">
         <div className="room-card-title">
@@ -90,19 +114,22 @@ export default function RoomCard({ id, name, devices, index = 0, dummyOn, onDumm
             {devices.length} · {lights.length ? `${lightsOn} on` : "—"}
           </span>
           <span className="room-card-dot" aria-hidden="true" />
+          <ChevronRight size={13} strokeWidth={2} className="room-card-expand-hint" aria-hidden="true" />
         </span>
       </header>
       <ul className="room-card-list">
         {devices.map((config) => (
-          <li key={config.id} className="room-card-item">
+          <li key={config.id} className="room-card-item" onClick={stopRowClick}>
             <CardDevice
               config={config}
-              state={config.kind === "light" ? dummyOn?.[config.id] ?? false : undefined}
-              onToggle={config.kind === "light" ? () => onDummyToggle?.(config.id) : undefined}
+              state={config.kind === "light" || config.kind === "lock" ? dummyOn?.[config.id] : undefined}
+              onToggle={
+                config.kind === "light" || config.kind === "lock" ? () => onDummyToggle?.(config.id) : undefined
+              }
             />
           </li>
         ))}
       </ul>
-    </section>
+    </motion.section>
   );
 }

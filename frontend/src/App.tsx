@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { useHomeStore } from "./store/useHomeStore";
-import { useDummyLights } from "./features/devices/useDummyLights";
+import { useDummyToggles } from "./features/devices/useDummyToggles";
 import { ROOMS } from "./dashboard/rooms";
 import RoomCard from "./dashboard/RoomCard";
+import RoomDetail from "./dashboard/RoomDetail";
 import ThemeToggle from "./components/ThemeToggle";
+import EmergencyShutdown from "./components/EmergencyShutdown";
 import "./index.css";
 
 function useClock() {
@@ -31,17 +34,65 @@ function useClock() {
 export default function App() {
   const online = useHomeStore((s) => s.online);
   const homeLoad = useHomeStore((s) => s.load);
+  const liveOn = useHomeStore((s) => s.device?.state.on === true);
+  const liveToggle = useHomeStore((s) => s.toggle);
   const { time, date } = useClock();
+  const [openRoomId, setOpenRoomId] = useState<string | null>(null);
 
-  const dummyIds = useMemo(
-    () => ROOMS.flatMap((r) => r.devices).filter((d) => d.kind === "light" && !d.deviceId).map((d) => d.id),
-    [],
-  );
-  const { states: dummyOn, toggle: toggleDummy } = useDummyLights(dummyIds);
+  // Non-live lights default off; locks default locked — each dummy device
+  // seeds its own starting value instead of one blanket default.
+  const dummyInitial = useMemo(() => {
+    const initial: Record<string, boolean> = {};
+    let firstDummyLightSeen = false;
+    ROOMS.flatMap((r) => r.devices).forEach((d) => {
+      if (d.kind === "light" && !d.deviceId) {
+        // first dummy light on for a warm, occupied look; rest start off
+        initial[d.id] = !firstDummyLightSeen;
+        firstDummyLightSeen = true;
+      }
+      if (d.kind === "lock") initial[d.id] = d.locked ?? true;
+    });
+    return initial;
+  }, []);
+  const { states: dummyOn, toggle: toggleDummy, reset: resetDummy } = useDummyToggles(dummyInitial);
+
+  // Emergency shutdown: everything off — live light off, every dummy light
+  // off, and every door lock locked. `shutdownActive` reflects whether
+  // anything is currently on / unlocked so the button can state itself.
+  const anythingOn = useMemo(() => {
+    if (liveOn) return true;
+    return ROOMS.flatMap((r) => r.devices).some((d) => {
+      if (d.kind === "lock") return (dummyOn[d.id] ?? true) === false;
+      if (d.kind === "light" && !d.deviceId) return dummyOn[d.id] ?? false;
+      return false;
+    });
+  }, [liveOn, dummyOn]);
+
+  const handleShutdown = () => {
+    if (liveOn) liveToggle();
+    const next: Record<string, boolean> = {};
+    ROOMS.flatMap((r) => r.devices).forEach((d) => {
+      if (d.kind === "light" && !d.deviceId) next[d.id] = false;
+      if (d.kind === "lock") next[d.id] = true;
+    });
+    resetDummy(next);
+  };
 
   useEffect(() => {
     homeLoad();
   }, [homeLoad]);
+
+  const openRoom = openRoomId ? ROOMS.find((r) => r.id === openRoomId) ?? null : null;
+
+  // Esc closes the room detail view.
+  useEffect(() => {
+    if (!openRoomId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenRoomId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openRoomId]);
 
   return (
     <div className="dash">
@@ -61,6 +112,7 @@ export default function App() {
         </div>
         <span className="dash-controls">
           <ThemeToggle />
+          <EmergencyShutdown onShutdown={handleShutdown} active={anythingOn} />
           <span className="dash-summary">{ROOMS.length} rooms · {ROOMS.reduce((a, r) => a + r.devices.length, 0)} devices</span>
         </span>
       </header>
@@ -75,9 +127,23 @@ export default function App() {
             index={i}
             dummyOn={dummyOn}
             onDummyToggle={toggleDummy}
+            onExpand={setOpenRoomId}
           />
         ))}
       </main>
+
+      <AnimatePresence>
+        {openRoom && (
+          <RoomDetail
+            id={openRoom.id}
+            name={openRoom.name}
+            devices={openRoom.devices}
+            dummyOn={dummyOn}
+            onDummyToggle={toggleDummy}
+            onClose={() => setOpenRoomId(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

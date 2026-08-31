@@ -1,12 +1,12 @@
 import { createElement, type ReactNode } from "react";
-import { Lightbulb, Flame, Thermometer } from "lucide-react";
+import { Lightbulb, Flame, Thermometer, Lock } from "lucide-react";
 
 /**
  * Canonical device kinds, each mapped to exactly one reusable component in
  * KIND_COMPONENTS. `Device` is the presentational dispatcher — components
  * never dispatch by kind, they only render themselves.
  */
-export type DeviceKind = "light" | "gas-leak" | "room-temp";
+export type DeviceKind = "light" | "gas-leak" | "room-temp" | "lock";
 
 /* ------------------------------------------------------------------ */
 /*  Device configs — discriminated by `kind`, source of truth per kind */
@@ -39,7 +39,17 @@ export interface RoomTempConfig {
   history?: number[];
 }
 
-export type DeviceConfig = LightConfig | GasLeakConfig | RoomTempConfig;
+export interface LockConfig {
+  kind: "lock";
+  id: string;
+  /** MQTT device id this lock rounds-trips with the backend, once wired. */
+  deviceId?: string;
+  label: string;
+  /** Dummy value for now — swap for a backend reading later. */
+  locked?: boolean;
+}
+
+export type DeviceConfig = LightConfig | GasLeakConfig | RoomTempConfig | LockConfig;
 
 /* ------------------------------------------------------------------ */
 /*  Default icons                                                       */
@@ -52,6 +62,7 @@ const ICONS: Record<
   light: { icon: Lightbulb, size: 15, strokeWidth: 1.5 },
   "gas-leak": { icon: Flame, size: 15, strokeWidth: 1.6 },
   "room-temp": { icon: Thermometer, size: 15, strokeWidth: 1.6 },
+  lock: { icon: Lock, size: 15, strokeWidth: 1.7 },
 };
 
 export function deviceIcon(kind: DeviceKind): ReactNode {

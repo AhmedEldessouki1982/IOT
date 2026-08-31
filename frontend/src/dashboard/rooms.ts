@@ -17,6 +17,7 @@ export const ROOMS: Room[] = [
     name: "Reception",
     devices: [
       { kind: "light", id: "light1", deviceId: "light1", label: "Reception Ceiling Light" },
+      { kind: "lock", id: "lock-front-door", label: "Front Door", locked: true },
       { kind: "room-temp", id: "reception-temp", label: "Room Temperature", current: 21.5, history: [21.8, 21.6, 21.4, 21.7, 21.5, 21.3, 21.5] },
     ],
   },

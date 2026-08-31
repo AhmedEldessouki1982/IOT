@@ -33,6 +33,18 @@ export default function CardDevice({ config, state, onToggle }: CardDeviceProps)
     return <Device {...props} />;
   }
 
+  if (config.kind === "lock") {
+    const props: DeviceProps = {
+      kind: "lock",
+      variant: "card",
+      label: config.label,
+      state: state ?? config.locked ?? true,
+      onToggle: onToggle as ((locked: boolean) => void) | undefined,
+      badge: "demo",
+    };
+    return <Device {...props} />;
+  }
+
   if (config.kind === "gas-leak") {
     const props: DeviceProps = {
       kind: "gas-leak",

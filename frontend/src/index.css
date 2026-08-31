@@ -298,7 +298,7 @@ body {
   backdrop-filter: blur(14px) saturate(1.15);
   -webkit-backdrop-filter: blur(14px) saturate(1.15);
   border: 1px solid var(--cc-glass-border);
-  border-radius: var(--cc-radius-lg);
+  border-radius: 0;
   padding: 18px 18px 10px;
   box-shadow: var(--cc-shadow-card);
   position: relative;
@@ -705,7 +705,7 @@ body {
   position: absolute;
   inset: 6px;
   pointer-events: none;
-  border-radius: calc(var(--cc-radius-lg) - 6px);
+  border-radius: 0;
   opacity: 0;
   transition: opacity var(--cc-ease);
   background:
@@ -727,4 +727,279 @@ body {
   .room-card { animation: none; }
   .toggle-knob { transition: none; }
   .dash-status-dot { animation: none; }
+}
+
+/* ================================================================
+   ROOM CARD — click-to-expand affordance
+   ================================================================ */
+
+.room-card[role="button"] {
+  cursor: pointer;
+}
+.room-card[role="button"]:focus-visible {
+  outline: 2px solid var(--cc-room-accent);
+  outline-offset: 3px;
+}
+
+.room-card-expand-hint {
+  color: var(--cc-text-faint);
+  opacity: 0;
+  transform: translateX(-2px);
+  transition: opacity var(--cc-ease), transform var(--cc-ease);
+}
+.room-card:hover .room-card-expand-hint,
+.room-card:focus-visible .room-card-expand-hint {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ================================================================
+   DOOR LOCK — secure/insecure pill, deliberately distinct from a
+   flippable light switch (locks carry more weight than a light)
+   ================================================================ */
+
+.device-icon[data-locked="true"] {
+  color: var(--cc-success);
+  opacity: 1;
+}
+.device-icon[data-locked="false"] {
+  color: var(--cc-danger);
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.28));
+}
+
+.lock-pill {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 5px 10px;
+  cursor: pointer;
+  border: 1px solid var(--cc-border-subtle);
+  background: var(--cc-ink-subtle);
+  color: var(--cc-text-3);
+  transition: background var(--cc-ease), border-color var(--cc-ease), color var(--cc-ease), box-shadow var(--cc-ease);
+}
+.lock-pill[data-locked="true"] {
+  color: var(--cc-success);
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.22);
+}
+.lock-pill[data-locked="false"] {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.24);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.14);
+}
+.lock-pill:focus-visible {
+  outline: 2px solid var(--cc-accent);
+  outline-offset: 2px;
+}
+
+/* ================================================================
+   ROOM DETAIL — full drill-in view, shares layoutId with its card
+   ================================================================ */
+
+.room-detail-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: rgba(4, 6, 10, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+:root[data-theme="light"] .room-detail-backdrop {
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.room-detail {
+  width: 100%;
+  max-width: 460px;
+  max-height: min(680px, 86vh);
+  overflow-y: auto;
+  background: linear-gradient(180deg, var(--cc-glass-strong), var(--cc-surface-glass-strong));
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--cc-glass-border);
+  border-radius: var(--cc-radius-lg);
+  box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, var(--cc-room-accent) 18%, transparent);
+  padding: 22px 22px 16px;
+}
+
+.room-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 16px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--cc-border-subtle);
+}
+
+.room-detail-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.room-detail-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--cc-room-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cc-room-accent) 28%, transparent);
+  color: var(--cc-room-accent);
+}
+
+.room-detail-title h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.room-detail-sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--cc-text-muted);
+}
+
+.room-detail-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--cc-ink-subtle);
+  border: 1px solid var(--cc-border-subtle);
+  color: var(--cc-text-2);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--cc-ease), color var(--cc-ease), border-color var(--cc-ease);
+}
+.room-detail-close:hover {
+  background: var(--cc-surface-hover);
+  color: var(--cc-text);
+}
+.room-detail-close:focus-visible {
+  outline: 2px solid var(--cc-accent);
+  outline-offset: 2px;
+}
+
+.room-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--cc-border-subtle);
+}
+
+.room-detail-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--cc-text-2);
+  background: var(--cc-ink-subtle);
+  border: 1px solid var(--cc-border-subtle);
+  border-radius: 999px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background var(--cc-ease), border-color var(--cc-ease), color var(--cc-ease);
+}
+.room-detail-action:hover {
+  background: var(--cc-room-accent-soft);
+  border-color: color-mix(in srgb, var(--cc-room-accent) 32%, transparent);
+  color: var(--cc-room-accent);
+}
+.room-detail-action:focus-visible {
+  outline: 2px solid var(--cc-accent);
+  outline-offset: 2px;
+}
+
+.room-detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-detail-item {
+  padding: 15px 2px;
+  border-bottom: 1px solid var(--cc-border-subtle);
+  font-size: 15px;
+}
+.room-detail-item:last-child {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+.room-detail-item .device-label {
+  font-size: 14px;
+}
+
+@media (max-width: 520px) {
+  .room-detail-backdrop { padding: 0; align-items: flex-end; }
+  .room-detail {
+    max-width: none;
+    max-height: 88vh;
+    border-radius: var(--cc-radius-lg) var(--cc-radius-lg) 0 0;
+  }
+}
+
+/* ================================================================
+   EMERGENCY SHUTDOWN — single-tap "everything off" action
+   ================================================================ */
+
+.shutdown-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  box-shadow: 0 0 0 rgba(239, 68, 68, 0);
+  transition: background var(--cc-ease), border-color var(--cc-ease),
+    color var(--cc-ease), box-shadow var(--cc-ease), transform var(--cc-ease);
+}
+.shutdown-btn:hover {
+  background: rgba(239, 68, 68, 0.24);
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.18);
+  color: #fecaca;
+}
+.shutdown-btn:focus-visible {
+  outline: 2px solid var(--cc-danger);
+  outline-offset: 2px;
+}
+/* armed state: something is still on / unlocked — nudge to amber-alert */
+.shutdown-btn[data-active="true"] {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
 }
