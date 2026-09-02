@@ -34,8 +34,11 @@ function useClock() {
 export default function App() {
   const online = useHomeStore((s) => s.online);
   const homeLoad = useHomeStore((s) => s.load);
-  const liveOn = useHomeStore((s) => s.device?.state.on === true);
+  // Live MQTT devices (light1 + sonoff1/2/3) that are currently ON — used to
+  // arm the emergency shutdown and to flip everything off at once.
+  const liveDevices = useHomeStore((s) => s.devices);
   const liveToggle = useHomeStore((s) => s.toggle);
+  const anyLiveOn = Object.values(liveDevices).some((d) => d.state.on === true);
   const { time, date } = useClock();
   const [openRoomId, setOpenRoomId] = useState<string | null>(null);
 
@@ -56,20 +59,24 @@ export default function App() {
   }, []);
   const { states: dummyOn, toggle: toggleDummy, reset: resetDummy } = useDummyToggles(dummyInitial);
 
-  // Emergency shutdown: everything off — live light off, every dummy light
-  // off, and every door lock locked. `shutdownActive` reflects whether
-  // anything is currently on / unlocked so the button can state itself.
+  // Emergency shutdown: everything off — every live MQTT device off
+  // (light1 + sonoff relays), every dummy light off, and every door lock
+  // locked. `shutdownActive` reflects whether anything is currently on /
+  // unlocked so the button can state itself.
   const anythingOn = useMemo(() => {
-    if (liveOn) return true;
+    if (anyLiveOn) return true;
     return ROOMS.flatMap((r) => r.devices).some((d) => {
       if (d.kind === "lock") return (dummyOn[d.id] ?? true) === false;
       if (d.kind === "light" && !d.deviceId) return dummyOn[d.id] ?? false;
       return false;
     });
-  }, [liveOn, dummyOn]);
+  }, [anyLiveOn, dummyOn]);
 
   const handleShutdown = () => {
-    if (liveOn) liveToggle();
+    // Turn off every live MQTT device that's currently on.
+    Object.values(liveDevices).forEach((d) => {
+      if (d.state.on === true) void liveToggle(d.deviceId);
+    });
     const next: Record<string, boolean> = {};
     ROOMS.flatMap((r) => r.devices).forEach((d) => {
       if (d.kind === "light" && !d.deviceId) next[d.id] = false;
@@ -80,6 +87,9 @@ export default function App() {
 
   useEffect(() => {
     homeLoad();
+    // Seed the Sonoff 3-gang relays too (sonoff1/2/3) so their cards show
+    // real state even before the first socket broadcast arrives.
+    ["sonoff1", "sonoff2", "sonoff3"].forEach((id) => homeLoad(id));
   }, [homeLoad]);
 
   const openRoom = openRoomId ? ROOMS.find((r) => r.id === openRoomId) ?? null : null;
@@ -113,7 +123,7 @@ export default function App() {
         <span className="dash-controls">
           <ThemeToggle />
           <EmergencyShutdown onShutdown={handleShutdown} active={anythingOn} />
-          <span className="dash-summary">{ROOMS.length} rooms · {ROOMS.reduce((a, r) => a + r.devices.length, 0)} devices</span>
+          <span className="dash-summary">{ROOMS.length} rooms · {ROOMS.reduce((a, r) => a + r.devices.length + (r.switches?.length ?? 0), 0)} devices</span>
         </span>
       </header>
 
@@ -124,6 +134,8 @@ export default function App() {
             id={room.id}
             name={room.name}
             devices={room.devices}
+            switches={room.switches}
+            span={room.span}
             index={i}
             dummyOn={dummyOn}
             onDummyToggle={toggleDummy}
@@ -138,6 +150,7 @@ export default function App() {
             id={openRoom.id}
             name={openRoom.name}
             devices={openRoom.devices}
+            switches={openRoom.switches}
             dummyOn={dummyOn}
             onDummyToggle={toggleDummy}
             onClose={() => setOpenRoomId(null)}

@@ -10,23 +10,26 @@ interface CardDeviceProps {
   onToggle?: (on: boolean) => void;
 }
 
-/** One reusable row per device — dispatches by kind. Live lights (`light1`)
- *  round-trip through `useHomeStore`; dummy lights use the shared local state
- *  passed down; sensors render straight from their config. */
+/** One reusable row per device — dispatches by kind. Live lights (any config
+ *  with a `deviceId`, e.g. `light1` or the Sonoff `sonoff1/2/3`) round-trip
+ *  through `useHomeStore`; dummy lights use the shared local state passed
+ *  down; sensors render straight from their config. */
 export default function CardDevice({ config, state, onToggle }: CardDeviceProps) {
-  const device = useHomeStore((s) => s.device);
+  const liveDevices = useHomeStore((s) => s.devices);
   const toggle = useHomeStore((s) => s.toggle);
   const icon = deviceIcon(config.kind);
 
   if (config.kind === "light") {
-    const isLive = config.deviceId === "light1";
+    const isLive = !!config.deviceId;
     const props: DeviceProps = {
       kind: "light",
       variant: "card",
       label: config.label,
       defaultOn: config.defaultOn,
-      state: isLive ? device?.state.on === true : state,
-      onToggle: isLive ? () => toggle() : onToggle,
+      state: isLive
+        ? liveDevices[config.deviceId!]?.state.on === true
+        : state,
+      onToggle: isLive ? () => toggle(config.deviceId!) : onToggle,
       icon,
       badge: isLive ? "live" : "demo",
     };

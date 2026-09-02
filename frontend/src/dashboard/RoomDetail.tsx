@@ -3,6 +3,7 @@ import { X, Lightbulb, Lock } from "lucide-react";
 import type { CSSProperties } from "react";
 import type { DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
+import SwitchCard from "../components/SwitchCard";
 import { ROOM_ICON_MAP, ROOM_ACCENT_MAP } from "./RoomCard";
 import { BedSingle } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
@@ -11,6 +12,8 @@ interface RoomDetailProps {
   id: string;
   name: string;
   devices: DeviceConfig[];
+  /** Live Sonoff switch relays to show as balanced switch cards. */
+  switches?: DeviceConfig[];
   dummyOn: Record<string, boolean>;
   onDummyToggle: (id: string) => void;
   onClose: () => void;
@@ -20,29 +23,32 @@ interface RoomDetailProps {
  *  room-level quick actions (all lights, all locks) that only appear when
  *  the room actually has that kind of device. Shares `layoutId` with its
  *  RoomCard so the open/close reads as one continuous surface. */
-export default function RoomDetail({ id, name, devices, dummyOn, onDummyToggle, onClose }: RoomDetailProps) {
+export default function RoomDetail({ id, name, devices, switches = [], dummyOn, onDummyToggle, onClose }: RoomDetailProps) {
   const Icon = ROOM_ICON_MAP[id] ?? BedSingle;
   const accent = ROOM_ACCENT_MAP[id] ?? "#22d3ee";
 
-  const liveOn = useHomeStore((s) => s.device?.state.on === true);
+  // Live MQTT device states (light1 + sonoff1/2/3) — any light config that
+  // carries a deviceId rounds-trips here; the rest are local dummy toggles.
+  const liveDevices = useHomeStore((s) => s.devices);
   const liveToggle = useHomeStore((s) => s.toggle);
 
-  const lightIds = devices.filter((d) => d.kind === "light").map((d) => d.id);
+  const allLights = [...devices, ...switches].filter((d) => d.kind === "light");
   const lockIds = devices.filter((d) => d.kind === "lock").map((d) => d.id);
 
-  const isLiveLight = (deviceId: string) => deviceId === "light1";
-  const anyLightOn = devices.some((d) => {
+  const isLiveLight = (deviceId?: string) => !!deviceId && deviceId in liveDevices;
+  const liveOn = (deviceId?: string) => (deviceId ? liveDevices[deviceId]?.state.on === true : false);
+  const anyLightOn = allLights.some((d) => {
     if (d.kind !== "light") return false;
-    if (d.deviceId && isLiveLight(d.deviceId)) return liveOn;
+    if (isLiveLight(d.deviceId)) return liveOn(d.deviceId);
     return dummyOn[d.id] ?? false;
   });
   const anyLockUnlocked = lockIds.some((lid) => !dummyOn[lid]);
 
   const setAllLights = (on: boolean) => {
-    devices.forEach((d) => {
+    allLights.forEach((d) => {
       if (d.kind !== "light") return;
-      if (d.deviceId && isLiveLight(d.deviceId)) {
-        if (liveOn !== on) liveToggle();
+      if (isLiveLight(d.deviceId)) {
+        if (liveOn(d.deviceId) !== on) void liveToggle(d.deviceId!);
         return;
       }
       if ((dummyOn[d.id] ?? false) !== on) onDummyToggle(d.id);
@@ -84,9 +90,9 @@ export default function RoomDetail({ id, name, devices, dummyOn, onDummyToggle, 
           </button>
         </header>
 
-        {(lightIds.length > 0 || lockIds.length > 0) && (
+        {(allLights.length > 0 || lockIds.length > 0) && (
           <div className="room-detail-actions">
-            {lightIds.length > 0 && (
+            {allLights.length > 0 && (
               <button type="button" className="room-detail-action" onClick={() => setAllLights(!anyLightOn)}>
                 <Lightbulb size={14} strokeWidth={1.7} />
                 {anyLightOn ? "All lights off" : "All lights on"}
@@ -98,6 +104,14 @@ export default function RoomDetail({ id, name, devices, dummyOn, onDummyToggle, 
                 {anyLockUnlocked ? "Lock all" : "Unlock all"}
               </button>
             )}
+          </div>
+        )}
+
+        {switches.length > 0 && (
+          <div className="switch-row">
+            {switches.map((sw) => (
+              <SwitchCard key={sw.id} deviceId={(sw as { deviceId?: string }).deviceId!} label={sw.label} />
+            ))}
           </div>
         )}
 

@@ -330,10 +330,14 @@ body {
 
 /* amber warm wash when any light is on (wired via data-on) */
 .room-card[data-on="true"] {
-  border-color: color-mix(in srgb, var(--cc-room-accent) 28%, transparent);
+  border-color: color-mix(in srgb, var(--cc-room-accent) 38%, transparent);
   background:
-    radial-gradient(420px 220px at 18% 0%, color-mix(in srgb, var(--cc-room-accent) 12%, transparent), transparent 68%),
+    radial-gradient(560px 300px at 18% 0%, color-mix(in srgb, var(--cc-room-accent) 18%, transparent), transparent 70%),
     linear-gradient(180deg, var(--cc-glass-strong), var(--cc-surface-glass-strong));
+  box-shadow:
+    0 18px 44px -14px rgba(0, 0, 0, 0.3),
+    0 0 0 1px color-mix(in srgb, var(--cc-room-accent) 22%, transparent),
+    0 0 34px -6px color-mix(in srgb, var(--cc-room-accent) 34%, transparent);
 }
 
 .room-card:hover {
@@ -349,14 +353,14 @@ body {
 
 /* per-room accent: icon badge + dot glow when the room's light is on */
 .room-card[data-on="true"] .room-card-icon {
-  background: color-mix(in srgb, var(--cc-room-accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--cc-room-accent) 32%, transparent);
+  background: color-mix(in srgb, var(--cc-room-accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--cc-room-accent) 40%, transparent);
   color: var(--cc-room-accent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--cc-room-accent) 26%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--cc-room-accent) 40%, transparent);
 }
 .room-card[data-on="true"] .room-card-dot {
   background: var(--cc-room-accent);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--cc-room-accent) 26%, transparent);
+  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--cc-room-accent) 40%, transparent);
 }
 
 /* bento rhythm: give variety without breaking scan */
@@ -450,6 +454,86 @@ body {
 .room-card-item:last-child {
   border-bottom: none;
   padding-bottom: 6px;
+}
+
+/* ================================================================
+   SONOFF SWITCH ROW — balanced physical-style switch cards
+   Three on/off relay cards laid out in one row inside a room card
+   (currently the Reception 3-gang switch). Responsive: 3-across on
+   desktop, stacks gracefully on small screens.
+   ================================================================ */
+
+.switch-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 6px 0 14px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--cc-border-subtle);
+}
+
+.switch-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 10px 12px;
+  border-radius: var(--cc-radius);
+  background: linear-gradient(180deg, var(--cc-glass), var(--cc-surface-glass));
+  border: 1px solid var(--cc-glass-border);
+  transition: border-color var(--cc-ease), box-shadow var(--cc-ease), background var(--cc-ease);
+}
+
+/* on-state: amber wash so a pressed relay reads as lit at a glance */
+.switch-card[data-on="true"] {
+  border-color: var(--cc-accent);
+  background: linear-gradient(180deg, var(--cc-accent-soft), var(--cc-surface-glass));
+  box-shadow: 0 0 18px var(--cc-accent-glow);
+}
+
+.switch-card-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--cc-text-3);
+  opacity: 0.55;
+  transition: color var(--cc-ease), opacity var(--cc-ease), filter var(--cc-ease);
+}
+.switch-card-icon[data-on="true"] {
+  color: var(--cc-amber);
+  opacity: 1;
+  filter: drop-shadow(0 0 6px var(--cc-amber-glow));
+}
+
+.switch-card-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--cc-text-2);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* slightly larger knob inside the card for a physical-button feel */
+.switch-card-toggle {
+  width: 44px;
+  height: 26px;
+}
+.switch-card-toggle .toggle-knob {
+  width: 20px;
+  height: 20px;
+  top: 2px;
+  left: 2px;
+}
+.switch-card-toggle[data-on="true"] .toggle-knob {
+  transform: translateX(18px);
+}
+
+/* live micro-dot pinned to the corner of each switch card */
+.switch-card > .cc-live-dot--sm {
+  position: absolute;
+  top: 8px;
+  right: 8px;
 }
 
 /* ================================================================
@@ -631,6 +715,9 @@ body {
   .room-card--wide,
   .room-card--full {
     grid-column: 1 / -1;
+  }
+  .switch-row {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1002,4 +1089,24 @@ body {
   background: rgba(245, 158, 11, 0.16);
   border-color: rgba(245, 158, 11, 0.4);
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+/* light theme: pale emergency tones are unreadable on light air — use deep
+   red / amber text instead, keeping the glow but readable. */
+:root[data-theme="light"] .shutdown-btn {
+  color: #b91c1c;
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.32);
+}
+:root[data-theme="light"] .shutdown-btn:hover {
+  color: #991b1b;
+  background: rgba(220, 38, 38, 0.18);
+  border-color: rgba(220, 38, 38, 0.5);
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.16);
+}
+:root[data-theme="light"] .shutdown-btn[data-active="true"] {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.42);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.18);
 }

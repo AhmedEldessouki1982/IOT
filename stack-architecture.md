@@ -4,43 +4,41 @@
 
 Local-first smart home platform. Everything runs on a single Raspberry Pi
 inside the customer's home network — no cloud dependency for core
-automation. Devices speak MQTT (natively, or via Home Assistant as a
-protocol-normalization layer for Zigbee/Z-Wave/Tuya devices that can't
-speak MQTT directly).
+automation. Devices speak MQTT directly. The physical wall switch is a
+**Sonoff T3US3C flashed Tasmota** — MQTT-native, no cloud, no Tuya — and
+bridges straight into the backend over the shared Mosquitto broker.
 
 ## Diagram
 
 ```mermaid
 flowchart TB
     subgraph HOME["🏠 Customer Home — Local WiFi/LAN"]
-        subgraph DEVICES["Devices"]
-            D1["ESP32 Switch<br/>(Tasmota / custom fw)"]
-            D2["ESP32 + DHT22<br/>(temp sensor)"]
-            D3["Tuya WiFi Lock<br/>(cloud-native chip)"]
-            D4["Zigbee devices<br/>(future)"]
-        end
-
-        subgraph PI["Raspberry Pi 4 — Docker Compose"]
-            MQTT["Mosquitto<br/>MQTT Broker<br/>:1883"]
-            HA["Home Assistant<br/>+ LocalTuya<br/>+ Zigbee2MQTT<br/>(protocol normalizer)"]
-            NEST["NestJS Backend<br/>REST + WS Gateway<br/>:3000"]
-            PG["PostgreSQL<br/>(users, logs, rules)"]
-            FE["React Frontend<br/>(static build)<br/>TUI dashboard"]
-        end
+    subgraph DEVICES["Devices"]
+        D1["Sonoff T3US3C<br/>Tasmota 15.6 — 3 relays<br/>POWER1/2/3"]
+        D2["ESP32 + DHT22<br/>(temp sensor)"]
+        D3["ESP32 Switch<br/>(custom fw — future)"]
+        D4["Zigbee devices<br/>(future)"]
     end
+
+    subgraph PI["Raspberry Pi 4 — Docker Compose"]
+        MQTT["Mosquitto<br/>MQTT Broker<br/>:1883"]
+        NEST["NestJS Backend<br/>REST + WS Gateway<br/>:3000"]
+        PG["PostgreSQL<br/>(users, logs, rules)"]
+        FE["React Frontend<br/>(static build)<br/>TUI dashboard"]
+    end
+end
 
     subgraph CLIENT["Client Devices"]
         BROWSER["Browser / Phone<br/>on same LAN"]
     end
 
-    D1 -- "MQTT pub/sub<br/>devices/+/state, devices/+/cmd" --> MQTT
+    D1 -- "MQTT pub/sub<br/>stat/<base>/POWER#, cmnd/<base>/POWER#<br/>+ devices/+/cmd, devices/+/state" --> MQTT
     D2 -- "MQTT pub/sub" --> MQTT
-    D3 -- "Tuya local protocol<br/>(local key)" --> HA
-    D4 -- "Zigbee radio" --> HA
-    HA -- "republishes as MQTT" --> MQTT
+    D3 -- "MQTT pub/sub" --> MQTT
+    D4 -- "Zigbee radio (future)" --> MQTT
 
-    MQTT -- "subscribe devices/+/state" --> NEST
-    NEST -- "publish devices/+/cmd" --> MQTT
+    MQTT -- "subscribe stat/POWER# + devices/+/state" --> NEST
+    NEST -- "publish cmnd/POWER# + devices/+/cmd" --> MQTT
     NEST --> PG
     NEST -- "REST API" --> FE
     NEST -- "WebSocket<br/>device:state events" --> FE
@@ -56,12 +54,12 @@ flowchart TB
 
 | Layer | Technology | Role |
 |---|---|---|
-| **Device firmware** | ESP32 (Arduino/ESP-IDF), Tasmota | Publishes state, subscribes to commands over MQTT |
-| **Protocol bridge** | Home Assistant + Zigbee2MQTT + LocalTuya | Normalizes non-MQTT-native devices (Zigbee, Tuya cloud chips) into MQTT — invisible to the rest of the stack |
+| **Device firmware** | Sonoff T3US3C (Tasmota 15.6), ESP32 (Arduino/ESP-IDF) | Publishes state, subscribes to commands over MQTT |
+| **Switch adapter** | NestJS `SonoffService` (raw MQTT) | Speaks Tasmota topics (`stat/POWER#`, `cmnd/POWER#`) so each relay becomes a normal `sonoff{1,2,3}` device |
 | **Message bus** | Mosquitto (MQTT broker) | Single source of truth for device state/commands; every device and service talks through here |
-| **Backend** | NestJS (MQTT microservice + REST + WebSocket gateway) | Business logic, device registry, automation/AI decisions, API for the frontend |
+| **Backend** | NestJS (MQTT + REST + WebSocket gateway) | Business logic, device registry, API for the frontend |
 | **Persistence** | PostgreSQL | Users, device registry, automation rules, historical logs |
-| **Frontend** | React + Vite + TS + Tailwind (TUI/terminal styled) | Customer-facing dashboard — room containers, toggles, sensor readouts |
+| **Frontend** | React + Vite + TS (TUI/terminal styled) | Customer-facing dashboard — room containers, toggles, sensor readouts |
 | **Host** | Raspberry Pi 4, Docker Compose | Single physical box per customer home, all services containerized |
 
 ## Data flow (device → user)
@@ -81,5 +79,10 @@ flowchart TB
 ## Local-first principles this stack follows
 
 - No feature depends on internet access — only local LAN + this Pi.
-- Any device brand is welcome as long as it either speaks MQTT natively or Home Assistant has an integration for it.
-- NestJS never speaks a brand-specific protocol directly — it only ever knows MQTT topics and JSON payloads, keeping the backend clean regardless of what hardware is added later.
+- Any device brand is welcome as long as it speaks MQTT (the Sonoff Tasmota
+  switch is integrated natively; the backend's unique Tasmota bridge lives only
+  in `SonoffService` and never leaks into the generic device layer).
+- The generic device layer only ever knows MQTT topics + JSON payloads, so any
+  other MQTT-native hardware can be added without backend code changes.
+- No cloud SDKs (Tuya got removed) — the stack is fully local and decoupled from
+  any vendor dependency.

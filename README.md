@@ -60,14 +60,11 @@ cp .env.example .env
 
 | Variable                  | Default                 | Purpose                                           |
 | ------------------------- | ----------------------- | ------------------------------------------------- |
-| `MQTT_URL`                | `mqtt://localhost:1883` | MQTT broker URL                                   |
+| `MQTT_URL`                | `mqtt://localhost:1883` | MQTT broker host + port                           |
 | `HTTP_PORT`               | `3000`                  | HTTP + WebSocket listen port                      |
 | `CORS_ORIGIN`             | `http://localhost:5173` | Allowed browser origin                            |
-| `TUYA_DEVICE_ID`          | *(empty = disabled)*    | Tuya device id (see Local Tuya bridge below)      |
-| `TUYA_LOCAL_KEY`          | *(empty = disabled)*    | Tuya local key                                    |
-| `TUYA_DEVICE_IP`          | *(empty = auto-discover)*| Tuya device IP on the local network               |
-| `TUYA_PROTOCOL_VERSION`   | `3.3`                   | Tuya protocol version (3.1 / 3.3 / 3.4 / 3.5)     |
-| `TUYA_DEVICE_ID_MAPPING`  | `switch1`               | Internal id this Tuya device maps to on `devices/<id>/*` |
+| `SONOFF_BASE` | `tasmota_A3AECD` | Tasmota topic base of the Sonoff switch (*empty = disabled*) |
+| `SONOFF_IP`   | `10.0.1.13`    | Sonoff device IP (informational; control goes via broker) |
 
 ### 3. Start the mock device
 
@@ -107,6 +104,9 @@ The backend is device-agnostic — devices register automatically over MQTT.
 | `GET`  | `/devices`               | All known device states            |
 | `GET`  | `/devices/:id`           | One device's state (404 if unknown)|
 | `POST` | `/devices/:id/command`   | Send a JSON command to a device    |
+| `GET`  | `/sonoff`                | State of all three Sonoff relays (sonoff1..3) |
+| `GET`  | `/sonoff/:channel`       | State of one relay (1..3)          |
+| `POST` | `/sonoff/:channel/command` | Force a relay, body `{"on": true\|false}` |
 
 To add a new device: publish to `devices/<newId>/state` and subscribe to `devices/<newId>/cmd`. Zero backend code changes needed.
 
@@ -117,43 +117,41 @@ To add a new device: publish to `devices/<newId>/state` and subscribe to `device
 | `devices/light1/cmd`    | → device   | `{"on": true}` / `{"on": false}`                     |
 | `devices/light1/state`  | device →   | `{"deviceId":"light1","type":"switch","state":{"on":true},"timestamp":"..."}` |
 | `devices/+/state`       | device →   | Wildcard; NestJS extracts deviceId from topic        |
+| `cmnd/<base>/POWER{1,2,3}` | → switch | `ON` / `OFF`                                       |
+| `stat/<base>/POWER#`    | switch →   | `ON` / `OFF` per relay (Sonoff broadcasts)           |
 
-## Local Tuya Bridge (optional)
+## Sonoff T3US3C 3-gang switch (flashed Tasmota)
 
-NestJS can control a local Tuya-protocol device (e.g. a Sonoff T3US3C wall switch
-running stock firmware) **directly, without Home Assistant**, via the
-[TuyAPI](https://github.com/codetheweb/tuyapi) package. `src/tuya/tuya.service.ts`
-bridges that device into our generic MQTT device contract: it PUBLISHES device state
-to `devices/<TUYA_DEVICE_ID_MAPPING>/state` and SUBSCRIBES to
-`devices/<TUYA_DEVICE_ID_MAPPING>/cmd`, which are exactly the topics the existing
-wildcard `devices/+/state` listener (and the `POST /devices/:id/command` flow) already
-watch. So from the REST API, WebSocket gateway, and frontend's perspective this Tuya
-switch is indistinguishable from any other MQTT-native device — it just happens to be
-proxied by `TuyaService` under the hood. To change its mapped id later (or add more
-Tuya devices), set `TUYA_DEVICE_ID_MAPPING` per device; **zero changes** to the generic
-device layer are required.
+The physical wall switch is a Sonoff T3US3C flashed with **Tasmota** (MQTT-native,
+no cloud, no Tuya). Its three independent on/off relays are driven and read directly
+over MQTT through the shared Mosquitto broker — no gateway, no Home Assistant.
 
-If `TUYA_DEVICE_ID` or `TUYA_LOCAL_KEY` are left empty, `TuyaService` logs a clear
-warning and skips connecting entirely, so the rest of the team can run the app normally
-without real Tuya credentials.
+`src/sonoff/sonoff.service.ts` owns its own raw MQTT client:
+- **subscribes** to `stat/<SONOFF_BASE>/POWER#` (matches POWER1/POWER2/POWER3) so
+  every physical button press updates state in real time,
+- **publishes** `ON`/`OFF` to `cmnd/<SONOFF_BASE>/POWER{1,2,3}` to drive each relay.
 
-### Obtaining credentials
+Each POWER channel is surfaced as a normal app device (`sonoff1`, `sonoff2`,
+`sonoff3`) through the existing `DeviceService` registry + WebSocket gateway — the
+frontend treats them exactly like the live `light1`. State also arrives via the
+REST endpoints above.
 
-Two common ways to get `TUYA_DEVICE_ID` and `TUYA_LOCAL_KEY`:
+If `SONOFF_BASE` is left empty, `SonoffService` logs a warning and skips connecting,
+so the app runs normally without the hardware attached.
 
-1. **Tuya IoT Platform** — create a project and a cloud device at
-   [iot.tuya.com](https://iot.tuya.com). Add the device (linked from the TuyaSmart app),
-   then read its device id / local key from the device's detail page under Project →
-   Devices. Also set your project's **Data Center** to match your region, and note the
-   protocol version shown for the device model.
-2. **`tuya-cli` wizard** — install
-   [tuya-cli](https://github.com/tuya/tuya-cli) (`npm i -g @tuyapi/cli`), run
-   `tuya-cli wizard`, follow the prompts (region, username/password, to get an access
-   token), then `tuya-cli list` prints each device with its `id` and `key`.
+### Wiring / channel mapping
 
-`TUYA_DEVICE_IP` is optional: TuyAPI auto-discovers the device on the LAN, but an
-explicit IP makes startup faster and more reliable. `TUYA_PROTOCOL_VERSION` defaults to
-`3.3`; use the version your device's firmware reports.
+| Channel | Tasmota cmd | Device id | Frontend label  |
+| ------- | ----------- | --------- | --------------- |
+| 1       | `POWER1`    | `sonoff1` | Reception Line 1|
+| 2       | `POWER2`    | `sonoff2` | Reception Line 2|
+| 3       | `POWER3`    | `sonoff3` | Door Bulb       |
+
+### HTTP control fallback (direct to the switch, not via broker)
+
+For direct control/status you can also hit the switch's Tasmota HTTP API at
+`http://10.0.1.13/cm?cmnd=...` (toggle, e.g. `POWER1%20TOGGLE`; status via
+`Status%200`). The app itself always uses MQTT; this HTTP route is a manual/dev fallback.
 
 ## Verification
 

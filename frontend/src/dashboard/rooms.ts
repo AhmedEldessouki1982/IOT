@@ -4,6 +4,10 @@ export interface Room {
   id: string;
   name: string;
   devices: DeviceConfig[];
+  /** Live Sonoff 3-gang switch relays shown as balanced switch cards. */
+  switches?: DeviceConfig[];
+  /** Grid span class for the room's bento card (defaults to wide). */
+  span?: string;
 }
 
 /**
@@ -20,6 +24,15 @@ export const ROOMS: Room[] = [
       { kind: "lock", id: "lock-front-door", label: "Front Door", locked: true },
       { kind: "room-temp", id: "reception-temp", label: "Room Temperature", current: 21.5, history: [21.8, 21.6, 21.4, 21.7, 21.5, 21.3, 21.5] },
     ],
+    // Physical Sonoff T3US3C 3-gang switch (Tasmota) in the reception — each
+    // POWER relay is a live MQTT device rendered as a balanced switch card.
+    switches: [
+      { kind: "light", id: "sonoff1", deviceId: "sonoff1", label: "Reception Line 1" },
+      { kind: "light", id: "sonoff2", deviceId: "sonoff2", label: "Reception Line 2" },
+      { kind: "light", id: "sonoff3", deviceId: "sonoff3", label: "Door Bulb" },
+    ],
+    // Full row so the 3 switch cards sit side-by-side above the device list.
+    span: "room-card--full",
   },
   {
     id: "kitchen",
@@ -66,4 +79,12 @@ export const ROOMS: Room[] = [
 ];
 
 /** Live device ids (MQTT-backed) that must round-trip through useHomeStore. */
-export const LIVE_DEVICE_IDS = ["light1"];
+export const LIVE_DEVICE_IDS = ["light1", "sonoff1", "sonoff2", "sonoff3"];
+
+/** Sonoff 3-gang relay ids rendered as balanced switch cards. */
+export const SONOFF_DEVICE_IDS = ["sonoff1", "sonoff2", "sonoff3"];
+
+/** True when a device id belongs to the physical Sonoff 3-gang switch. */
+export function isSonoffDevice(deviceId?: string): boolean {
+  return !!deviceId && SONOFF_DEVICE_IDS.includes(deviceId);
+}

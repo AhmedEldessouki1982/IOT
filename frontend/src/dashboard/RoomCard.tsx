@@ -1,5 +1,6 @@
 import type { DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
+import SwitchCard from "../components/SwitchCard";
 import {
   Sofa,
   UtensilsCrossed,
@@ -57,6 +58,10 @@ interface RoomCardProps {
   id: string;
   name: string;
   devices: DeviceConfig[];
+  /** Live Sonoff switch relays to show as balanced switch cards. */
+  switches?: DeviceConfig[];
+  /** Grid span class for the bento card (defaults to wide). */
+  span?: string;
   index?: number;
   dummyOn?: Record<string, boolean>;
   onDummyToggle?: (id: string) => void;
@@ -65,18 +70,23 @@ interface RoomCardProps {
 }
 
 /** Bento room card — icon + name + meta, warm wash when any light is on.
- *  Clicking the card (anywhere but a device control) opens the room detail
- *  view; `layoutId` gives that transition a shared-element feel. */
-export default function RoomCard({ id, name, devices, index = 0, dummyOn, onDummyToggle, onExpand }: RoomCardProps) {
+ *  Live Sonoff relays render as a balanced switch-card row; the rest as the
+ *  usual compact device list. Clicking the card (anywhere but a device control)
+ *  opens the room detail view; `layoutId` gives that transition a shared-element
+ *  feel. */
+export default function RoomCard({ id, name, devices, switches = [], span, index = 0, dummyOn, onDummyToggle, onExpand }: RoomCardProps) {
   const Icon = ROOM_ICON[id] ?? BedSingle;
-  const spanClass = ROOM_SPAN[id] ?? "room-card--wide";
+  const spanClass = span ?? ROOM_SPAN[id] ?? "room-card--wide";
   const accent = ROOM_ACCENT[id] ?? "#22d3ee";
 
-  const liveOn = useHomeStore((s) => s.device?.state.on === true);
-  const lights = devices.filter((d) => d.kind === "light");
-  const lightsOn = lights.filter((d) => {
+  // Live MQTT devices map (light1 + sonoff1/2/3) so the card's "on" count
+  // reflects real server state for any light that carries a live deviceId.
+  const liveDevices = useHomeStore((s) => s.devices);
+  const allLights = [...devices, ...switches].filter((d) => d.kind === "light");
+  const lightsOn = allLights.filter((d) => {
     if (d.kind !== "light") return false;
-    if ((d as { deviceId?: string }).deviceId === "light1") return liveOn;
+    const deviceId = (d as { deviceId?: string }).deviceId;
+    if (deviceId) return liveDevices[deviceId]?.state.on === true;
     return dummyOn?.[d.id] ?? false;
   }).length;
   const hasActiveLight = lightsOn > 0;
@@ -111,12 +121,23 @@ export default function RoomCard({ id, name, devices, index = 0, dummyOn, onDumm
         </div>
         <span className="room-card-meta">
           <span className="room-card-count">
-            {devices.length} · {lights.length ? `${lightsOn} on` : "—"}
+            {devices.length} · {allLights.length ? `${lightsOn} on` : "—"}
           </span>
           <span className="room-card-dot" aria-hidden="true" />
           <ChevronRight size={13} strokeWidth={2} className="room-card-expand-hint" aria-hidden="true" />
         </span>
       </header>
+      {switches.length > 0 && (
+        <div className="switch-row" onClick={stopRowClick}>
+          {switches.map((sw) => (
+            <SwitchCard
+              key={sw.id}
+              deviceId={(sw as { deviceId?: string }).deviceId!}
+              label={sw.label}
+            />
+          ))}
+        </div>
+      )}
       <ul className="room-card-list">
         {devices.map((config) => (
           <li key={config.id} className="room-card-item" onClick={stopRowClick}>
