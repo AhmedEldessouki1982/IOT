@@ -17,23 +17,40 @@ A premium IoT smart-home dashboard: **Python mock device → MQTT → NestJS →
 | ------------ | ---------------------------------------------------------------- |
 | `mock-device`| Python script simulating a smart switch (`light_switch.py`)      |
 | `nestjs`     | Backend: MQTT + REST + Socket.IO gateway                         |
-| `frontend`   | React + Vite + TypeScript + Tailwind + Zustand command center UI |
+| `frontend`   | React + Vite + TypeScript + Tailwind + Zustand + Framer Motion command center UI |
 | `mosquitto`  | MQTT broker config (local dev only)                              |
 
 ## What's Live vs Demo
 
+The dashboard is a single-page bento-card grid of the apartment's 8 rooms
+(Reception, Kitchen, Toilet, Corridor, Small Bedroom, Bedroom 2, Master
+Bedroom, Ensuite) — 16 devices in total. Each card lists its devices; tapping
+a card opens a room detail view with bulk actions (all lights on/off,
+lock/unlock all).
+
 ### Live (real MQTT round-trip)
-- **Reception → Main Light** (`light1`): toggle, brightness, color temperature — drives the mock device over MQTT, state updates via Socket.IO. The only real device today.
+- **Reception Ceiling Light** (`light1`): the reference live device — an on/off
+  toggle that round-trips the whole pipeline: UI → NestJS → Mosquitto → mock
+  device (Python) → state echoes back over Socket.IO.
+- **Reception Line 1 / Line 2 / Door Bulb** (`sonoff1/2/3`): the three relays of
+  the physical Sonoff T3US3C wall switch flashed with Tasmota, driven over MQTT
+  (`cmnd/…/POWER{1,2,3}`). Live when the switch is connected and broadcasting.
 
-### Interactive but local-only
-- **All other room toggles** (Dining, Bathroom, Master Bedroom lights): respond to taps with local state, but no backend wiring. Will work the moment a second mock device is added.
+### Interactive but local-only (demo)
+- **Front Door** lock: unlock/lock toggle with local state (no backend wiring yet).
+- **All other room lights** (Kitchen, Toilet, Corridor, Small Bedroom,
+  Bedroom 2, Master Bedroom, Ensuite): local toggles — they will round-trip
+  over MQTT the moment a mock or live device publishes their id.
 
-### Visual preview only (no backend)
-- **Scenes tab**: scene cards (Evening, Away, Entertain, Night) — visual architecture awaiting backend scene engine.
-- **Energy tab**: "1.2 kW" consumption chart — placeholder data, no metering backend yet.
-- **Security tab**: lock status, smoke/gas indicators — shows static states; the smart lock is interactive on the `/2d` floorplan but the Security tab's values are hardcoded.
+### Read-only demo sensors
+- **Room Temperature** (Reception, Kitchen, Master Bedroom): fixed demo
+  readings with a small recent-history strip.
+- **Gas Leak Detector** (Kitchen): static "safe" state.
 
-All preview/demo sections display a clearly visible **Preview** or **Demo Data** badge near their header.
+Demo devices carry a clearly visible **demo** affordance in the UI so it is
+always obvious what is wired to real hardware and what is not. The light/dark
+theme and the emergency **Shutdown** button (all lights off, all doors locked)
+work across both live and demo devices.
 
 ## Quick Start
 
@@ -91,9 +108,10 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` — the command center dashboard. Routes:
-- `/` — multi-tab command center (Overview, Rooms, Devices, Scenes, Energy, Security)
-- `/2d` — interactive 2D apartment floorplan with per-device control panel
+Open `http://localhost:5173` — the command center dashboard. Single page:
+- `/` — bento-card dashboard (8 rooms · 16 devices) with room detail drill-in,
+  light/dark theme toggle (persisted), live clock + connection status, and the
+  emergency shutdown control
 
 ## Device API
 
