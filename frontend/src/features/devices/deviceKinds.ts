@@ -1,12 +1,12 @@
 import { createElement, type ReactNode } from "react";
-import { Lightbulb, Flame, Thermometer, Lock } from "lucide-react";
+import { Lightbulb, Flame, Thermometer, Lock, Power, BellRing } from "lucide-react";
 
 /**
  * Canonical device kinds, each mapped to exactly one reusable component in
  * KIND_COMPONENTS. `Device` is the presentational dispatcher — components
  * never dispatch by kind, they only render themselves.
  */
-export type DeviceKind = "light" | "gas-leak" | "room-temp" | "lock";
+export type DeviceKind = "light" | "gas-leak" | "room-temp" | "lock" | "appliance" | "smoke";
 
 /* ------------------------------------------------------------------ */
 /*  Device configs — discriminated by `kind`, source of truth per kind */
@@ -49,7 +49,31 @@ export interface LockConfig {
   locked?: boolean;
 }
 
-export type DeviceConfig = LightConfig | GasLeakConfig | RoomTempConfig | LockConfig;
+export interface ApplianceConfig {
+  kind: "appliance";
+  id: string;
+  /** MQTT device id this appliance rounds-trips with, once wired. */
+  deviceId?: string;
+  label: string;
+}
+
+export interface SmokeConfig {
+  kind: "smoke";
+  id: string;
+  /** MQTT device id this sensor rounds-trips with, once wired. */
+  deviceId?: string;
+  label: string;
+  /** Dummy value — smoke alarm armed (safe) vs triggered (alarm). */
+  active?: boolean;
+}
+
+export type DeviceConfig =
+  | LightConfig
+  | GasLeakConfig
+  | RoomTempConfig
+  | LockConfig
+  | ApplianceConfig
+  | SmokeConfig;
 
 /* ------------------------------------------------------------------ */
 /*  Default icons                                                       */
@@ -63,6 +87,8 @@ const ICONS: Record<
   "gas-leak": { icon: Flame, size: 15, strokeWidth: 1.6 },
   "room-temp": { icon: Thermometer, size: 15, strokeWidth: 1.6 },
   lock: { icon: Lock, size: 15, strokeWidth: 1.7 },
+  appliance: { icon: Power, size: 15, strokeWidth: 1.6 },
+  smoke: { icon: BellRing, size: 15, strokeWidth: 1.7 },
 };
 
 export function deviceIcon(kind: DeviceKind): ReactNode {

@@ -41,6 +41,13 @@ export const ROOMS: Room[] = [
       { kind: "light", id: "light2", label: "Kitchen Light" },
       { kind: "gas-leak", id: "kitchen-gas", label: "Gas Leak Detector", detected: false },
       { kind: "room-temp", id: "kitchen-temp", label: "Room Temperature", current: 23.2, history: [23.0, 23.4, 23.1, 23.6, 23.2, 23.3, 23.2] },
+      // 3D viewers map 1:1 to the kitchen GLB's clickable IoT markers.
+      { kind: "light", id: "light_kitchen_ceiling_main", label: "Kitchen Ceiling Main" },
+      { kind: "light", id: "light_kitchen_undercab", label: "Kitchen Under-Cabinet Light" },
+      { kind: "light", id: "light_kitchen_peninsula_pendant", label: "Peninsula Pendant Light" },
+      { kind: "appliance", id: "appliance_kitchen_oven", label: "Kitchen Oven" },
+      { kind: "appliance", id: "appliance_kitchen_dishwasher", label: "Kitchen Dishwasher" },
+      { kind: "smoke", id: "sensor_kitchen_smoke_01", label: "Kitchen Smoke Sensor", active: false },
     ],
   },
   {

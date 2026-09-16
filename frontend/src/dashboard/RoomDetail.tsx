@@ -120,9 +120,21 @@ export default function RoomDetail({ id, name, devices, switches = [], dummyOn, 
             <li key={config.id} className="room-detail-item">
               <CardDevice
                 config={config}
-                state={config.kind === "light" || config.kind === "lock" ? dummyOn[config.id] : undefined}
+                state={
+                  config.kind === "light" ||
+                  config.kind === "lock" ||
+                  config.kind === "appliance" ||
+                  config.kind === "smoke"
+                    ? dummyOn[config.id]
+                    : undefined
+                }
                 onToggle={
-                  config.kind === "light" || config.kind === "lock" ? () => onDummyToggle(config.id) : undefined
+                  config.kind === "light" ||
+                  config.kind === "lock" ||
+                  config.kind === "appliance" ||
+                  config.kind === "smoke"
+                    ? () => onDummyToggle(config.id)
+                    : undefined
                 }
               />
             </li>

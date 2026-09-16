@@ -157,7 +157,11 @@ export class SonoffService implements OnModuleInit, OnModuleDestroy {
     if (!match || match[1] !== this.base) return;
 
     const channel = Number(match[2]);
-    if (!Number.isInteger(channel) || channel < 1 || channel > this.channelCount) {
+    if (
+      !Number.isInteger(channel) ||
+      channel < 1 ||
+      channel > this.channelCount
+    ) {
       return;
     }
 

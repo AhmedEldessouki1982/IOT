@@ -11,8 +11,10 @@ import {
   Crown,
   Droplets,
   ChevronRight,
+  Box,
 } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
+import { ROOM_ASSETS, ROOM_3D_ID } from "../3d/roomAssets";
 import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
 import { motion } from "framer-motion";
 
@@ -65,6 +67,8 @@ interface RoomCardProps {
   index?: number;
   dummyOn?: Record<string, boolean>;
   onDummyToggle?: (id: string) => void;
+  /** Opens the 3D viewer for this room (only wired when a GLB exists). */
+  onView3D?: (assetId: string) => void;
   /** Opens the full-screen room detail view for this room. */
   onExpand?: (id: string) => void;
 }
@@ -74,10 +78,15 @@ interface RoomCardProps {
  *  usual compact device list. Clicking the card (anywhere but a device control)
  *  opens the room detail view; `layoutId` gives that transition a shared-element
  *  feel. */
-export default function RoomCard({ id, name, devices, switches = [], span, index = 0, dummyOn, onDummyToggle, onExpand }: RoomCardProps) {
+export default function RoomCard({ id, name, devices, switches = [], span, index = 0, dummyOn, onDummyToggle, onView3D, onExpand }: RoomCardProps) {
   const Icon = ROOM_ICON[id] ?? BedSingle;
   const spanClass = span ?? ROOM_SPAN[id] ?? "room-card--wide";
   const accent = ROOM_ACCENT[id] ?? "#22d3ee";
+
+  // A working "3D" button requires a registered GLB for this room — only the
+  // Kitchen resolves today, so no other card can ever show one.
+  const assetId = ROOM_3D_ID[id];
+  const has3D = !!onView3D && !!assetId && !!ROOM_ASSETS[assetId];
 
   // Live MQTT devices map (light1 + sonoff1/2/3) so the card's "on" count
   // reflects real server state for any light that carries a live deviceId.
@@ -92,6 +101,9 @@ export default function RoomCard({ id, name, devices, switches = [], span, index
   const hasActiveLight = lightsOn > 0;
 
   const stopRowClick = (e: MouseEvent) => e.stopPropagation();
+
+  const isToggleable = (kind: DeviceConfig["kind"]) =>
+    kind === "light" || kind === "lock" || kind === "appliance" || kind === "smoke";
 
   const handleCardKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -123,6 +135,19 @@ export default function RoomCard({ id, name, devices, switches = [], span, index
           <span className="room-card-count">
             {devices.length} · {allLights.length ? `${lightsOn} on` : "—"}
           </span>
+          {has3D && (
+            <button
+              type="button"
+              className="room-card-3d"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (assetId) onView3D?.(assetId);
+              }}
+              aria-label={`Open ${name} in 3D`}
+            >
+              <Box size={12} strokeWidth={1.8} aria-hidden="true" /> 3D
+            </button>
+          )}
           <span className="room-card-dot" aria-hidden="true" />
           <ChevronRight size={13} strokeWidth={2} className="room-card-expand-hint" aria-hidden="true" />
         </span>
@@ -141,13 +166,11 @@ export default function RoomCard({ id, name, devices, switches = [], span, index
       <ul className="room-card-list">
         {devices.map((config) => (
           <li key={config.id} className="room-card-item" onClick={stopRowClick}>
-            <CardDevice
-              config={config}
-              state={config.kind === "light" || config.kind === "lock" ? dummyOn?.[config.id] : undefined}
-              onToggle={
-                config.kind === "light" || config.kind === "lock" ? () => onDummyToggle?.(config.id) : undefined
-              }
-            />
+<CardDevice
+                config={config}
+                state={isToggleable(config.kind) ? dummyOn?.[config.id] : undefined}
+                onToggle={isToggleable(config.kind) ? () => onDummyToggle?.(config.id) : undefined}
+              />
           </li>
         ))}
       </ul>

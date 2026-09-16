@@ -4,8 +4,10 @@ import LightDevice, { type LightDeviceProps } from "./kinds/LightDevice";
 import GasLeakSensor, { type GasLeakSensorProps } from "./kinds/GasLeakSensor";
 import RoomTempSensor, { type RoomTempSensorProps } from "./kinds/RoomTempSensor";
 import LockDevice, { type LockDeviceProps } from "./kinds/LockDevice";
+import ApplianceDevice, { type ApplianceDeviceProps } from "./kinds/ApplianceDevice";
+import SmokeDevice, { type SmokeDeviceProps } from "./kinds/SmokeDevice";
 
-export { LightDevice, GasLeakSensor, RoomTempSensor, LockDevice };
+export { LightDevice, GasLeakSensor, RoomTempSensor, LockDevice, ApplianceDevice, SmokeDevice };
 
 export type { DeviceKind, DeviceConfig } from "./deviceKinds";
 export { deviceIcon } from "./deviceKinds";
@@ -16,6 +18,8 @@ const KIND_COMPONENTS: Record<DeviceKind, ComponentType<any>> = {
   "gas-leak": GasLeakSensor,
   "room-temp": RoomTempSensor,
   lock: LockDevice,
+  appliance: ApplianceDevice,
+  smoke: SmokeDevice,
 };
 
 /** Discriminated union: pick a kind, then the props valid for that kind. */
@@ -23,9 +27,18 @@ export type DeviceProps =
   | ({ kind: "light" } & LightDeviceProps)
   | ({ kind: "gas-leak" } & GasLeakSensorProps)
   | ({ kind: "room-temp" } & RoomTempSensorProps)
-  | ({ kind: "lock" } & LockDeviceProps);
+  | ({ kind: "lock" } & LockDeviceProps)
+  | ({ kind: "appliance" } & ApplianceDeviceProps)
+  | ({ kind: "smoke" } & SmokeDeviceProps);
 
-export type { LightDeviceProps, GasLeakSensorProps, RoomTempSensorProps, LockDeviceProps };
+export type {
+  LightDeviceProps,
+  GasLeakSensorProps,
+  RoomTempSensorProps,
+  LockDeviceProps,
+  ApplianceDeviceProps,
+  SmokeDeviceProps,
+};
 
 /** Presentational dispatcher — routes a canonical kind to its shared component. */
 export function Device(props: DeviceProps) {

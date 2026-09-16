@@ -1,13 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useHomeStore } from "./store/useHomeStore";
 import { useDummyToggles } from "./features/devices/useDummyToggles";
 import { ROOMS } from "./dashboard/rooms";
+import { ROOM_3D_ID } from "./3d/roomAssets";
 import RoomCard from "./dashboard/RoomCard";
 import RoomDetail from "./dashboard/RoomDetail";
 import ThemeToggle from "./components/ThemeToggle";
 import EmergencyShutdown from "./components/EmergencyShutdown";
 import "./index.css";
+
+// The 3D viewer pulls in three.js — lazy so it only ever loads when a room's
+// popup is actually opened, never in the initial dashboard bundle.
+const RoomViewer3D = lazy(() => import("./3d/RoomViewer3D"));
 
 function useClock() {
   const [now, setNow] = useState(() => new Date());
@@ -41,6 +46,8 @@ export default function App() {
   const anyLiveOn = Object.values(liveDevices).some((d) => d.state.on === true);
   const { time, date } = useClock();
   const [openRoomId, setOpenRoomId] = useState<string | null>(null);
+  // 3D viewer asset room id (e.g. `r02`) — null while the popup is closed.
+  const [viewerRoomId, setViewerRoomId] = useState<string | null>(null);
 
   // Non-live lights default off; locks default locked — each dummy device
   // seeds its own starting value instead of one blanket default.
@@ -54,6 +61,8 @@ export default function App() {
         firstDummyLightSeen = true;
       }
       if (d.kind === "lock") initial[d.id] = d.locked ?? true;
+      if (d.kind === "appliance") initial[d.id] = false;
+      if (d.kind === "smoke") initial[d.id] = d.active ?? false;
     });
     return initial;
   }, []);
@@ -68,6 +77,7 @@ export default function App() {
     return ROOMS.flatMap((r) => r.devices).some((d) => {
       if (d.kind === "lock") return (dummyOn[d.id] ?? true) === false;
       if (d.kind === "light" && !d.deviceId) return dummyOn[d.id] ?? false;
+      if (d.kind === "appliance") return dummyOn[d.id] ?? false;
       return false;
     });
   }, [anyLiveOn, dummyOn]);
@@ -81,6 +91,7 @@ export default function App() {
     ROOMS.flatMap((r) => r.devices).forEach((d) => {
       if (d.kind === "light" && !d.deviceId) next[d.id] = false;
       if (d.kind === "lock") next[d.id] = true;
+      if (d.kind === "appliance") next[d.id] = false;
     });
     resetDummy(next);
   };
@@ -93,6 +104,31 @@ export default function App() {
   }, [homeLoad]);
 
   const openRoom = openRoomId ? ROOMS.find((r) => r.id === openRoomId) ?? null : null;
+
+  // Live state map forwarded to the 3D viewer so markers reflect the exact
+  // dashboard state on every open (never stale from a previous session).
+  const viewerDeviceStates = useMemo(() => {
+    if (!viewerRoomId) return {};
+    const dashId = Object.keys(ROOM_3D_ID).find((k) => ROOM_3D_ID[k] === viewerRoomId);
+    const room = dashId ? ROOMS.find((r) => r.id === dashId) : undefined;
+    if (!room) return {};
+    const out: Record<string, boolean> = {};
+    room.devices.forEach((d) => {
+      if (d.kind === "gas-leak" || d.kind === "room-temp") return;
+      out[d.id] = "deviceId" in d && d.deviceId ? liveDevices[d.deviceId]?.state.on === true : dummyOn[d.id] ?? false;
+    });
+    return out;
+  }, [viewerRoomId, dummyOn, liveDevices]);
+
+  // 3D marker click → the exact same handler path the 2D cards use: live
+  // lights round-trip through useHomeStore, everything else flips the shared
+  // dummy toggle map. One source of truth, two renderers.
+  const handleViewerDeviceClick = (deviceId: string) => {
+    const config = ROOMS.flatMap((r) => r.devices).find((d) => d.id === deviceId);
+    if (!config) return;
+    if (config.kind === "light" && config.deviceId) void liveToggle(config.deviceId);
+    else toggleDummy(deviceId);
+  };
 
   // Esc closes the room detail view.
   useEffect(() => {
@@ -139,6 +175,7 @@ export default function App() {
             index={i}
             dummyOn={dummyOn}
             onDummyToggle={toggleDummy}
+            onView3D={setViewerRoomId}
             onExpand={setOpenRoomId}
           />
         ))}
@@ -155,6 +192,20 @@ export default function App() {
             onDummyToggle={toggleDummy}
             onClose={() => setOpenRoomId(null)}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {viewerRoomId && (
+          <Suspense fallback={null}>
+            <RoomViewer3D
+              key={viewerRoomId}
+              roomId={viewerRoomId}
+              deviceStates={viewerDeviceStates}
+              onDeviceClick={handleViewerDeviceClick}
+              onClose={() => setViewerRoomId(null)}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
     </div>
