@@ -1,0 +1,74 @@
+{
+  "$comment": "Scene manifest for smart-apartment-3d-test kitchen build — regenerated after kitchen layout patch (sink/dishwasher moved to north wall, east sink counter removed, bar lengthened, LED ceiling profiles added)",
+  "project": "smart-apartment-3d-test",
+  "date": "2026-09-12",
+  "scene": {
+    "file": "blender/kitchen-test.blend",
+    "size_bytes": 222721,
+    "blender_version": "5.2.1 LTS"
+  },
+  "objects": {
+    "total_objects": 215,
+    "total_mesh": 185,
+    "total_lights": 14,
+    "total_cameras": 4,
+    "total_empties": 12,
+    "by_collection": {
+      "01_ARCHITECTURE": 11,
+      "02_FURNITURE": 162,
+      "03_LIGHTING": 25,
+      "04_CAMERAS": 8,
+      "05_IOT_MARKERS": 8,
+      "99_LEGACY": 1,
+      "Collection": 3
+    }
+  },
+  "materials": 22,
+  "rooms": [
+    {
+      "room_id": "r02",
+      "room_name": "Kitchen",
+      "room_type": "kitchen",
+      "design_anchor": true,
+      "objects": 162,
+      "bbox_min": [9.13, 22.49, 0.0],
+      "bbox_max": [12.98, 25.11, 2.8]
+    }
+  ],
+  "led_profiles": [
+    {
+      "name": "IOT_LIGHT_PROFILE_KITCHEN_OUTER",
+      "device_id": "light_profile_kitchen_outer",
+      "groupId": "kitchen_profile_lighting",
+      "square": "2.0m x 2.0m",
+      "center": [11.5, 24.0, 2.795]
+    },
+    {
+      "name": "IOT_LIGHT_PROFILE_KITCHEN_INNER",
+      "device_id": "light_profile_kitchen_inner",
+      "groupId": "kitchen_profile_lighting",
+      "square": "1.0m x 1.0m",
+      "center": [11.5, 24.0, 2.795]
+    }
+  ],
+  "exports": {
+    "glb": {
+      "file": "exports/kitchen-test.glb",
+      "size_bytes": 431112,
+      "nodes": 196,
+      "meshes": 184,
+      "materials": 21,
+      "version": 2,
+      "export_extras": true
+    },
+    "glb_presentation": {
+      "file": "exports/kitchen-presentation.glb",
+      "size_bytes": 431112,
+      "nodes": 196,
+      "meshes": 184,
+      "materials": 21,
+      "version": 2,
+      "export_extras": true
+    }
+  }
+}

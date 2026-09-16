@@ -1,0 +1,126 @@
+[
+  {
+    "name": "IOT_light_kitchen_ceiling_main",
+    "device_id": "light_kitchen_ceiling_main",
+    "device_type": "light",
+    "room_id": "r02",
+    "state": "online",
+    "clickable": true,
+    "label": "Kitchen Ceiling Main",
+    "marker_type": "EMPTY-SPHERE",
+    "display_size": 0.05,
+    "position": [
+      11.0,
+      24.0,
+      2.78
+    ]
+  },
+  {
+    "name": "IOT_light_kitchen_undercab",
+    "device_id": "light_kitchen_undercab",
+    "device_type": "light",
+    "room_id": "r02",
+    "state": "online",
+    "clickable": true,
+    "label": "Kitchen Under-Cabinet Light",
+    "marker_type": "EMPTY-SPHERE",
+    "display_size": 0.05,
+    "position": [
+      11.0,
+      24.85,
+      2.05
+    ]
+  },
+  {
+    "name": "IOT_light_kitchen_peninsula_pendant",
+    "device_id": "light_kitchen_peninsula_pendant",
+    "device_type": "light",
+    "room_id": "r02",
+    "state": "online",
+    "clickable": true,
+    "label": "Peninsula Pendant Light",
+    "marker_type": "EMPTY-SPHERE",
+    "display_size": 0.05,
+    "position": [
+      11.87,
+      23.29,
+      2.0
+    ]
+  },
+  {
+    "name": "IOT_appliance_kitchen_oven",
+    "device_id": "appliance_kitchen_oven",
+    "device_type": "appliance",
+    "room_id": "r02",
+    "state": "online",
+    "clickable": true,
+    "label": "Kitchen Oven",
+    "marker_type": "EMPTY-SPHERE",
+    "display_size": 0.05,
+    "position": [
+      11.9,
+      24.7,
+      0.6
+    ]
+  },
+  {
+    "name": "IOT_appliance_kitchen_dishwasher",
+    "device_id": "appliance_kitchen_dishwasher",
+    "device_type": "appliance",
+    "room_id": "r02",
+    "state": "online",
+    "clickable": true,
+    "label": "Kitchen Dishwasher",
+    "marker_type": "EMPTY-SPHERE",
+    "display_size": 0.05,
+    "position": [
+      10.4,
+      24.75,
+      0.45
+    ]
+  },
+  {
+    "name": "IOT_sensor_kitchen_smoke_01",
+    "device_id": "sensor_kitchen_smoke_01",
+    "device_type": "sensor",
+    "room_id": "r02",
+    "state": "online",
+    "clickable": true,
+    "label": "Kitchen Smoke Sensor",
+    "marker_type": "EMPTY-SPHERE",
+    "display_size": 0.05,
+    "position": [
+      11.0,
+      24.0,
+      2.75
+    ]
+  },
+  {
+    "device_id": "light_profile_kitchen_outer",
+    "device_type": "light_profile",
+    "room_id": "r02",
+    "position": [11.5, 24.0, 2.795],
+    "capabilities": ["on_off", "brightness"],
+    "groupId": "kitchen_profile_lighting",
+    "state": "online",
+    "name": "IOT_light_profile_kitchen_outer",
+    "clickable": true,
+    "label": "Kitchen Ceiling LED Frame (Outer)",
+    "marker_type": "EMPTY-SPHERE",
+    "display_size": 0.05
+  },
+  {
+    "device_id": "light_profile_kitchen_inner",
+    "device_type": "light_profile",
+    "room_id": "r02",
+    "position": [11.5, 24.0, 2.795],
+    "capabilities": ["on_off", "brightness"],
+    "groupId": "kitchen_profile_lighting",
+    "state": "online",
+    "name": "IOT_light_profile_kitchen_inner",
+    "clickable": true,
+    "label": "Kitchen Ceiling LED Frame (Inner)",
+    "marker_type": "EMPTY-SPHERE",
+    "display_size": 0.05
+  }
+]
