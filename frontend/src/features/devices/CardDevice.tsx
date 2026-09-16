@@ -14,7 +14,11 @@ interface CardDeviceProps {
  *  with a `deviceId`, e.g. `light1` or the Sonoff `sonoff1/2/3`) round-trip
  *  through `useHomeStore`; dummy lights use the shared local state passed
  *  down; sensors render straight from their config. */
-export default function CardDevice({ config, state, onToggle }: CardDeviceProps) {
+export default function CardDevice({
+  config,
+  state,
+  onToggle,
+}: CardDeviceProps) {
   const liveDevices = useHomeStore((s) => s.devices);
   const toggle = useHomeStore((s) => s.toggle);
   const icon = deviceIcon(config.kind);
@@ -26,9 +30,7 @@ export default function CardDevice({ config, state, onToggle }: CardDeviceProps)
       variant: "card",
       label: config.label,
       defaultOn: config.defaultOn,
-      state: isLive
-        ? liveDevices[config.deviceId!]?.state.on === true
-        : state,
+      state: isLive ? liveDevices[config.deviceId!]?.state.on === true : state,
       onToggle: isLive ? () => toggle(config.deviceId!) : onToggle,
       icon,
       badge: isLive ? "live" : "demo",

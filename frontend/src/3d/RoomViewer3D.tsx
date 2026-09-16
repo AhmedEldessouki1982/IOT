@@ -1,4 +1,11 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF, useProgress } from "@react-three/drei";
 import * as THREE from "three";
@@ -28,7 +35,10 @@ function markerDeviceId(o: THREE.Object3D): string | undefined {
   if (ud?.clickable && typeof ud.device_id === "string") return ud.device_id;
   const name = o.name;
   if (!name.startsWith("IOT_")) return undefined;
-  return name.slice(4).toLowerCase().replace(/_[ensw]$/, "");
+  return name
+    .slice(4)
+    .toLowerCase()
+    .replace(/_[ensw]$/, "");
 }
 
 /** Walk up from the raycast hit to the nearest node that resolves to a
@@ -101,7 +111,14 @@ function buildWifiTexture(withSlash: boolean): THREE.CanvasTexture {
   const cy = size / 2;
 
   // Dark backing chip + soft colored inner glow (both tint-multiplied).
-  const chip = ctx.createRadialGradient(cx, cy, size * 0.1, cx, cy, size * 0.47);
+  const chip = ctx.createRadialGradient(
+    cx,
+    cy,
+    size * 0.1,
+    cx,
+    cy,
+    size * 0.47,
+  );
   chip.addColorStop(0, "rgba(255,255,255,0.10)");
   chip.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = "rgba(10, 13, 20, 0.72)";
@@ -147,7 +164,7 @@ function buildWifiTexture(withSlash: boolean): THREE.CanvasTexture {
     ctx.lineWidth = size * 0.075;
     ctx.beginPath();
     ctx.moveTo(cx - size * 0.34, cy - size * 0.04);
-    ctx.lineTo(cx + size * 0.34, cy + size * 0.30);
+    ctx.lineTo(cx + size * 0.34, cy + size * 0.3);
     ctx.stroke();
   }
 
@@ -197,9 +214,12 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
   const { scene } = useGLTF(url);
   const camera = useThree((s) => s.camera);
   const gl = useThree((s) => s.gl);
-  const controls = useThree((s) => s.controls) as unknown as
-    | { target: THREE.Vector3; minDistance: number; maxDistance: number; update: () => void }
-    | null;
+  const controls = useThree((s) => s.controls) as unknown as {
+    target: THREE.Vector3;
+    minDistance: number;
+    maxDistance: number;
+    update: () => void;
+  } | null;
 
   // Marker nodes: every node that resolves to a device id, deduped by id and
   // intersected with the ids wired into the dashboard — so e.g. the ceiling
@@ -219,7 +239,11 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
 
   // One-time per-mount bookkeeping.
   const fitted = useRef(false);
-  const lastFit = useRef<{ center: number[]; size: number[]; maxDim: number } | null>(null);
+  const lastFit = useRef<{
+    center: number[];
+    size: number[];
+    maxDim: number;
+  } | null>(null);
 
   const markerById = useRef<Map<string, THREE.Sprite>>(new Map());
   // Mutable mirrors so the per-frame pulse loop never reads staleness.
@@ -279,11 +303,16 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
       if (on) {
         const ph = (t + wifiPhaseOffset(id)) % CYCLE;
         if (ph < 0.13) beat = Math.sin((ph / 0.13) * Math.PI);
-        else if (ph < 0.26) beat = Math.sin(((ph - 0.13) / 0.13) * Math.PI) * 0.55;
-        else if (ph >= 0.58 && ph < 0.7) beat = Math.sin(((ph - 0.58) / 0.12) * Math.PI);
+        else if (ph < 0.26)
+          beat = Math.sin(((ph - 0.13) / 0.13) * Math.PI) * 0.55;
+        else if (ph >= 0.58 && ph < 0.7)
+          beat = Math.sin(((ph - 0.58) / 0.12) * Math.PI);
       }
       const hover = hoverRef.current === id;
-      const s = (sprite.userData.base as number) * (on ? 1 + 0.2 * beat : 1) * (hover ? 1.12 : 1);
+      const s =
+        (sprite.userData.base as number) *
+        (on ? 1 + 0.2 * beat : 1) *
+        (hover ? 1.12 : 1);
       sprite.scale.set(s, s, 1);
     }
   });
@@ -318,7 +347,9 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
         const node = clickableNode(h.object);
         if (!node) continue;
         const id = markerDeviceId(node) as string;
-        const world = new THREE.Vector3().setFromMatrixPosition(node.matrixWorld);
+        const world = new THREE.Vector3().setFromMatrixPosition(
+          node.matrixWorld,
+        );
         const toMarker = world.sub(camera.position).normalize();
         const ang = raycaster.current.ray.direction.angleTo(toMarker);
         if (!best || ang < best.ang) best = { ang, id };
@@ -378,7 +409,9 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
       el.removeEventListener("click", handleClick);
       el.removeEventListener("pointerleave", handlePointerLeave);
       document.body.style.cursor = "auto";
-      const w = window as unknown as { __roomViewerDev?: { raycastAt?: unknown } };
+      const w = window as unknown as {
+        __roomViewerDev?: { raycastAt?: unknown };
+      };
       if (w.__roomViewerDev?.raycastAt) delete w.__roomViewerDev.raycastAt;
     };
   }, [pick, onDeviceClick, gl]);
@@ -408,7 +441,11 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
     } else {
       camera.lookAt(center);
     }
-    lastFit.current = { center: center.toArray(), size: size.toArray(), maxDim };
+    lastFit.current = {
+      center: center.toArray(),
+      size: size.toArray(),
+      maxDim,
+    };
   }, [scene, camera, controls]);
 
   /* DEV-only handles surfaced to the browser test (plain DOM automation
@@ -425,7 +462,9 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
       const sprite = hit.getObjectByName(`iot_wifi_${deviceId}`);
       (sprite ?? hit).getWorldPosition(v);
       v.project(camera);
-      const canvas = document.querySelector<HTMLCanvasElement>(".room-viewer canvas");
+      const canvas = document.querySelector<HTMLCanvasElement>(
+        ".room-viewer canvas",
+      );
       if (!canvas) return null;
       const rect = canvas.getBoundingClientRect();
       return {
@@ -441,7 +480,9 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
       markers: () =>
         clickables.map((m) => ({
           device_id: markerDeviceId(m),
-          world: new THREE.Vector3().setFromMatrixPosition(m.matrixWorld).toArray(),
+          world: new THREE.Vector3()
+            .setFromMatrixPosition(m.matrixWorld)
+            .toArray(),
         })),
       project,
       wifi: () =>
@@ -449,11 +490,13 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
           id,
           variant: s.userData.variant as string | undefined,
           lift: +s.position.y.toFixed(3),
-          color: "#" + (s.material as THREE.SpriteMaterial).color.getHexString(),
+          color:
+            "#" + (s.material as THREE.SpriteMaterial).color.getHexString(),
           scale: +s.scale.x.toFixed(3),
         })),
       clickDevice: (deviceId: string) => onDeviceClick?.(deviceId),
-      getMarkerState: (deviceId: string) => !!deviceStatesRef.current?.[deviceId],
+      getMarkerState: (deviceId: string) =>
+        !!deviceStatesRef.current?.[deviceId],
       raycastAt: (clientX: number, clientY: number) => {
         const first = pick(clientX, clientY);
         const el = gl.domElement;
@@ -468,7 +511,9 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
       },
       markerReport: () =>
         clickables.map((m) => {
-          const world = new THREE.Vector3().setFromMatrixPosition(m.matrixWorld);
+          const world = new THREE.Vector3().setFromMatrixPosition(
+            m.matrixWorld,
+          );
           const p = project(markerDeviceId(m)!);
           const self = (() => {
             if (!p) return null;
@@ -476,7 +521,11 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
             r.setFromCamera(new THREE.Vector2(p.ndc[0], p.ndc[1]), camera);
             const hits = r.intersectObject(m, true);
             return hits.length
-              ? { dist: hits[0].distance, name: hits[0].object.name, type: hits[0].object.type }
+              ? {
+                  dist: hits[0].distance,
+                  name: hits[0].object.name,
+                  type: hits[0].object.type,
+                }
               : null;
           })();
           let ancestorsHidden = false;
@@ -494,8 +543,8 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
             children: m.children.length,
             hasGeom: !!mesh.geometry,
             matSide: Array.isArray(mesh.material)
-              ? (mesh.material[0] as THREE.Material | null)?.side ?? null
-              : (mesh.material as THREE.Material | null)?.side ?? null,
+              ? ((mesh.material[0] as THREE.Material | null)?.side ?? null)
+              : ((mesh.material as THREE.Material | null)?.side ?? null),
             rayHitsSelf: self,
             world,
           };
@@ -506,17 +555,28 @@ function RoomScene({ url, deviceStates, onDeviceClick }: InternalSceneProps) {
     return () => {
       if (w.__roomViewerDev === api) delete w.__roomViewerDev;
     };
-  }, [camera, controls, clickables, deviceStates, onDeviceClick, scene, gl, pick]);
+  }, [
+    camera,
+    controls,
+    clickables,
+    deviceStates,
+    onDeviceClick,
+    scene,
+    gl,
+    pick,
+  ]);
 
   return (
     <group>
       <ambientLight intensity={0.55} />
       <directionalLight position={[6, 9, 4]} intensity={1.5} />
-      <directionalLight position={[-6, 5, -3]} intensity={0.45} color="#a8c8ff" />
-      <pointLight position={[0, 3.2, 0]} intensity={0.35} color="#fff2df" />
-      <primitive
-        object={scene}
+      <directionalLight
+        position={[-6, 5, -3]}
+        intensity={0.45}
+        color="#a8c8ff"
       />
+      <pointLight position={[0, 3.2, 0]} intensity={0.35} color="#fff2df" />
+      <primitive object={scene} />
       <OrbitControls makeDefault enableDamping dampingFactor={0.08} />
     </group>
   );
@@ -536,7 +596,12 @@ export interface RoomViewer3DProps {
   onClose: () => void;
 }
 
-export default function RoomViewer3D({ roomId, deviceStates, onDeviceClick, onClose }: RoomViewer3DProps) {
+export default function RoomViewer3D({
+  roomId,
+  deviceStates,
+  onDeviceClick,
+  onClose,
+}: RoomViewer3DProps) {
   const asset = ROOM_ASSETS[roomId];
   const { active, progress } = useProgress();
   const loading = active || progress < 100;
@@ -579,27 +644,46 @@ export default function RoomViewer3D({ roomId, deviceStates, onDeviceClick, onCl
             </span>
             <div>
               <h2>{roomTitle(roomId)} · 3D</h2>
-              <p className="room-viewer-sub">Orbit to inspect · click a marker to toggle</p>
+              <p className="room-viewer-sub">
+                Orbit to inspect · click a marker to toggle
+              </p>
             </div>
           </div>
-          <button type="button" className="room-viewer-close" onClick={onClose} aria-label="Close 3D view">
+          <button
+            type="button"
+            className="room-viewer-close"
+            onClick={onClose}
+            aria-label="Close 3D view"
+          >
             <X size={17} strokeWidth={1.8} />
           </button>
         </header>
         <div className="room-viewer-body">
           {loading && (
             <div className="room-viewer-loading" role="status">
-              <Loader2 className="room-viewer-spin" size={18} strokeWidth={1.6} />
+              <Loader2
+                className="room-viewer-spin"
+                size={18}
+                strokeWidth={1.6}
+              />
               <span>Loading room…</span>
             </div>
           )}
           <Canvas
             camera={{ fov: 50, near: 0.1, far: 200 }}
             dpr={[1, 2]}
-            gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+            gl={{
+              antialias: true,
+              alpha: true,
+              powerPreference: "high-performance",
+            }}
           >
             <Suspense fallback={null}>
-              <RoomScene url={asset.glb} deviceStates={deviceStates} onDeviceClick={onDeviceClick} />
+              <RoomScene
+                url={asset.glb}
+                deviceStates={deviceStates}
+                onDeviceClick={onDeviceClick}
+              />
             </Suspense>
           </Canvas>
         </div>
@@ -607,4 +691,3 @@ export default function RoomViewer3D({ roomId, deviceStates, onDeviceClick, onCl
     </motion.div>
   );
 }
-

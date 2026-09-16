@@ -1,6 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import * as mqtt from "mqtt";
+import { MqttConnectionService } from "../mqtt/mqtt-connection.service";
 
 export type DeviceType = "switch" | "sensor" | "lock";
 
@@ -15,15 +14,8 @@ export interface DeviceState {
 export class DeviceService {
   private readonly logger = new Logger(DeviceService.name);
   private readonly states = new Map<string, DeviceState>();
-  private readonly client: mqtt.MqttClient;
 
-  constructor(config: ConfigService) {
-    const mqttUrl = config.get<string>("MQTT_URL") ?? "mqtt://localhost:1883";
-    this.client = mqtt.connect(mqttUrl);
-    this.client.on("connect", () =>
-      this.logger.log(`MQTT publisher connected to ${mqttUrl}`),
-    );
-  }
+  constructor(private readonly mqtt: MqttConnectionService) {}
 
   getState(deviceId: string): DeviceState | undefined {
     return this.states.get(deviceId);
@@ -47,6 +39,6 @@ export class DeviceService {
     const topic = `devices/${deviceId}/cmd`;
     const payload = JSON.stringify(command);
     this.logger.log(`Publishing command to ${topic}: ${payload}`);
-    this.client.publish(topic, payload);
+    this.mqtt.publish(topic, payload);
   }
 }

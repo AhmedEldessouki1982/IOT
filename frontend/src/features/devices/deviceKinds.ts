@@ -1,12 +1,41 @@
 import { createElement, type ReactNode } from "react";
-import { Lightbulb, Flame, Thermometer, Lock, Power, BellRing } from "lucide-react";
+import {
+  Lightbulb,
+  Flame,
+  Thermometer,
+  Lock,
+  Power,
+  BellRing,
+} from "lucide-react";
 
 /**
  * Canonical device kinds, each mapped to exactly one reusable component in
  * KIND_COMPONENTS. `Device` is the presentational dispatcher — components
  * never dispatch by kind, they only render themselves.
  */
-export type DeviceKind = "light" | "gas-leak" | "room-temp" | "lock" | "appliance" | "smoke";
+export type DeviceKind =
+  | "light"
+  | "gas-leak"
+  | "room-temp"
+  | "lock"
+  | "appliance"
+  | "smoke";
+
+/**
+ * Kinds that expose an on/off toggle in the UI (`LightDevice`, `LockDevice`,
+ * `ApplianceDevice`, `SmokeDevice`). Sensors render read-only.
+ */
+export type ToggleableKind = "light" | "lock" | "appliance" | "smoke";
+
+/** Type guard for the toggleable subset of device kinds. */
+export function isToggleableKind(kind: DeviceKind): kind is ToggleableKind {
+  return (
+    kind === "light" ||
+    kind === "lock" ||
+    kind === "appliance" ||
+    kind === "smoke"
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Device configs — discriminated by `kind`, source of truth per kind */

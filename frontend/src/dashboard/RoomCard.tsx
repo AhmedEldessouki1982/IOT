@@ -1,4 +1,4 @@
-import type { DeviceConfig } from "../features/devices";
+import { isToggleableKind, type DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
 import SwitchCard from "../components/SwitchCard";
 import {
@@ -78,7 +78,18 @@ interface RoomCardProps {
  *  usual compact device list. Clicking the card (anywhere but a device control)
  *  opens the room detail view; `layoutId` gives that transition a shared-element
  *  feel. */
-export default function RoomCard({ id, name, devices, switches = [], span, index = 0, dummyOn, onDummyToggle, onView3D, onExpand }: RoomCardProps) {
+export default function RoomCard({
+  id,
+  name,
+  devices,
+  switches = [],
+  span,
+  index = 0,
+  dummyOn,
+  onDummyToggle,
+  onView3D,
+  onExpand,
+}: RoomCardProps) {
   const Icon = ROOM_ICON[id] ?? BedSingle;
   const spanClass = span ?? ROOM_SPAN[id] ?? "room-card--wide";
   const accent = ROOM_ACCENT[id] ?? "#22d3ee";
@@ -101,9 +112,6 @@ export default function RoomCard({ id, name, devices, switches = [], span, index
   const hasActiveLight = lightsOn > 0;
 
   const stopRowClick = (e: MouseEvent) => e.stopPropagation();
-
-  const isToggleable = (kind: DeviceConfig["kind"]) =>
-    kind === "light" || kind === "lock" || kind === "appliance" || kind === "smoke";
 
   const handleCardKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -149,7 +157,12 @@ export default function RoomCard({ id, name, devices, switches = [], span, index
             </button>
           )}
           <span className="room-card-dot" aria-hidden="true" />
-          <ChevronRight size={13} strokeWidth={2} className="room-card-expand-hint" aria-hidden="true" />
+          <ChevronRight
+            size={13}
+            strokeWidth={2}
+            className="room-card-expand-hint"
+            aria-hidden="true"
+          />
         </span>
       </header>
       {switches.length > 0 && (
@@ -166,11 +179,19 @@ export default function RoomCard({ id, name, devices, switches = [], span, index
       <ul className="room-card-list">
         {devices.map((config) => (
           <li key={config.id} className="room-card-item" onClick={stopRowClick}>
-<CardDevice
-                config={config}
-                state={isToggleable(config.kind) ? dummyOn?.[config.id] : undefined}
-                onToggle={isToggleable(config.kind) ? () => onDummyToggle?.(config.id) : undefined}
-              />
+            <CardDevice
+              config={config}
+              state={
+                isToggleableKind(config.kind)
+                  ? dummyOn?.[config.id]
+                  : undefined
+              }
+              onToggle={
+                isToggleableKind(config.kind)
+                  ? () => onDummyToggle?.(config.id)
+                  : undefined
+              }
+            />
           </li>
         ))}
       </ul>

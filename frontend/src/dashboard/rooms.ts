@@ -20,15 +20,41 @@ export const ROOMS: Room[] = [
     id: "reception",
     name: "Reception",
     devices: [
-      { kind: "light", id: "light1", deviceId: "light1", label: "Reception Ceiling Light" },
-      { kind: "lock", id: "lock-front-door", label: "Front Door", locked: true },
-      { kind: "room-temp", id: "reception-temp", label: "Room Temperature", current: 21.5, history: [21.8, 21.6, 21.4, 21.7, 21.5, 21.3, 21.5] },
+      {
+        kind: "light",
+        id: "light1",
+        deviceId: "light1",
+        label: "Reception Ceiling Light",
+      },
+      {
+        kind: "lock",
+        id: "lock-front-door",
+        label: "Front Door",
+        locked: true,
+      },
+      {
+        kind: "room-temp",
+        id: "reception-temp",
+        label: "Room Temperature",
+        current: 21.5,
+        history: [21.8, 21.6, 21.4, 21.7, 21.5, 21.3, 21.5],
+      },
     ],
     // Physical Sonoff T3US3C 3-gang switch (Tasmota) in the reception — each
     // POWER relay is a live MQTT device rendered as a balanced switch card.
     switches: [
-      { kind: "light", id: "sonoff1", deviceId: "sonoff1", label: "Reception Line 1" },
-      { kind: "light", id: "sonoff2", deviceId: "sonoff2", label: "Reception Line 2" },
+      {
+        kind: "light",
+        id: "sonoff1",
+        deviceId: "sonoff1",
+        label: "Reception Line 1",
+      },
+      {
+        kind: "light",
+        id: "sonoff2",
+        deviceId: "sonoff2",
+        label: "Reception Line 2",
+      },
       { kind: "light", id: "sonoff3", deviceId: "sonoff3", label: "Door Bulb" },
     ],
     // Full row so the 3 switch cards sit side-by-side above the device list.
@@ -39,15 +65,51 @@ export const ROOMS: Room[] = [
     name: "Kitchen",
     devices: [
       { kind: "light", id: "light2", label: "Kitchen Light" },
-      { kind: "gas-leak", id: "kitchen-gas", label: "Gas Leak Detector", detected: false },
-      { kind: "room-temp", id: "kitchen-temp", label: "Room Temperature", current: 23.2, history: [23.0, 23.4, 23.1, 23.6, 23.2, 23.3, 23.2] },
+      {
+        kind: "gas-leak",
+        id: "kitchen-gas",
+        label: "Gas Leak Detector",
+        detected: false,
+      },
+      {
+        kind: "room-temp",
+        id: "kitchen-temp",
+        label: "Room Temperature",
+        current: 23.2,
+        history: [23.0, 23.4, 23.1, 23.6, 23.2, 23.3, 23.2],
+      },
       // 3D viewers map 1:1 to the kitchen GLB's clickable IoT markers.
-      { kind: "light", id: "light_kitchen_ceiling_main", label: "Kitchen Ceiling Main" },
-      { kind: "light", id: "light_kitchen_undercab", label: "Kitchen Under-Cabinet Light" },
-      { kind: "light", id: "light_kitchen_peninsula_pendant", label: "Peninsula Pendant Light" },
-      { kind: "appliance", id: "appliance_kitchen_oven", label: "Kitchen Oven" },
-      { kind: "appliance", id: "appliance_kitchen_dishwasher", label: "Kitchen Dishwasher" },
-      { kind: "smoke", id: "sensor_kitchen_smoke_01", label: "Kitchen Smoke Sensor", active: false },
+      {
+        kind: "light",
+        id: "light_kitchen_ceiling_main",
+        label: "Kitchen Ceiling Main",
+      },
+      {
+        kind: "light",
+        id: "light_kitchen_undercab",
+        label: "Kitchen Under-Cabinet Light",
+      },
+      {
+        kind: "light",
+        id: "light_kitchen_peninsula_pendant",
+        label: "Peninsula Pendant Light",
+      },
+      {
+        kind: "appliance",
+        id: "appliance_kitchen_oven",
+        label: "Kitchen Oven",
+      },
+      {
+        kind: "appliance",
+        id: "appliance_kitchen_dishwasher",
+        label: "Kitchen Dishwasher",
+      },
+      {
+        kind: "smoke",
+        id: "sensor_kitchen_smoke_01",
+        label: "Kitchen Smoke Sensor",
+        active: false,
+      },
     ],
   },
   {
@@ -75,7 +137,13 @@ export const ROOMS: Room[] = [
     name: "Master Bedroom",
     devices: [
       { kind: "light", id: "light7", label: "Master Bedroom Light" },
-      { kind: "room-temp", id: "master-temp", label: "Room Temperature", current: 20.9, history: [21.1, 21.0, 20.8, 20.9, 21.0, 20.7, 20.9] },
+      {
+        kind: "room-temp",
+        id: "master-temp",
+        label: "Room Temperature",
+        current: 20.9,
+        history: [21.1, 21.0, 20.8, 20.9, 21.0, 20.7, 20.9],
+      },
     ],
   },
   {

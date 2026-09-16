@@ -10,7 +10,13 @@ import { Power } from "lucide-react";
  * clicks and real physical button presses echoed back over MQTT/WebSocket.
  * Reuse: drop one in any room for a live light / relay device id.
  */
-export default function SwitchCard({ deviceId, label }: { deviceId: string; label: string }) {
+export default function SwitchCard({
+  deviceId,
+  label,
+}: {
+  deviceId: string;
+  label: string;
+}) {
   const on = useHomeStore((s) => s.devices[deviceId]?.state.on === true);
   const toggle = useHomeStore((s) => s.toggle);
   const online = useHomeStore((s) => s.online);
@@ -19,7 +25,11 @@ export default function SwitchCard({ deviceId, label }: { deviceId: string; labe
 
   return (
     <div className="switch-card" data-on={on ? "true" : "false"}>
-      <span className="switch-card-icon" data-on={on ? "true" : "false"} aria-hidden="true">
+      <span
+        className="switch-card-icon"
+        data-on={on ? "true" : "false"}
+        aria-hidden="true"
+      >
         <Power size={15} strokeWidth={1.8} />
       </span>
       <span className="switch-card-label">{label}</span>
@@ -34,7 +44,11 @@ export default function SwitchCard({ deviceId, label }: { deviceId: string; labe
       >
         <span className="toggle-knob" />
       </button>
-      <span className="cc-live-dot--sm" data-live={online ? "true" : "false"} aria-hidden="true" />
+      <span
+        className="cc-live-dot--sm"
+        data-live={online ? "true" : "false"}
+        aria-hidden="true"
+      />
     </div>
   );
 }

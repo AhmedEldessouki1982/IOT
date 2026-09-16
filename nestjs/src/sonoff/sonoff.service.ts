@@ -1,11 +1,10 @@
 import {
   Injectable,
   Logger,
-  OnModuleDestroy,
   OnModuleInit,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import * as mqtt from "mqtt";
+import { MqttConnectionService } from "../mqtt/mqtt-connection.service";
 import { DeviceService } from "../device/device.service";
 import { DeviceGateway } from "../device/device.gateway";
 
@@ -32,16 +31,16 @@ import { DeviceGateway } from "../device/device.gateway";
  * local-device bridges used before).
  */
 @Injectable()
-export class SonoffService implements OnModuleInit, OnModuleDestroy {
+export class SonoffService implements OnModuleInit {
   private readonly logger = new Logger(SonoffService.name);
 
   private readonly base: string;
   private readonly channelCount = 3;
-  private readonly client: mqtt.MqttClient | null = null;
   private readonly enabled: boolean;
 
   constructor(
     config: ConfigService,
+    private readonly mqtt: MqttConnectionService,
     private readonly deviceService: DeviceService,
     private readonly gateway: DeviceGateway,
   ) {
@@ -57,20 +56,7 @@ export class SonoffService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.enabled = true;
-
-    // Established pattern: each service owns its own raw MQTT client (see
-    // DeviceService). Only created when the bridge is enabled so no redundant
-    // connection is held when the Sonoff base is unconfigured.
-    const mqttUrl = config.get<string>("MQTT_URL") ?? "mqtt://localhost:1883";
-    this.client = mqtt.connect(mqttUrl);
-    this.client.on("connect", () => {
-      this.logger.log(`Sonoff MQTT connected to ${mqttUrl}`);
-      this.subscribeToStates();
-      this.subscribeToCommands();
-    });
-    this.client.on("error", (err) =>
-      this.logger.error(`Sonoff MQTT error: ${err.message}`),
-    );
+    this.subscribe();
   }
 
   onModuleInit(): void {
@@ -82,47 +68,26 @@ export class SonoffService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  onModuleDestroy(): void {
-    if (this.client) this.client.end();
-  }
-
   /**
-   * Subscribes to every state topic under the switch's base, e.g.
-   * `stat/tasmota_A3AECD/#`. (A bare `POWER#` suffix is invalid MQTT — `#`
-   * must be its own level — so we subscribe to the whole base and let
-   * handleState narrow to the `POWER{1,2,3}` topics via its regex.)
+   * All MQTT traffic flows through the shared MqttConnectionService so the
+   * broker gets exactly one connection from this app. Subscriptions are
+   * registered in the constructor (not onModuleInit) — the localhost broker
+   * can emit `connect` before lifecycle hooks run, and MqttConnectionService
+   * buffers them until the shared client is actually connected.
    */
-  private subscribeToStates(): void {
-    if (!this.client) return;
-    const topic = `stat/${this.base}/#`;
-    this.client.subscribe(topic, (err) => {
-      if (err) {
-        this.logger.error(`Failed to subscribe to ${topic}: ${err.message}`);
-        return;
-      }
-      this.logger.log(`Sonoff subscribed to ${topic}`);
-    });
-    this.client.on("message", (t, buf) => {
-      if (t.startsWith(`stat/`)) this.handleState(t, buf);
-      else this.handleCommand(t, buf);
-    });
-  }
-
-  /**
-   * Subscribes to the generic app command topics the frontend already talks to
-   * (`devices/sonoff1/cmd`, ... via POST /devices/sonoffN/command) so a UI
-   * click drives the physical relay — mirroring how light1's click flows into
-   * the generic device layer. Command payload is JSON `{"on": boolean}`.
-   */
-  private subscribeToCommands(): void {
-    if (!this.client) return;
+  private subscribe(): void {
+    // Every state topic under the switch's base, e.g. `stat/tasmota_A3AECD/#`.
+    // (A bare `POWER#` suffix is invalid MQTT — `#` must be its own level — so
+    // we subscribe to the whole base and let handleState narrow to the
+    // `POWER{1,2,3}` topics via its regex.)
+    this.mqtt.subscribe(`stat/${this.base}/#`, (t, buf) =>
+      this.handleState(t, buf),
+    );
+    // The generic app command topics the frontend already talks to
+    // (`devices/sonoff1/cmd`, ... via POST /devices/sonoffN/command).
     for (let ch = 1; ch <= this.channelCount; ch++) {
       const topic = `devices/sonoff${ch}/cmd`;
-      this.client.subscribe(topic, (err) => {
-        if (err) {
-          this.logger.error(`Failed to subscribe to ${topic}: ${err.message}`);
-        }
-      });
+      this.mqtt.subscribe(topic, (t, buf) => this.handleCommand(t, buf));
     }
   }
 
@@ -191,14 +156,14 @@ export class SonoffService implements OnModuleInit, OnModuleDestroy {
    * which we pick up in handleState, so the UI converges to the truth.
    */
   setOutput(channel: number, on: boolean): void {
-    if (!this.enabled || !this.client) return;
+    if (!this.enabled) return;
     if (channel < 1 || channel > this.channelCount) {
       this.logger.warn(`setOutput: invalid channel ${channel}`);
       return;
     }
     const topic = `cmnd/${this.base}/POWER${channel}`;
     const payload = on ? "ON" : "OFF";
-    this.client.publish(topic, payload);
+    this.mqtt.publish(topic, payload);
     this.logger.log(`Sonoff publish ${topic} -> ${payload}`);
   }
 

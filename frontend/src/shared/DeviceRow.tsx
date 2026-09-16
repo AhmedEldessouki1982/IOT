@@ -8,7 +8,13 @@ interface DeviceRowProps {
   children?: ReactNode;
 }
 
-export default function DeviceRow({ label, icon, status, iconAttrs, children }: DeviceRowProps) {
+export default function DeviceRow({
+  label,
+  icon,
+  status,
+  iconAttrs,
+  children,
+}: DeviceRowProps) {
   return (
     <div className="device-row">
       <div className="device-info">

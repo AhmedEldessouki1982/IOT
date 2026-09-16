@@ -1,6 +1,5 @@
-import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import * as mqtt from "mqtt";
+import { Injectable, Logger } from "@nestjs/common";
+import { MqttConnectionService } from "../mqtt/mqtt-connection.service";
 import { DeviceService, DeviceState } from "./device.service";
 import { DeviceGateway } from "./device.gateway";
 
@@ -14,42 +13,21 @@ import { DeviceGateway } from "./device.gateway";
  * subscription support.
  */
 @Injectable()
-export class DeviceMqttListener implements OnModuleDestroy {
+export class DeviceMqttListener {
   private readonly logger = new Logger(DeviceMqttListener.name);
-  private readonly client: mqtt.MqttClient;
 
   constructor(
     private readonly deviceService: DeviceService,
     private readonly gateway: DeviceGateway,
-    config: ConfigService,
+    mqtt: MqttConnectionService,
   ) {
-    const mqttUrl = config.get<string>("MQTT_URL") ?? "mqtt://localhost:1883";
-    this.client = mqtt.connect(mqttUrl);
-
-    // Attach handlers in the constructor (NOT onModuleInit): NestJS awaits
-    // between provider construction and lifecycle hooks, and the broker on
-    // localhost can emit `connect` before onModuleInit runs.
-    this.client.on("connect", () => {
-      this.client.subscribe("devices/+/state", (err) => {
-        if (err) {
-          this.logger.error(
-            `Failed to subscribe to devices/+/state: ${err.message}`,
-          );
-          return;
-        }
-        this.logger.log("Subscribed to wildcard topic devices/+/state");
-      });
-    });
-    this.client.on("message", (topic, buffer) =>
+    // Subcribe in the constructor (NOT onModuleInit): NestJS awaits between
+    // provider construction and lifecycle hooks, and the broker on localhost
+    // can emit `connect` before onModuleInit runs. MqttConnectionService
+    // buffers this subscription until the shared client actually connects.
+    mqtt.subscribe("devices/+/state", (topic, buffer) =>
       this.handleState(topic, buffer),
     );
-    this.client.on("error", (err) =>
-      this.logger.error(`MQTT listener error: ${err.message}`),
-    );
-  }
-
-  onModuleDestroy(): void {
-    this.client.end();
   }
 
   private handleState(topic: string, buffer: Buffer): void {

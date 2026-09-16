@@ -16,17 +16,19 @@ A premium IoT smart-home dashboard: **Python mock device → MQTT → NestJS →
 | Folder       | Role                                                             |
 | ------------ | ---------------------------------------------------------------- |
 | `mock-device`| Python script simulating a smart switch (`light_switch.py`)      |
-| `nestjs`     | Backend: MQTT + REST + Socket.IO gateway                         |
-| `frontend`   | React + Vite + TypeScript + Tailwind + Zustand + Framer Motion command center UI |
+| `nestjs`     | Backend: MQTT + REST + Socket.IO gateway (single shared MQTT client) |
+| `frontend`   | React + Vite + TypeScript + Tailwind + Zustand + Framer Motion command center UI (+ WebGL kitchen 3D viewer) |
 | `mosquitto`  | MQTT broker config (local dev only)                              |
 
 ## What's Live vs Demo
 
 The dashboard is a single-page bento-card grid of the apartment's 8 rooms
 (Reception, Kitchen, Toilet, Corridor, Small Bedroom, Bedroom 2, Master
-Bedroom, Ensuite) — 16 devices in total. Each card lists its devices; tapping
+Bedroom, Ensuite) — 22 devices in total. Each card lists its devices; tapping
 a card opens a room detail view with bulk actions (all lights on/off,
-lock/unlock all).
+lock/unlock all). The Kitchen card also has a **3D** button that opens a
+WebGL walkthrough of the room with live wifi-badge markers (see
+[Kitchen 3D viewer](#kitchen-3d-viewer)).
 
 ### Live (real MQTT round-trip)
 - **Reception Ceiling Light** (`light1`): the reference live device — an on/off
@@ -41,6 +43,9 @@ lock/unlock all).
 - **All other room lights** (Kitchen, Toilet, Corridor, Small Bedroom,
   Bedroom 2, Master Bedroom, Ensuite): local toggles — they will round-trip
   over MQTT the moment a mock or live device publishes their id.
+- **Kitchen appliances** (Oven, Dishwasher) and **Kitchen Smoke Sensor**:
+  local on/off and arm-state toggles, mapped 1:1 to clickable markers inside
+  the kitchen's 3D viewer.
 
 ### Read-only demo sensors
 - **Room Temperature** (Reception, Kitchen, Master Bedroom): fixed demo
@@ -144,9 +149,14 @@ The physical wall switch is a Sonoff T3US3C flashed with **Tasmota** (MQTT-nativ
 no cloud, no Tuya). Its three independent on/off relays are driven and read directly
 over MQTT through the shared Mosquitto broker — no gateway, no Home Assistant.
 
-`src/sonoff/sonoff.service.ts` owns its own raw MQTT client:
-- **subscribes** to `stat/<SONOFF_BASE>/POWER#` (matches POWER1/POWER2/POWER3) so
+`src/sonoff/sonoff.service.ts` bridges the switch over the shared MQTT
+connection (`MqttConnectionService` — the whole backend holds **one** broker
+connection, shared with the `devices/+/state` listener and the command
+publisher):
+- **subscribes** to `stat/<SONOFF_BASE>/#` (matches POWER1/POWER2/POWER3) so
   every physical button press updates state in real time,
+- **subscribes** to `devices/sonoff{1,2,3}/cmd` so REST/UI commands drive the
+  relays,
 - **publishes** `ON`/`OFF` to `cmnd/<SONOFF_BASE>/POWER{1,2,3}` to drive each relay.
 
 Each POWER channel is surfaced as a normal app device (`sonoff1`, `sonoff2`,
@@ -170,6 +180,22 @@ so the app runs normally without the hardware attached.
 For direct control/status you can also hit the switch's Tasmota HTTP API at
 `http://10.0.1.13/cm?cmnd=...` (toggle, e.g. `POWER1%20TOGGLE`; status via
 `Status%200`). The app itself always uses MQTT; this HTTP route is a manual/dev fallback.
+
+## Kitchen 3D Viewer
+
+The Kitchen card's **3D** button opens a lazy-loaded WebGL (three.js) popup of the
+kitchen's GLB model. Devices from the dashboard are projected into the scene as
+animated **wifi-badge markers** — green + heartbeat pulse when the device is on,
+red slashed when off; hover to highlight, click to toggle (2D dashboard stays in
+sync). Overlapping markers (e.g. ceiling light vs smoke sensor) are auto-separated
+so none clip the ceiling.
+
+The GLB is loaded from the stable path `frontend/src/3d/resources/kitchen.glb`,
+which the Blender pipeline overwrites on every render — the dashboard always shows
+"latest" with no code change. Dated exports stay alongside under
+`resources/<yyyy-mm-dd>/` for provenance. It is code-split into its own chunk and
+fetched **only when the popup opens** (~250 kB gzip + ~500 kB GLB; ~140 ms
+click→canvas at 4× CPU throttle).
 
 ## Verification
 

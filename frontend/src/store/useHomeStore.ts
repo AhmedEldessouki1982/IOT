@@ -70,7 +70,9 @@ export const useHomeStore = create<HomeStore>((set) => ({
 // over WebSocket. Capture them all into the devices map, regardless of id.
 socket.on("device:state", (msg: DeviceState) => {
   if (!msg || typeof msg.deviceId !== "string") return;
-  useHomeStore.setState((s) => ({ devices: { ...s.devices, [msg.deviceId]: msg } }));
+  useHomeStore.setState((s) => ({
+    devices: { ...s.devices, [msg.deviceId]: msg },
+  }));
 });
 socket.on("connect", () => useHomeStore.setState({ online: true }));
 socket.on("disconnect", () => useHomeStore.setState({ online: false }));

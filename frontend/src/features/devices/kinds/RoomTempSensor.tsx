@@ -39,7 +39,11 @@ function Sparkline({ values }: { values: number[] }) {
 }
 
 /** Compact room-temperature reading — number + unit, small sparkline when samples exist. */
-export default function RoomTempSensor({ label, current, history }: RoomTempSensorProps) {
+export default function RoomTempSensor({
+  label,
+  current,
+  history,
+}: RoomTempSensorProps) {
   const value = current ?? 22;
   return (
     <div className="device-row roomtemp">

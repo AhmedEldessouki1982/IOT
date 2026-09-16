@@ -1,10 +1,15 @@
-import kitchenGlb from "./resources/2026-09-15/v3.2026-09-15.glb?url";
+import kitchenGlb from "./resources/kitchen.glb?url";
 
 /**
  * Per-room 3D asset manifest. A room only gains a working "3D" button once
  * it has an entry here — currently that's the Kitchen (`r02`) only. Adding a
  * second room later is just one entry here plus an additional mapping in
  * ROOM_3D_ID; no Kitchen-specific components exist.
+ *
+ * The GLB points at the STABLE `resources/kitchen.glb` copy, NOT a dated
+ * archive — the Blender pipeline overwrites it on every new render, so the
+ * dashboard always loads "latest" with no code change. Dated archives keep
+ * living under `resources/<yyyy-mm-dd>/` for provenance.
  *
  * Values are Vite `?url` imports so the GLB is hashed/copied at build time
  * instead of requiring a hardcoded public path.

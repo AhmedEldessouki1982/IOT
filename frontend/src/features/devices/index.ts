@@ -2,15 +2,26 @@ import { createElement, type ComponentType } from "react";
 import type { DeviceKind } from "./deviceKinds";
 import LightDevice, { type LightDeviceProps } from "./kinds/LightDevice";
 import GasLeakSensor, { type GasLeakSensorProps } from "./kinds/GasLeakSensor";
-import RoomTempSensor, { type RoomTempSensorProps } from "./kinds/RoomTempSensor";
+import RoomTempSensor, {
+  type RoomTempSensorProps,
+} from "./kinds/RoomTempSensor";
 import LockDevice, { type LockDeviceProps } from "./kinds/LockDevice";
-import ApplianceDevice, { type ApplianceDeviceProps } from "./kinds/ApplianceDevice";
+import ApplianceDevice, {
+  type ApplianceDeviceProps,
+} from "./kinds/ApplianceDevice";
 import SmokeDevice, { type SmokeDeviceProps } from "./kinds/SmokeDevice";
 
-export { LightDevice, GasLeakSensor, RoomTempSensor, LockDevice, ApplianceDevice, SmokeDevice };
+export {
+  LightDevice,
+  GasLeakSensor,
+  RoomTempSensor,
+  LockDevice,
+  ApplianceDevice,
+  SmokeDevice,
+};
 
-export type { DeviceKind, DeviceConfig } from "./deviceKinds";
-export { deviceIcon } from "./deviceKinds";
+export type { DeviceKind, DeviceConfig, ToggleableKind } from "./deviceKinds";
+export { deviceIcon, isToggleableKind } from "./deviceKinds";
 
 /** One component per device kind — the single rendering point for every kind. */
 const KIND_COMPONENTS: Record<DeviceKind, ComponentType<any>> = {

@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { X, Lightbulb, Lock } from "lucide-react";
 import type { CSSProperties } from "react";
-import type { DeviceConfig } from "../features/devices";
+import { isToggleableKind, type DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
 import SwitchCard from "../components/SwitchCard";
 import { ROOM_ICON_MAP, ROOM_ACCENT_MAP } from "./RoomCard";
@@ -23,7 +23,15 @@ interface RoomDetailProps {
  *  room-level quick actions (all lights, all locks) that only appear when
  *  the room actually has that kind of device. Shares `layoutId` with its
  *  RoomCard so the open/close reads as one continuous surface. */
-export default function RoomDetail({ id, name, devices, switches = [], dummyOn, onDummyToggle, onClose }: RoomDetailProps) {
+export default function RoomDetail({
+  id,
+  name,
+  devices,
+  switches = [],
+  dummyOn,
+  onDummyToggle,
+  onClose,
+}: RoomDetailProps) {
   const Icon = ROOM_ICON_MAP[id] ?? BedSingle;
   const accent = ROOM_ACCENT_MAP[id] ?? "#22d3ee";
 
@@ -35,8 +43,10 @@ export default function RoomDetail({ id, name, devices, switches = [], dummyOn, 
   const allLights = [...devices, ...switches].filter((d) => d.kind === "light");
   const lockIds = devices.filter((d) => d.kind === "lock").map((d) => d.id);
 
-  const isLiveLight = (deviceId?: string) => !!deviceId && deviceId in liveDevices;
-  const liveOn = (deviceId?: string) => (deviceId ? liveDevices[deviceId]?.state.on === true : false);
+  const isLiveLight = (deviceId?: string) =>
+    !!deviceId && deviceId in liveDevices;
+  const liveOn = (deviceId?: string) =>
+    deviceId ? liveDevices[deviceId]?.state.on === true : false;
   const anyLightOn = allLights.some((d) => {
     if (d.kind !== "light") return false;
     if (isLiveLight(d.deviceId)) return liveOn(d.deviceId);
@@ -82,10 +92,17 @@ export default function RoomDetail({ id, name, devices, switches = [], dummyOn, 
             </span>
             <div>
               <h2>{name}</h2>
-              <p className="room-detail-sub">{devices.length} device{devices.length === 1 ? "" : "s"}</p>
+              <p className="room-detail-sub">
+                {devices.length} device{devices.length === 1 ? "" : "s"}
+              </p>
             </div>
           </div>
-          <button type="button" className="room-detail-close" onClick={onClose} aria-label="Close room detail">
+          <button
+            type="button"
+            className="room-detail-close"
+            onClick={onClose}
+            aria-label="Close room detail"
+          >
             <X size={17} strokeWidth={1.8} />
           </button>
         </header>
@@ -93,13 +110,21 @@ export default function RoomDetail({ id, name, devices, switches = [], dummyOn, 
         {(allLights.length > 0 || lockIds.length > 0) && (
           <div className="room-detail-actions">
             {allLights.length > 0 && (
-              <button type="button" className="room-detail-action" onClick={() => setAllLights(!anyLightOn)}>
+              <button
+                type="button"
+                className="room-detail-action"
+                onClick={() => setAllLights(!anyLightOn)}
+              >
                 <Lightbulb size={14} strokeWidth={1.7} />
                 {anyLightOn ? "All lights off" : "All lights on"}
               </button>
             )}
             {lockIds.length > 0 && (
-              <button type="button" className="room-detail-action" onClick={() => setAllLocks(anyLockUnlocked)}>
+              <button
+                type="button"
+                className="room-detail-action"
+                onClick={() => setAllLocks(anyLockUnlocked)}
+              >
                 <Lock size={14} strokeWidth={1.7} />
                 {anyLockUnlocked ? "Lock all" : "Unlock all"}
               </button>
@@ -110,7 +135,11 @@ export default function RoomDetail({ id, name, devices, switches = [], dummyOn, 
         {switches.length > 0 && (
           <div className="switch-row">
             {switches.map((sw) => (
-              <SwitchCard key={sw.id} deviceId={(sw as { deviceId?: string }).deviceId!} label={sw.label} />
+              <SwitchCard
+                key={sw.id}
+                deviceId={(sw as { deviceId?: string }).deviceId!}
+                label={sw.label}
+              />
             ))}
           </div>
         )}
@@ -121,18 +150,12 @@ export default function RoomDetail({ id, name, devices, switches = [], dummyOn, 
               <CardDevice
                 config={config}
                 state={
-                  config.kind === "light" ||
-                  config.kind === "lock" ||
-                  config.kind === "appliance" ||
-                  config.kind === "smoke"
+                  isToggleableKind(config.kind)
                     ? dummyOn[config.id]
                     : undefined
                 }
                 onToggle={
-                  config.kind === "light" ||
-                  config.kind === "lock" ||
-                  config.kind === "appliance" ||
-                  config.kind === "smoke"
+                  isToggleableKind(config.kind)
                     ? () => onDummyToggle(config.id)
                     : undefined
                 }

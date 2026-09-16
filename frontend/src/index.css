@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 }
@@ -43,7 +44,8 @@
   --cc-success: #22c55e;
   --cc-danger: #ef4444;
   --cc-shadow-soft: 0 2px 16px rgba(0, 0, 0, 0.4);
-  --cc-shadow-card: 0 8px 24px rgba(0, 0, 0, 0.42), 0 1px 0 rgba(255,255,255,0.04) inset;
+  --cc-shadow-card:
+    0 8px 24px rgba(0, 0, 0, 0.42), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
   --cc-radius-lg: 18px;
   --cc-radius: 12px;
   --cc-radius-sm: 8px;
@@ -107,7 +109,8 @@
   --cc-success: #16a34a;
   --cc-danger: #dc2626;
   --cc-shadow-soft: 0 2px 14px rgba(15, 23, 42, 0.08);
-  --cc-shadow-card: 0 8px 24px rgba(15, 23, 42, 0.1), 0 1px 0 rgba(255,255,255,0.8) inset;
+  --cc-shadow-card:
+    0 8px 24px rgba(15, 23, 42, 0.1), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
 
   --cc-ink: rgba(15, 23, 42, 0.06);
   --cc-ink-subtle: rgba(15, 23, 42, 0.03);
@@ -145,9 +148,21 @@ body {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(900px 520px at 8% -6%, rgba(34, 211, 238, 0.07), transparent 62%),
-    radial-gradient(800px 480px at 92% 2%, rgba(99, 102, 241, 0.05), transparent 60%),
-    radial-gradient(700px 400px at 50% 115%, rgba(245, 158, 11, 0.04), transparent 60%),
+    radial-gradient(
+      900px 520px at 8% -6%,
+      rgba(34, 211, 238, 0.07),
+      transparent 62%
+    ),
+    radial-gradient(
+      800px 480px at 92% 2%,
+      rgba(99, 102, 241, 0.05),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 400px at 50% 115%,
+      rgba(245, 158, 11, 0.04),
+      transparent 60%
+    ),
     linear-gradient(180deg, var(--cc-bg-2), var(--cc-bg));
 }
 
@@ -162,7 +177,11 @@ body {
     linear-gradient(var(--cc-grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--cc-grid-line) 1px, transparent 1px);
   background-size: 28px 28px;
-  mask-image: radial-gradient(1200px 700px at 50% 0%, black 38%, transparent 78%);
+  mask-image: radial-gradient(
+    1200px 700px at 50% 0%,
+    black 38%,
+    transparent 78%
+  );
 }
 
 /* ================================================================
@@ -243,8 +262,15 @@ body {
   animation: statusPulse 2.8s ease-in-out infinite;
 }
 @keyframes statusPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.78; transform: scale(0.92); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.78;
+    transform: scale(0.92);
+  }
 }
 .dash-greeting p[data-online="false"] {
   color: var(--cc-danger);
@@ -314,8 +340,14 @@ body {
   animation-delay: calc(var(--i, 0) * 52ms);
 }
 @keyframes cardIn {
-  from { opacity: 0; transform: translateY(10px) scale(0.99); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* top hairline sheen */
@@ -324,7 +356,12 @@ body {
   position: absolute;
   inset: 0 0 auto 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--cc-ink-strong), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--cc-ink-strong),
+    transparent
+  );
   opacity: 0.9;
 }
 
@@ -332,8 +369,16 @@ body {
 .room-card[data-on="true"] {
   border-color: color-mix(in srgb, var(--cc-room-accent) 38%, transparent);
   background:
-    radial-gradient(560px 300px at 18% 0%, color-mix(in srgb, var(--cc-room-accent) 18%, transparent), transparent 70%),
-    linear-gradient(180deg, var(--cc-glass-strong), var(--cc-surface-glass-strong));
+    radial-gradient(
+      560px 300px at 18% 0%,
+      color-mix(in srgb, var(--cc-room-accent) 18%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      var(--cc-glass-strong),
+      var(--cc-surface-glass-strong)
+    );
   box-shadow:
     0 18px 44px -14px rgba(0, 0, 0, 0.3),
     0 0 0 1px color-mix(in srgb, var(--cc-room-accent) 22%, transparent),
@@ -343,30 +388,44 @@ body {
 .room-card:hover {
   transform: translateY(-3px);
   border-color: color-mix(in srgb, var(--cc-room-accent) 32%, transparent);
-  background: linear-gradient(180deg, var(--cc-hover-surface-top), var(--cc-hover-surface-base));
+  background: linear-gradient(
+    180deg,
+    var(--cc-hover-surface-top),
+    var(--cc-hover-surface-base)
+  );
   box-shadow:
     0 18px 40px -12px rgba(0, 0, 0, 0.32),
     0 0 0 1px color-mix(in srgb, var(--cc-room-accent) 22%, transparent),
     0 0 28px -8px color-mix(in srgb, var(--cc-room-accent) 26%, transparent);
 }
-.room-card:active { transform: translateY(-1px); }
+.room-card:active {
+  transform: translateY(-1px);
+}
 
 /* per-room accent: icon badge + dot glow when the room's light is on */
 .room-card[data-on="true"] .room-card-icon {
   background: color-mix(in srgb, var(--cc-room-accent) 16%, transparent);
   border-color: color-mix(in srgb, var(--cc-room-accent) 40%, transparent);
   color: var(--cc-room-accent);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--cc-room-accent) 40%, transparent);
+  box-shadow: 0 0 16px
+    color-mix(in srgb, var(--cc-room-accent) 40%, transparent);
 }
 .room-card[data-on="true"] .room-card-dot {
   background: var(--cc-room-accent);
-  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--cc-room-accent) 40%, transparent);
+  box-shadow: 0 0 14px 2px
+    color-mix(in srgb, var(--cc-room-accent) 40%, transparent);
 }
 
 /* bento rhythm: give variety without breaking scan */
-.room-card--wide { grid-column: span 6; }
-.room-card--narrow { grid-column: span 4; }
-.room-card--full { grid-column: span 12; }
+.room-card--wide {
+  grid-column: span 6;
+}
+.room-card--narrow {
+  grid-column: span 4;
+}
+.room-card--full {
+  grid-column: span 12;
+}
 
 /* header — icon + name + meta */
 .room-card-head {
@@ -482,13 +541,20 @@ body {
   border-radius: var(--cc-radius);
   background: linear-gradient(180deg, var(--cc-glass), var(--cc-surface-glass));
   border: 1px solid var(--cc-glass-border);
-  transition: border-color var(--cc-ease), box-shadow var(--cc-ease), background var(--cc-ease);
+  transition:
+    border-color var(--cc-ease),
+    box-shadow var(--cc-ease),
+    background var(--cc-ease);
 }
 
 /* on-state: amber wash so a pressed relay reads as lit at a glance */
 .switch-card[data-on="true"] {
   border-color: var(--cc-accent);
-  background: linear-gradient(180deg, var(--cc-accent-soft), var(--cc-surface-glass));
+  background: linear-gradient(
+    180deg,
+    var(--cc-accent-soft),
+    var(--cc-surface-glass)
+  );
   box-shadow: 0 0 18px var(--cc-accent-glow);
 }
 
@@ -497,7 +563,10 @@ body {
   align-items: center;
   color: var(--cc-text-3);
   opacity: 0.55;
-  transition: color var(--cc-ease), opacity var(--cc-ease), filter var(--cc-ease);
+  transition:
+    color var(--cc-ease),
+    opacity var(--cc-ease),
+    filter var(--cc-ease);
 }
 .switch-card-icon[data-on="true"] {
   color: var(--cc-amber);
@@ -564,7 +633,10 @@ body {
 .device-row:has(.toggle) .device-icon {
   color: var(--cc-text-3);
   opacity: 0.52;
-  transition: color var(--cc-ease), opacity var(--cc-ease), filter var(--cc-ease);
+  transition:
+    color var(--cc-ease),
+    opacity var(--cc-ease),
+    filter var(--cc-ease);
 }
 .device-row:has(.toggle) .device-icon[data-on="true"] {
   color: var(--cc-amber);
@@ -595,7 +667,10 @@ body {
   background: var(--cc-ink);
   border: 1px solid var(--cc-ink-strong);
   cursor: pointer;
-  transition: background var(--cc-ease), border-color var(--cc-ease), box-shadow var(--cc-ease);
+  transition:
+    background var(--cc-ease),
+    border-color var(--cc-ease),
+    box-shadow var(--cc-ease);
   padding: 0;
   flex-shrink: 0;
 }
@@ -612,7 +687,7 @@ body {
   height: 16px;
   border-radius: 50%;
   background: var(--cc-knob);
-  box-shadow: 0 1px 6px rgba(0,0,0,0.28);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.28);
   transition: transform 260ms var(--cc-ease-spring);
 }
 .toggle[data-on="true"] .toggle-knob {
@@ -671,7 +746,9 @@ body {
   align-items: center;
   gap: 8px;
 }
-.roomtemp-spark { opacity: 0.9; }
+.roomtemp-spark {
+  opacity: 0.9;
+}
 .roomtemp-num {
   font-family: var(--font-mono);
   font-size: 16px;
@@ -699,13 +776,17 @@ body {
 }
 
 @media (max-width: 860px) {
-  .dash { padding: 24px 18px 28px; }
+  .dash {
+    padding: 24px 18px 28px;
+  }
   .dash-head {
     flex-direction: column;
     align-items: flex-start;
     gap: 14px;
   }
-  .dash-greeting h1 { font-size: 28px; }
+  .dash-greeting h1 {
+    font-size: 28px;
+  }
   .dash-grid {
     grid-template-columns: 1fr;
     gap: 14px;
@@ -726,13 +807,29 @@ body {
    ================================================================ */
 :root[data-theme="light"] .dash {
   background:
-    radial-gradient(900px 520px at 8% -6%, rgba(8, 145, 178, 0.08), transparent 62%),
-    radial-gradient(800px 480px at 92% 2%, rgba(99, 102, 241, 0.06), transparent 60%),
-    radial-gradient(700px 400px at 50% 115%, rgba(217, 119, 6, 0.05), transparent 60%),
+    radial-gradient(
+      900px 520px at 8% -6%,
+      rgba(8, 145, 178, 0.08),
+      transparent 62%
+    ),
+    radial-gradient(
+      800px 480px at 92% 2%,
+      rgba(99, 102, 241, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 400px at 50% 115%,
+      rgba(217, 119, 6, 0.05),
+      transparent 60%
+    ),
     linear-gradient(180deg, var(--cc-bg-2), var(--cc-bg));
 }
 :root[data-theme="light"] .dash::before {
-  mask-image: radial-gradient(1200px 700px at 50% 0%, rgba(0,0,0,0.25) 38%, transparent 78%);
+  mask-image: radial-gradient(
+    1200px 700px at 50% 0%,
+    rgba(0, 0, 0, 0.25) 38%,
+    transparent 78%
+  );
 }
 
 /* ================================================================
@@ -796,14 +893,22 @@ body {
   opacity: 0;
   transition: opacity var(--cc-ease);
   background:
-    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top left / 18px 2px,
-    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top left / 2px 18px,
-    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top right / 18px 2px,
-    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top right / 2px 18px,
-    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom left / 18px 2px,
-    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom left / 2px 18px,
-    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom right / 18px 2px,
-    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom right / 2px 18px;
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top left /
+      18px 2px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top left / 2px
+      18px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top right /
+      18px 2px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) top right /
+      2px 18px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom left /
+      18px 2px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom left /
+      2px 18px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom right /
+      18px 2px,
+    linear-gradient(var(--cc-hud-corners), var(--cc-hud-corners)) bottom right /
+      2px 18px;
   background-repeat: no-repeat;
 }
 .room-card:hover::after {
@@ -811,9 +916,15 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .room-card { animation: none; }
-  .toggle-knob { transition: none; }
-  .dash-status-dot { animation: none; }
+  .room-card {
+    animation: none;
+  }
+  .toggle-knob {
+    transition: none;
+  }
+  .dash-status-dot {
+    animation: none;
+  }
 }
 
 /* ================================================================
@@ -832,7 +943,9 @@ body {
   color: var(--cc-text-faint);
   opacity: 0;
   transform: translateX(-2px);
-  transition: opacity var(--cc-ease), transform var(--cc-ease);
+  transition:
+    opacity var(--cc-ease),
+    transform var(--cc-ease);
 }
 .room-card:hover .room-card-expand-hint,
 .room-card:focus-visible .room-card-expand-hint {
@@ -868,7 +981,11 @@ body {
   border: 1px solid var(--cc-border-subtle);
   background: var(--cc-ink-subtle);
   color: var(--cc-text-3);
-  transition: background var(--cc-ease), border-color var(--cc-ease), color var(--cc-ease), box-shadow var(--cc-ease);
+  transition:
+    background var(--cc-ease),
+    border-color var(--cc-ease),
+    color var(--cc-ease),
+    box-shadow var(--cc-ease);
 }
 .lock-pill[data-locked="true"] {
   color: var(--cc-success);
@@ -912,12 +1029,18 @@ body {
   max-width: 460px;
   max-height: min(680px, 86vh);
   overflow-y: auto;
-  background: linear-gradient(180deg, var(--cc-glass-strong), var(--cc-surface-glass-strong));
+  background: linear-gradient(
+    180deg,
+    var(--cc-glass-strong),
+    var(--cc-surface-glass-strong)
+  );
   backdrop-filter: blur(18px) saturate(1.2);
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
   border: 1px solid var(--cc-glass-border);
   border-radius: var(--cc-radius-lg);
-  box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, var(--cc-room-accent) 18%, transparent);
+  box-shadow:
+    0 24px 64px -16px rgba(0, 0, 0, 0.5),
+    0 0 0 1px color-mix(in srgb, var(--cc-room-accent) 18%, transparent);
   padding: 22px 22px 16px;
 }
 
@@ -975,7 +1098,10 @@ body {
   color: var(--cc-text-2);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--cc-ease), color var(--cc-ease), border-color var(--cc-ease);
+  transition:
+    background var(--cc-ease),
+    color var(--cc-ease),
+    border-color var(--cc-ease);
 }
 .room-detail-close:hover {
   background: var(--cc-surface-hover);
@@ -1007,7 +1133,10 @@ body {
   border-radius: 999px;
   padding: 7px 12px;
   cursor: pointer;
-  transition: background var(--cc-ease), border-color var(--cc-ease), color var(--cc-ease);
+  transition:
+    background var(--cc-ease),
+    border-color var(--cc-ease),
+    color var(--cc-ease);
 }
 .room-detail-action:hover {
   background: var(--cc-room-accent-soft);
@@ -1041,7 +1170,10 @@ body {
 }
 
 @media (max-width: 520px) {
-  .room-detail-backdrop { padding: 0; align-items: flex-end; }
+  .room-detail-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
   .room-detail {
     max-width: none;
     max-height: 88vh;
@@ -1070,8 +1202,12 @@ body {
   padding: 6px 12px;
   cursor: pointer;
   box-shadow: 0 0 0 rgba(239, 68, 68, 0);
-  transition: background var(--cc-ease), border-color var(--cc-ease),
-    color var(--cc-ease), box-shadow var(--cc-ease), transform var(--cc-ease);
+  transition:
+    background var(--cc-ease),
+    border-color var(--cc-ease),
+    color var(--cc-ease),
+    box-shadow var(--cc-ease),
+    transform var(--cc-ease);
 }
 .shutdown-btn:hover {
   background: rgba(239, 68, 68, 0.24);
@@ -1130,7 +1266,10 @@ body {
   border-radius: 999px;
   padding: 4px 8px;
   cursor: pointer;
-  transition: background var(--cc-ease), border-color var(--cc-ease), box-shadow var(--cc-ease);
+  transition:
+    background var(--cc-ease),
+    border-color var(--cc-ease),
+    box-shadow var(--cc-ease);
 }
 .room-card-3d:hover {
   background: var(--cc-accent-glow);
@@ -1172,7 +1311,11 @@ body {
   height: min(86vh, 760px);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, var(--cc-glass-strong), var(--cc-surface-glass-strong));
+  background: linear-gradient(
+    180deg,
+    var(--cc-glass-strong),
+    var(--cc-surface-glass-strong)
+  );
   backdrop-filter: blur(18px) saturate(1.2);
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
   border: 1px solid var(--cc-glass-border);
@@ -1234,7 +1377,10 @@ body {
   color: var(--cc-text-2);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--cc-ease), color var(--cc-ease), border-color var(--cc-ease);
+  transition:
+    background var(--cc-ease),
+    color var(--cc-ease),
+    border-color var(--cc-ease);
 }
 .room-viewer-close:hover {
   background: var(--cc-surface-hover);

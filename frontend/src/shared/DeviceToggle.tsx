@@ -10,7 +10,14 @@ interface DeviceToggleProps {
   badge?: "live" | "demo";
 }
 
-export default function DeviceToggle({ label, defaultState = false, state, icon, onToggle, badge }: DeviceToggleProps) {
+export default function DeviceToggle({
+  label,
+  defaultState = false,
+  state,
+  icon,
+  onToggle,
+  badge,
+}: DeviceToggleProps) {
   const [internal, setInternal] = useState(defaultState);
   const on = state ?? internal;
 
@@ -27,7 +34,12 @@ export default function DeviceToggle({ label, defaultState = false, state, icon,
       iconAttrs={{ "data-on": String(on) }}
       status={
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {badge && <span className={`cc-live-dot--sm`} data-live={badge === "live" ? "true" : "false"} />}
+          {badge && (
+            <span
+              className={`cc-live-dot--sm`}
+              data-live={badge === "live" ? "true" : "false"}
+            />
+          )}
           <button
             type="button"
             onClick={handleClick}

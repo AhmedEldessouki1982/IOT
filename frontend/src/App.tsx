@@ -66,7 +66,11 @@ export default function App() {
     });
     return initial;
   }, []);
-  const { states: dummyOn, toggle: toggleDummy, reset: resetDummy } = useDummyToggles(dummyInitial);
+  const {
+    states: dummyOn,
+    toggle: toggleDummy,
+    reset: resetDummy,
+  } = useDummyToggles(dummyInitial);
 
   // Emergency shutdown: everything off — every live MQTT device off
   // (light1 + sonoff relays), every dummy light off, and every door lock
@@ -103,19 +107,26 @@ export default function App() {
     ["sonoff1", "sonoff2", "sonoff3"].forEach((id) => homeLoad(id));
   }, [homeLoad]);
 
-  const openRoom = openRoomId ? ROOMS.find((r) => r.id === openRoomId) ?? null : null;
+  const openRoom = openRoomId
+    ? (ROOMS.find((r) => r.id === openRoomId) ?? null)
+    : null;
 
   // Live state map forwarded to the 3D viewer so markers reflect the exact
   // dashboard state on every open (never stale from a previous session).
   const viewerDeviceStates = useMemo(() => {
     if (!viewerRoomId) return {};
-    const dashId = Object.keys(ROOM_3D_ID).find((k) => ROOM_3D_ID[k] === viewerRoomId);
+    const dashId = Object.keys(ROOM_3D_ID).find(
+      (k) => ROOM_3D_ID[k] === viewerRoomId,
+    );
     const room = dashId ? ROOMS.find((r) => r.id === dashId) : undefined;
     if (!room) return {};
     const out: Record<string, boolean> = {};
     room.devices.forEach((d) => {
       if (d.kind === "gas-leak" || d.kind === "room-temp") return;
-      out[d.id] = "deviceId" in d && d.deviceId ? liveDevices[d.deviceId]?.state.on === true : dummyOn[d.id] ?? false;
+      out[d.id] =
+        "deviceId" in d && d.deviceId
+          ? liveDevices[d.deviceId]?.state.on === true
+          : (dummyOn[d.id] ?? false);
     });
     return out;
   }, [viewerRoomId, dummyOn, liveDevices]);
@@ -124,9 +135,12 @@ export default function App() {
   // lights round-trip through useHomeStore, everything else flips the shared
   // dummy toggle map. One source of truth, two renderers.
   const handleViewerDeviceClick = (deviceId: string) => {
-    const config = ROOMS.flatMap((r) => r.devices).find((d) => d.id === deviceId);
+    const config = ROOMS.flatMap((r) => r.devices).find(
+      (d) => d.id === deviceId,
+    );
     if (!config) return;
-    if (config.kind === "light" && config.deviceId) void liveToggle(config.deviceId);
+    if (config.kind === "light" && config.deviceId)
+      void liveToggle(config.deviceId);
     else toggleDummy(deviceId);
   };
 
@@ -159,7 +173,14 @@ export default function App() {
         <span className="dash-controls">
           <ThemeToggle />
           <EmergencyShutdown onShutdown={handleShutdown} active={anythingOn} />
-          <span className="dash-summary">{ROOMS.length} rooms · {ROOMS.reduce((a, r) => a + r.devices.length + (r.switches?.length ?? 0), 0)} devices</span>
+          <span className="dash-summary">
+            {ROOMS.length} rooms ·{" "}
+            {ROOMS.reduce(
+              (a, r) => a + r.devices.length + (r.switches?.length ?? 0),
+              0,
+            )}{" "}
+            devices
+          </span>
         </span>
       </header>
 
