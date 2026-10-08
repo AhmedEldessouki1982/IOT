@@ -1,18 +1,28 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useHomeStore } from "./store/useHomeStore";
 import { useDummyToggles } from "./features/devices/useDummyToggles";
 import { ROOMS } from "./dashboard/rooms";
-import { ROOM_3D_ID } from "./3d/roomAssets";
+import type { DeviceConfig } from "./features/devices";
+import {
+  isLiveConfig,
+  liveBooleanValue,
+  liveDeviceId,
+  liveStateKey,
+} from "./features/devices/deviceRuntime";
+import { getDeviceHistory, type DeviceHistoryEntry } from "./api/devices";
 import RoomCard from "./dashboard/RoomCard";
 import RoomDetail from "./dashboard/RoomDetail";
 import ThemeToggle from "./components/ThemeToggle";
 import EmergencyShutdown from "./components/EmergencyShutdown";
+import SceneControls from "./components/SceneControls";
+import HomeStatusStrip, {
+  statusIcon,
+  type HomeStatusItem,
+} from "./components/HomeStatusStrip";
+import ActivityPanel, { type ActivityItem } from "./components/ActivityPanel";
+import { SCENES, type SceneAction } from "./dashboard/scenes";
 import "./index.css";
-
-// The 3D viewer pulls in three.js — lazy so it only ever loads when a room's
-// popup is actually opened, never in the initial dashboard bundle.
-const RoomViewer3D = lazy(() => import("./3d/RoomViewer3D"));
 
 function useClock() {
   const [now, setNow] = useState(() => new Date());
@@ -38,23 +48,38 @@ function useClock() {
 /** Bento card dashboard — display type, glass, spatial light. */
 export default function App() {
   const online = useHomeStore((s) => s.online);
-  const homeLoad = useHomeStore((s) => s.load);
-  // Live MQTT devices (light1 + sonoff1/2/3) that are currently ON — used to
-  // arm the emergency shutdown and to flip everything off at once.
+  const homeLoadAll = useHomeStore((s) => s.loadAll);
+  // Live MQTT devices keyed by backend device id.
   const liveDevices = useHomeStore((s) => s.devices);
-  const liveToggle = useHomeStore((s) => s.toggle);
-  const anyLiveOn = Object.values(liveDevices).some((d) => d.state.on === true);
+  const setLiveBoolean = useHomeStore((s) => s.setBoolean);
+  const allConfigs = useMemo(
+    () => ROOMS.flatMap((r) => [...r.devices, ...(r.switches ?? [])]),
+    [],
+  );
+  const liveConfigs = useMemo(() => allConfigs.filter(isLiveConfig), [allConfigs]);
+  const configById = useMemo(
+    () => new Map(allConfigs.map((config) => [config.id, config])),
+    [allConfigs],
+  );
+  const labelByLiveId = useMemo(() => {
+    const map = new Map<string, string>();
+    allConfigs.forEach((config) => {
+      const deviceId = liveDeviceId(config);
+      if (deviceId) map.set(deviceId, config.label);
+    });
+    return map;
+  }, [allConfigs]);
   const { time, date } = useClock();
   const [openRoomId, setOpenRoomId] = useState<string | null>(null);
-  // 3D viewer asset room id (e.g. `r02`) — null while the popup is closed.
-  const [viewerRoomId, setViewerRoomId] = useState<string | null>(null);
+  const [history, setHistory] = useState<DeviceHistoryEntry[]>([]);
+  const [lastScene, setLastScene] = useState<ActivityItem | null>(null);
 
   // Non-live lights default off; locks default locked — each dummy device
   // seeds its own starting value instead of one blanket default.
   const dummyInitial = useMemo(() => {
     const initial: Record<string, boolean> = {};
     let firstDummyLightSeen = false;
-    ROOMS.flatMap((r) => r.devices).forEach((d) => {
+    allConfigs.forEach((d) => {
       if (d.kind === "light" && !d.deviceId) {
         // first dummy light on for a warm, occupied look; rest start off
         initial[d.id] = !firstDummyLightSeen;
@@ -65,7 +90,7 @@ export default function App() {
       if (d.kind === "smoke") initial[d.id] = d.active ?? false;
     });
     return initial;
-  }, []);
+  }, [allConfigs]);
   const {
     states: dummyOn,
     toggle: toggleDummy,
@@ -77,72 +102,213 @@ export default function App() {
   // locked. `shutdownActive` reflects whether anything is currently on /
   // unlocked so the button can state itself.
   const anythingOn = useMemo(() => {
-    if (anyLiveOn) return true;
-    return ROOMS.flatMap((r) => r.devices).some((d) => {
+    const liveActive = liveConfigs.some((d) => {
+      const deviceId = liveDeviceId(d);
+      const value = deviceId
+        ? liveBooleanValue(d, liveDevices[deviceId])
+        : undefined;
+      if (d.kind === "lock") return value === false;
+      return value === true;
+    });
+    if (liveActive) return true;
+    return allConfigs.some((d) => {
+      if (isLiveConfig(d)) return false;
       if (d.kind === "lock") return (dummyOn[d.id] ?? true) === false;
-      if (d.kind === "light" && !d.deviceId) return dummyOn[d.id] ?? false;
-      if (d.kind === "appliance") return dummyOn[d.id] ?? false;
+      if (d.kind === "light") return dummyOn[d.id] ?? false;
+      if (d.kind === "appliance" || d.kind === "smoke") {
+        return dummyOn[d.id] ?? false;
+      }
       return false;
     });
-  }, [anyLiveOn, dummyOn]);
+  }, [allConfigs, dummyOn, liveConfigs, liveDevices]);
 
   const handleShutdown = () => {
-    // Turn off every live MQTT device that's currently on.
-    Object.values(liveDevices).forEach((d) => {
-      if (d.state.on === true) void liveToggle(d.deviceId);
+    liveConfigs.forEach((config) => {
+      const deviceId = liveDeviceId(config);
+      if (!deviceId) return;
+      const target = config.kind === "lock";
+      void setLiveBoolean(deviceId, liveStateKey(config.kind), target);
     });
     const next: Record<string, boolean> = {};
-    ROOMS.flatMap((r) => r.devices).forEach((d) => {
+    allConfigs.forEach((d) => {
+      if (isLiveConfig(d)) return;
       if (d.kind === "light" && !d.deviceId) next[d.id] = false;
       if (d.kind === "lock") next[d.id] = true;
       if (d.kind === "appliance") next[d.id] = false;
+      if (d.kind === "smoke") next[d.id] = false;
     });
     resetDummy(next);
+    setLastScene({
+      id: `shutdown-${Date.now()}`,
+      label: "Shutdown applied",
+      detail: "Lights off, doors locked",
+      at: new Date().toISOString(),
+      tone: "warn",
+    });
+  };
+
+  const applyScene = (sceneId: string) => {
+    const scene = SCENES.find((s) => s.id === sceneId);
+    if (!scene) return;
+    const byId = new Map(allConfigs.map((d) => [d.id, d]));
+    const nextDummy = { ...dummyOn };
+    const applyAction = (action: SceneAction) => {
+      const config = byId.get(action.id);
+      if (!config) return;
+      const deviceId = liveDeviceId(config);
+      if (deviceId) {
+        void setLiveBoolean(deviceId, liveStateKey(config.kind), action.value);
+        return;
+      }
+      nextDummy[action.id] = action.value;
+    };
+    scene.actions.forEach(applyAction);
+    resetDummy(nextDummy);
+    setLastScene({
+      id: `scene-${scene.id}-${Date.now()}`,
+      label: `${scene.label} scene applied`,
+      detail: `${scene.actions.length} devices updated`,
+      at: new Date().toISOString(),
+      tone: scene.id === "away" ? "good" : "info",
+    });
   };
 
   useEffect(() => {
-    homeLoad();
-    // Seed the Sonoff 3-gang relays too (sonoff1/2/3) so their cards show
-    // real state even before the first socket broadcast arrives.
-    ["sonoff1", "sonoff2", "sonoff3"].forEach((id) => homeLoad(id));
-  }, [homeLoad]);
+    // One bulk GET /devices seeds every device that has ever reported state
+    // (light1 + sonoff relays) — no per-device requests, so unknown ids can
+    // never 404 into the console.
+    homeLoadAll();
+  }, [homeLoadAll]);
+
+  useEffect(() => {
+    if (!online) return;
+    let cancelled = false;
+    Promise.all(
+      liveConfigs
+        .map(liveDeviceId)
+        .filter((id): id is string => !!id)
+        .map((id) => getDeviceHistory(id).catch(() => [])),
+    ).then((groups) => {
+      if (cancelled) return;
+      setHistory(
+        groups
+          .flat()
+          .sort(
+            (a, b) =>
+              new Date(b.recordedAt).getTime() -
+              new Date(a.recordedAt).getTime(),
+          ),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [online, liveConfigs, liveDevices]);
+
+  const valueForConfig = (config: DeviceConfig): boolean | undefined => {
+    const deviceId = liveDeviceId(config);
+    if (deviceId) return liveBooleanValue(config, liveDevices[deviceId]);
+    if (config.kind === "lock") return dummyOn[config.id] ?? config.locked ?? true;
+    if (config.kind === "light") return dummyOn[config.id] ?? false;
+    if (config.kind === "appliance") return dummyOn[config.id] ?? false;
+    if (config.kind === "smoke") return dummyOn[config.id] ?? config.active ?? false;
+    if (config.kind === "gas-leak") return config.detected ?? false;
+    return undefined;
+  };
+
+  const statusItems = useMemo<HomeStatusItem[]>(() => {
+    const lights = allConfigs.filter((config) => config.kind === "light");
+    const lightsOn = lights.filter((config) => valueForConfig(config) === true);
+    const locks = allConfigs.filter((config) => config.kind === "lock");
+    const locked = locks.filter((config) => valueForConfig(config) !== false);
+    const sensors = allConfigs.filter(
+      (config) => config.kind === "smoke" || config.kind === "gas-leak",
+    );
+    const sensorsSafe = sensors.every((config) => valueForConfig(config) !== true);
+    const latest = history[0]?.recordedAt ?? lastScene?.at;
+    const latestLabel = latest
+      ? new Date(latest).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      : "No events";
+    return [
+      {
+        id: "lights",
+        label: "Lights on",
+        value: `${lightsOn.length}/${lights.length}`,
+        tone: lightsOn.length > 0 ? "warn" : "good",
+        icon: statusIcon("lights"),
+      },
+      {
+        id: "doors",
+        label: "Doors locked",
+        value: `${locked.length}/${locks.length}`,
+        tone: locked.length === locks.length ? "good" : "danger",
+        icon: statusIcon("doors"),
+      },
+      {
+        id: "sensors",
+        label: "Sensors",
+        value: sensorsSafe ? "Safe" : "Alert",
+        tone: sensorsSafe ? "good" : "danger",
+        icon: statusIcon("sensors"),
+      },
+      {
+        id: "mqtt",
+        label: "MQTT",
+        value: online ? "Live" : "Offline",
+        tone: online ? "good" : "danger",
+        icon: statusIcon("mqtt"),
+      },
+      {
+        id: "activity",
+        label: "Last activity",
+        value: latestLabel,
+        tone: "info",
+        icon: statusIcon("activity"),
+      },
+    ];
+  }, [allConfigs, dummyOn, history, lastScene, liveDevices, online]);
+
+  const activityItems = useMemo<ActivityItem[]>(() => {
+    const historyItems = history.map((entry) => {
+      const label = labelByLiveId.get(entry.deviceId) ?? entry.deviceId;
+      const config = configById.get(entry.deviceId);
+      const on = entry.state.on;
+      const locked = entry.state.locked;
+      const stateText =
+        typeof on === "boolean"
+          ? on
+            ? "turned on"
+            : "turned off"
+          : typeof locked === "boolean"
+            ? locked
+              ? "locked"
+              : "unlocked"
+            : "reported state";
+      return {
+        id: `${entry.deviceId}-${entry.recordedAt}`,
+        label,
+        detail: stateText,
+        at: entry.recordedAt,
+        tone:
+          config?.kind === "lock" && locked === false
+            ? "danger"
+            : on === false || locked === true
+              ? "good"
+              : "info",
+      } satisfies ActivityItem;
+    });
+    return [lastScene, ...historyItems]
+      .filter((item): item is ActivityItem => !!item)
+      .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+  }, [configById, history, labelByLiveId, lastScene]);
 
   const openRoom = openRoomId
     ? (ROOMS.find((r) => r.id === openRoomId) ?? null)
     : null;
-
-  // Live state map forwarded to the 3D viewer so markers reflect the exact
-  // dashboard state on every open (never stale from a previous session).
-  const viewerDeviceStates = useMemo(() => {
-    if (!viewerRoomId) return {};
-    const dashId = Object.keys(ROOM_3D_ID).find(
-      (k) => ROOM_3D_ID[k] === viewerRoomId,
-    );
-    const room = dashId ? ROOMS.find((r) => r.id === dashId) : undefined;
-    if (!room) return {};
-    const out: Record<string, boolean> = {};
-    room.devices.forEach((d) => {
-      if (d.kind === "gas-leak" || d.kind === "room-temp") return;
-      out[d.id] =
-        "deviceId" in d && d.deviceId
-          ? liveDevices[d.deviceId]?.state.on === true
-          : (dummyOn[d.id] ?? false);
-    });
-    return out;
-  }, [viewerRoomId, dummyOn, liveDevices]);
-
-  // 3D marker click → the exact same handler path the 2D cards use: live
-  // lights round-trip through useHomeStore, everything else flips the shared
-  // dummy toggle map. One source of truth, two renderers.
-  const handleViewerDeviceClick = (deviceId: string) => {
-    const config = ROOMS.flatMap((r) => r.devices).find(
-      (d) => d.id === deviceId,
-    );
-    if (!config) return;
-    if (config.kind === "light" && config.deviceId)
-      void liveToggle(config.deviceId);
-    else toggleDummy(deviceId);
-  };
 
   // Esc closes the room detail view.
   useEffect(() => {
@@ -171,6 +337,7 @@ export default function App() {
           </p>
         </div>
         <span className="dash-controls">
+          <SceneControls scenes={SCENES} onApply={applyScene} />
           <ThemeToggle />
           <EmergencyShutdown onShutdown={handleShutdown} active={anythingOn} />
           <span className="dash-summary">
@@ -184,6 +351,11 @@ export default function App() {
         </span>
       </header>
 
+      <section className="dash-overview" aria-label="Home overview">
+        <HomeStatusStrip items={statusItems} />
+        <ActivityPanel items={activityItems} />
+      </section>
+
       <main className="dash-grid">
         {ROOMS.map((room, i) => (
           <RoomCard
@@ -196,7 +368,6 @@ export default function App() {
             index={i}
             dummyOn={dummyOn}
             onDummyToggle={toggleDummy}
-            onView3D={setViewerRoomId}
             onExpand={setOpenRoomId}
           />
         ))}
@@ -216,19 +387,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {viewerRoomId && (
-          <Suspense fallback={null}>
-            <RoomViewer3D
-              key={viewerRoomId}
-              roomId={viewerRoomId}
-              deviceStates={viewerDeviceStates}
-              onDeviceClick={handleViewerDeviceClick}
-              onClose={() => setViewerRoomId(null)}
-            />
-          </Suspense>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

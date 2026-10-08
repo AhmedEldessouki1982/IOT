@@ -1,4 +1,5 @@
 import kitchenGlb from "./resources/kitchen.glb?url";
+import hallwayGlb from "./resources/hallway-presentation.glb?url";
 
 /**
  * Per-room 3D asset manifest. A room only gains a working "3D" button once
@@ -16,6 +17,7 @@ import kitchenGlb from "./resources/kitchen.glb?url";
  */
 export const ROOM_ASSETS: Record<string, { glb: string }> = {
   r02: { glb: kitchenGlb },
+  r08: { glb: hallwayGlb },
 };
 
 /**

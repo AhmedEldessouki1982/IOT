@@ -1,6 +1,12 @@
 import { useHomeStore } from "../../store/useHomeStore";
 import type { DeviceConfig } from "./deviceKinds";
 import { deviceIcon } from "./deviceKinds";
+import {
+  isLiveConfig,
+  liveBooleanValue,
+  liveDeviceId,
+  liveStateKey,
+} from "./deviceRuntime";
 import { Device, type DeviceProps } from "./index";
 
 interface CardDeviceProps {
@@ -21,16 +27,26 @@ export default function CardDevice({
 }: CardDeviceProps) {
   const liveDevices = useHomeStore((s) => s.devices);
   const toggle = useHomeStore((s) => s.toggle);
+  const setBoolean = useHomeStore((s) => s.setBoolean);
   const icon = deviceIcon(config.kind);
+  const deviceId = liveDeviceId(config);
+  const isLive = isLiveConfig(config);
+  const liveValue = deviceId
+    ? liveBooleanValue(config, liveDevices[deviceId])
+    : undefined;
+  const setLiveValue =
+    isLive && deviceId
+      ? (value: boolean) =>
+          setBoolean(deviceId, liveStateKey(config.kind), value)
+      : undefined;
 
   if (config.kind === "light") {
-    const isLive = !!config.deviceId;
     const props: DeviceProps = {
       kind: "light",
       variant: "card",
       label: config.label,
       defaultOn: config.defaultOn,
-      state: isLive ? liveDevices[config.deviceId!]?.state.on === true : state,
+      state: isLive ? liveValue === true : state,
       onToggle: isLive ? () => toggle(config.deviceId!) : onToggle,
       icon,
       badge: isLive ? "live" : "demo",
@@ -43,9 +59,9 @@ export default function CardDevice({
       kind: "lock",
       variant: "card",
       label: config.label,
-      state: state ?? config.locked ?? true,
-      onToggle: onToggle as ((locked: boolean) => void) | undefined,
-      badge: "demo",
+      state: isLive ? liveValue === true : (state ?? config.locked ?? true),
+      onToggle: isLive ? setLiveValue : onToggle,
+      badge: isLive ? "live" : "demo",
     };
     return <Device {...props} />;
   }
@@ -55,9 +71,9 @@ export default function CardDevice({
       kind: "appliance",
       variant: "card",
       label: config.label,
-      state: state,
-      onToggle: onToggle,
-      badge: "demo",
+      state: isLive ? liveValue === true : state,
+      onToggle: isLive ? setLiveValue : onToggle,
+      badge: isLive ? "live" : "demo",
     };
     return <Device {...props} />;
   }
@@ -67,9 +83,9 @@ export default function CardDevice({
       kind: "smoke",
       variant: "card",
       label: config.label,
-      state: state ?? config.active ?? false,
-      onToggle: onToggle,
-      badge: "demo",
+      state: isLive ? liveValue === true : (state ?? config.active ?? false),
+      onToggle: isLive ? setLiveValue : onToggle,
+      badge: isLive ? "live" : "demo",
     };
     return <Device {...props} />;
   }

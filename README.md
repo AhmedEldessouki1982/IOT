@@ -26,9 +26,12 @@ The dashboard is a single-page bento-card grid of the apartment's 8 rooms
 (Reception, Kitchen, Toilet, Corridor, Small Bedroom, Bedroom 2, Master
 Bedroom, Ensuite) — 22 devices in total. Each card lists its devices; tapping
 a card opens a room detail view with bulk actions (all lights on/off,
-lock/unlock all). The Kitchen card also has a **3D** button that opens a
-WebGL walkthrough of the room with live wifi-badge markers (see
-[Kitchen 3D viewer](#kitchen-3d-viewer)).
+lock/unlock all). Header scene presets apply common whole-home states such as
+Evening, Cooking, and Away across live MQTT devices and local demo devices.
+
+The WebGL room viewer is currently isolated from the dashboard while the 3D
+feature gets more work. Existing GLB assets and viewer code remain in the repo
+for the next 3D pass, but users cannot open them from the live dashboard.
 
 ### Live (real MQTT round-trip)
 - **Reception Ceiling Light** (`light1`): the reference live device — an on/off
@@ -85,6 +88,7 @@ cp .env.example .env
 | `MQTT_URL`                | `mqtt://localhost:1883` | MQTT broker host + port                           |
 | `HTTP_PORT`               | `3000`                  | HTTP + WebSocket listen port                      |
 | `CORS_ORIGIN`             | `http://localhost:5173` | Allowed browser origin                            |
+| `DATA_DIR`                | `.data`                 | Local JSON persistence for latest device state and history |
 | `SONOFF_BASE` | `tasmota_A3AECD` | Tasmota topic base of the Sonoff switch (*empty = disabled*) |
 | `SONOFF_IP`   | `10.0.1.13`    | Sonoff device IP (informational; control goes via broker) |
 
@@ -126,6 +130,7 @@ The backend is device-agnostic — devices register automatically over MQTT.
 | ------ | ------------------------ | ---------------------------------- |
 | `GET`  | `/devices`               | All known device states            |
 | `GET`  | `/devices/:id`           | One device's state (404 if unknown)|
+| `GET`  | `/devices/:id/history`   | Recent persisted state history for one device |
 | `POST` | `/devices/:id/command`   | Send a JSON command to a device    |
 | `GET`  | `/sonoff`                | State of all three Sonoff relays (sonoff1..3) |
 | `GET`  | `/sonoff/:channel`       | State of one relay (1..3)          |
@@ -181,21 +186,17 @@ For direct control/status you can also hit the switch's Tasmota HTTP API at
 `http://10.0.1.13/cm?cmnd=...` (toggle, e.g. `POWER1%20TOGGLE`; status via
 `Status%200`). The app itself always uses MQTT; this HTTP route is a manual/dev fallback.
 
-## Kitchen 3D Viewer
+## 3D Viewer
 
-The Kitchen card's **3D** button opens a lazy-loaded WebGL (three.js) popup of the
-kitchen's GLB model. Devices from the dashboard are projected into the scene as
-animated **wifi-badge markers** — green + heartbeat pulse when the device is on,
-red slashed when off; hover to highlight, click to toggle (2D dashboard stays in
-sync). Overlapping markers (e.g. ceiling light vs smoke sensor) are auto-separated
-so none clip the ceiling.
+The WebGL viewer is dormant for now. When re-enabled, it lazy-loads GLB room
+models and projects dashboard devices into the scene as animated wifi-badge
+markers — green + heartbeat pulse when the device is on, red slashed when off;
+hover to highlight, click to toggle, with the 2D dashboard staying in sync.
 
 The GLB is loaded from the stable path `frontend/src/3d/resources/kitchen.glb`,
 which the Blender pipeline overwrites on every render — the dashboard always shows
 "latest" with no code change. Dated exports stay alongside under
-`resources/<yyyy-mm-dd>/` for provenance. It is code-split into its own chunk and
-fetched **only when the popup opens** (~250 kB gzip + ~500 kB GLB; ~140 ms
-click→canvas at 4× CPU throttle).
+`resources/<yyyy-mm-dd>/` for provenance.
 
 ## Verification
 

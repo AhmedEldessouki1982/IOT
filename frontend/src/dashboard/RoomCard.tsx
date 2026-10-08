@@ -11,10 +11,12 @@ import {
   Crown,
   Droplets,
   ChevronRight,
-  Box,
 } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
-import { ROOM_ASSETS, ROOM_3D_ID } from "../3d/roomAssets";
+import {
+  liveBooleanValue,
+  liveDeviceId,
+} from "../features/devices/deviceRuntime";
 import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
 import { motion } from "framer-motion";
 
@@ -67,8 +69,6 @@ interface RoomCardProps {
   index?: number;
   dummyOn?: Record<string, boolean>;
   onDummyToggle?: (id: string) => void;
-  /** Opens the 3D viewer for this room (only wired when a GLB exists). */
-  onView3D?: (assetId: string) => void;
   /** Opens the full-screen room detail view for this room. */
   onExpand?: (id: string) => void;
 }
@@ -87,29 +87,37 @@ export default function RoomCard({
   index = 0,
   dummyOn,
   onDummyToggle,
-  onView3D,
   onExpand,
 }: RoomCardProps) {
   const Icon = ROOM_ICON[id] ?? BedSingle;
   const spanClass = span ?? ROOM_SPAN[id] ?? "room-card--wide";
   const accent = ROOM_ACCENT[id] ?? "#22d3ee";
 
-  // A working "3D" button requires a registered GLB for this room — only the
-  // Kitchen resolves today, so no other card can ever show one.
-  const assetId = ROOM_3D_ID[id];
-  const has3D = !!onView3D && !!assetId && !!ROOM_ASSETS[assetId];
-
   // Live MQTT devices map (light1 + sonoff1/2/3) so the card's "on" count
   // reflects real server state for any light that carries a live deviceId.
   const liveDevices = useHomeStore((s) => s.devices);
-  const allLights = [...devices, ...switches].filter((d) => d.kind === "light");
-  const lightsOn = allLights.filter((d) => {
-    if (d.kind !== "light") return false;
-    const deviceId = (d as { deviceId?: string }).deviceId;
-    if (deviceId) return liveDevices[deviceId]?.state.on === true;
-    return dummyOn?.[d.id] ?? false;
-  }).length;
+  const allDevices = [...devices, ...switches];
+  const valueFor = (config: DeviceConfig): boolean | undefined => {
+    const deviceId = liveDeviceId(config);
+    if (deviceId) return liveBooleanValue(config, liveDevices[deviceId]);
+    if (config.kind === "lock") return dummyOn?.[config.id] ?? config.locked ?? true;
+    if (config.kind === "light") return dummyOn?.[config.id] ?? false;
+    if (config.kind === "appliance") return dummyOn?.[config.id] ?? false;
+    if (config.kind === "smoke") return dummyOn?.[config.id] ?? config.active ?? false;
+    if (config.kind === "gas-leak") return config.detected ?? false;
+    return undefined;
+  };
+  const allLights = allDevices.filter((d) => d.kind === "light");
+  const lightsOn = allLights.filter((d) => valueFor(d) === true).length;
+  const sensorsSafe = allDevices
+    .filter((d) => d.kind === "smoke" || d.kind === "gas-leak")
+    .every((d) => valueFor(d) !== true);
+  const locksLocked = allDevices
+    .filter((d) => d.kind === "lock")
+    .every((d) => valueFor(d) !== false);
   const hasActiveLight = lightsOn > 0;
+  const previewDevices = devices.slice(0, switches.length ? 3 : 4);
+  const hiddenCount = devices.length - previewDevices.length;
 
   const stopRowClick = (e: MouseEvent) => e.stopPropagation();
 
@@ -141,21 +149,8 @@ export default function RoomCard({
         </div>
         <span className="room-card-meta">
           <span className="room-card-count">
-            {devices.length} · {allLights.length ? `${lightsOn} on` : "—"}
+            {allDevices.length} · {allLights.length ? `${lightsOn} on` : "—"}
           </span>
-          {has3D && (
-            <button
-              type="button"
-              className="room-card-3d"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (assetId) onView3D?.(assetId);
-              }}
-              aria-label={`Open ${name} in 3D`}
-            >
-              <Box size={12} strokeWidth={1.8} aria-hidden="true" /> 3D
-            </button>
-          )}
           <span className="room-card-dot" aria-hidden="true" />
           <ChevronRight
             size={13}
@@ -165,6 +160,21 @@ export default function RoomCard({
           />
         </span>
       </header>
+      <div className="room-card-health" aria-label={`${name} summary`}>
+        <span data-state={hasActiveLight ? "warn" : "good"}>
+          {lightsOn} light{lightsOn === 1 ? "" : "s"} on
+        </span>
+        {allDevices.some((d) => d.kind === "lock") && (
+          <span data-state={locksLocked ? "good" : "danger"}>
+            {locksLocked ? "Secured" : "Unlocked"}
+          </span>
+        )}
+        {allDevices.some((d) => d.kind === "smoke" || d.kind === "gas-leak") && (
+          <span data-state={sensorsSafe ? "good" : "danger"}>
+            {sensorsSafe ? "Sensors safe" : "Sensor alert"}
+          </span>
+        )}
+      </div>
       {switches.length > 0 && (
         <div className="switch-row" onClick={stopRowClick}>
           {switches.map((sw) => (
@@ -177,7 +187,7 @@ export default function RoomCard({
         </div>
       )}
       <ul className="room-card-list">
-        {devices.map((config) => (
+        {previewDevices.map((config) => (
           <li key={config.id} className="room-card-item" onClick={stopRowClick}>
             <CardDevice
               config={config}
@@ -195,6 +205,18 @@ export default function RoomCard({
           </li>
         ))}
       </ul>
+      {hiddenCount > 0 && (
+        <button
+          type="button"
+          className="room-card-more"
+          onClick={(e) => {
+            e.stopPropagation();
+            onExpand?.(id);
+          }}
+        >
+          Open room for {hiddenCount} more
+        </button>
+      )}
     </motion.section>
   );
 }

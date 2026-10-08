@@ -136,17 +136,16 @@ export class SonoffService implements OnModuleInit {
     const on = text === "ON";
     const deviceId = this.deviceIdFor(channel);
 
-    // Record in the generic registry and push to every connected client.
-    this.deviceService.setState(deviceId, {
+    // Record in the generic registry and push to every connected client —
+    // but only when the relay state actually flipped (Tasmota echoes the
+    // current POWER<n> on every status query, not just on changes).
+    const changed = this.deviceService.setState(deviceId, {
       type: "switch",
       state: { on },
     });
-    this.gateway.broadcast({
-      deviceId,
-      type: "switch",
-      state: { on },
-      timestamp: new Date().toISOString(),
-    });
+    if (!changed) return;
+    const state = this.deviceService.getState(deviceId);
+    if (state) this.gateway.broadcast(state);
     this.logger.log(`Sonoff ${deviceId} state -> ${on ? "ON" : "OFF"}`);
   }
 

@@ -44,7 +44,11 @@ export class DeviceMqttListener {
       return;
     }
 
-    this.deviceService.setState(deviceId, payload as Partial<DeviceState>);
+    const changed = this.deviceService.setState(
+      deviceId,
+      payload as Partial<DeviceState>,
+    );
+    if (!changed) return; // replayed/echoed state — registry already agrees
     const state = this.deviceService.getState(deviceId);
     if (state) this.gateway.broadcast(state);
   }

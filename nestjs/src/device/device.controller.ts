@@ -8,10 +8,17 @@ import {
   Post,
 } from "@nestjs/common";
 import { DeviceService, DeviceState } from "./device.service";
+import {
+  DeviceHistoryEntry,
+  DevicePersistenceService,
+} from "./device-persistence.service";
 
 @Controller("devices")
 export class DeviceController {
-  constructor(private readonly deviceService: DeviceService) {}
+  constructor(
+    private readonly deviceService: DeviceService,
+    private readonly persistence: DevicePersistenceService,
+  ) {}
 
   @Get()
   getAll(): DeviceState[] {
@@ -23,6 +30,11 @@ export class DeviceController {
     const state = this.deviceService.getState(id);
     if (!state) throw new NotFoundException(`Device "${id}" not found`);
     return state;
+  }
+
+  @Get(":id/history")
+  getHistory(@Param("id") id: string): DeviceHistoryEntry[] {
+    return this.persistence.getHistory(id);
   }
 
   @Post(":id/command")

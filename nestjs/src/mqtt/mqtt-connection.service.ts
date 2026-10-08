@@ -93,7 +93,7 @@ export class MqttConnectionService implements OnModuleDestroy {
 }
 
 /** True when `topic` matches `pattern` (`+` = one level, `#` = trailing). */
-function topicMatches(pattern: string, topic: string): boolean {
+export function topicMatches(pattern: string, topic: string): boolean {
   const p = pattern.split("/");
   const t = topic.split("/");
   for (let i = 0; i < p.length; i++) {

@@ -5,3 +5,6 @@ __pycache__/
 .env
 .vite/
 .venv/
+.data/
+*.log
+.pi/

@@ -7,6 +7,12 @@ import SwitchCard from "../components/SwitchCard";
 import { ROOM_ICON_MAP, ROOM_ACCENT_MAP } from "./RoomCard";
 import { BedSingle } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
+import {
+  isLiveConfig,
+  liveBooleanValue,
+  liveDeviceId,
+  liveStateKey,
+} from "../features/devices/deviceRuntime";
 
 interface RoomDetailProps {
   id: string;
@@ -38,18 +44,18 @@ export default function RoomDetail({
   // Live MQTT device states (light1 + sonoff1/2/3) — any light config that
   // carries a deviceId rounds-trips here; the rest are local dummy toggles.
   const liveDevices = useHomeStore((s) => s.devices);
-  const liveToggle = useHomeStore((s) => s.toggle);
+  const setLiveBoolean = useHomeStore((s) => s.setBoolean);
 
   const allLights = [...devices, ...switches].filter((d) => d.kind === "light");
   const lockIds = devices.filter((d) => d.kind === "lock").map((d) => d.id);
 
-  const isLiveLight = (deviceId?: string) =>
-    !!deviceId && deviceId in liveDevices;
-  const liveOn = (deviceId?: string) =>
-    deviceId ? liveDevices[deviceId]?.state.on === true : false;
+  const liveOn = (d: DeviceConfig) => {
+    const deviceId = liveDeviceId(d);
+    return deviceId ? liveBooleanValue(d, liveDevices[deviceId]) === true : false;
+  };
   const anyLightOn = allLights.some((d) => {
     if (d.kind !== "light") return false;
-    if (isLiveLight(d.deviceId)) return liveOn(d.deviceId);
+    if (isLiveConfig(d)) return liveOn(d);
     return dummyOn[d.id] ?? false;
   });
   const anyLockUnlocked = lockIds.some((lid) => !dummyOn[lid]);
@@ -57,8 +63,11 @@ export default function RoomDetail({
   const setAllLights = (on: boolean) => {
     allLights.forEach((d) => {
       if (d.kind !== "light") return;
-      if (isLiveLight(d.deviceId)) {
-        if (liveOn(d.deviceId) !== on) void liveToggle(d.deviceId!);
+      if (isLiveConfig(d)) {
+        const deviceId = liveDeviceId(d);
+        if (deviceId && liveOn(d) !== on) {
+          void setLiveBoolean(deviceId, liveStateKey(d.kind), on);
+        }
         return;
       }
       if ((dummyOn[d.id] ?? false) !== on) onDummyToggle(d.id);

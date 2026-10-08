@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { io } from "socket.io-client";
-import { getDevice, sendCommand, type DeviceState } from "../api/devices";
+import { getDevices, sendCommand, type DeviceState } from "../api/devices";
 
 /**
  * Live MQTT-backed device state, keyed by device id.
@@ -17,20 +17,31 @@ interface HomeStore {
   /** Live device states: e.g. { light1: {...}, sonoff1: {...} } */
   devices: Record<string, DeviceState>;
   online: boolean;
-  /** Fetch the current state of the given device from the backend. */
-  load: (deviceId?: string) => Promise<void>;
+  /** Seed every known device state in one bulk request (no per-device 404s). */
+  loadAll: () => Promise<void>;
   /** Optimistically flip a device's on/off and send the command via MQTT. */
   toggle: (deviceId: string) => Promise<void>;
+  /** Optimistically set one boolean state field and send it via MQTT. */
+  setBoolean: (
+    deviceId: string,
+    stateKey: string,
+    value: boolean,
+  ) => Promise<void>;
 }
 
 export const useHomeStore = create<HomeStore>((set) => ({
   devices: {},
   online: socket.connected,
 
-  load: async (deviceId = "light1") => {
+  loadAll: async () => {
     try {
-      const d = await getDevice(deviceId);
-      set((s) => ({ devices: { ...s.devices, [d.deviceId]: d } }));
+      const all = await getDevices();
+      set((s) => ({
+        devices: {
+          ...s.devices,
+          ...Object.fromEntries(all.map((d) => [d.deviceId, d])),
+        },
+      }));
     } catch {
       /* backend offline — leave state as-is */
     }
@@ -62,6 +73,29 @@ export const useHomeStore = create<HomeStore>((set) => ({
     });
     const on = useHomeStore.getState().devices[deviceId]?.state.on ?? false;
     sendCommand(deviceId, { on }).catch(() => {});
+  },
+
+  setBoolean: async (deviceId: string, stateKey: string, value: boolean) => {
+    set((s) => {
+      const cur = s.devices[deviceId];
+      const base: DeviceState = cur ?? {
+        deviceId,
+        type: stateKey === "locked" ? "lock" : "switch",
+        state: {},
+        timestamp: new Date().toISOString(),
+      };
+      return {
+        devices: {
+          ...s.devices,
+          [deviceId]: {
+            ...base,
+            state: { ...base.state, [stateKey]: value },
+            timestamp: new Date().toISOString(),
+          },
+        },
+      };
+    });
+    sendCommand(deviceId, { [stateKey]: value }).catch(() => {});
   },
 }));
 

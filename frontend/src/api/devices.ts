@@ -7,10 +7,24 @@ export interface DeviceState {
   timestamp: string;
 }
 
-export async function getDevice(deviceId: string): Promise<DeviceState> {
-  const res = await fetch(`${BASE_URL}/devices/${deviceId}`);
+export interface DeviceHistoryEntry extends DeviceState {
+  recordedAt: string;
+}
+
+/** All known device states — empty list (never 404) if nothing reported yet. */
+export async function getDevices(): Promise<DeviceState[]> {
+  const res = await fetch(`${BASE_URL}/devices`);
   if (!res.ok)
-    throw new Error(`GET /devices/${deviceId} failed: ${res.status}`);
+    throw new Error(`GET /devices failed: ${res.status}`);
+  return res.json();
+}
+
+export async function getDeviceHistory(
+  deviceId: string,
+): Promise<DeviceHistoryEntry[]> {
+  const res = await fetch(`${BASE_URL}/devices/${deviceId}/history`);
+  if (!res.ok)
+    throw new Error(`GET /devices/${deviceId}/history failed: ${res.status}`);
   return res.json();
 }
 
