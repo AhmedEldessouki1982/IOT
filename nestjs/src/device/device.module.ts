@@ -3,19 +3,21 @@ import { DeviceController } from "./device.controller";
 import { DeviceService } from "./device.service";
 import { DeviceGateway } from "./device.gateway";
 import { DeviceMqttListener } from "./device.mqtt-listener";
-import { MqttConnectionService } from "../mqtt/mqtt-connection.service";
+import { MqttPublisherService } from "../mqtt/mqtt-publisher.service";
+import { MqttModule } from "../mqtt/mqtt.module";
 import { DevicePersistenceService } from "./device-persistence.service";
+import { DeviceTimerController } from "./device-timer.controller";
+import { TimersModule } from "../timers/timers.module";
 
 @Module({
-  controllers: [DeviceController],
+  imports: [MqttModule, TimersModule],
+  controllers: [DeviceController, DeviceTimerController],
   providers: [
     DeviceService,
     DevicePersistenceService,
     DeviceGateway,
     DeviceMqttListener,
-    // The single shared MQTT client — also used by SonoffService (SonoffModule
-    // imports DeviceModule), so exported like DeviceService/DeviceGateway.
-    MqttConnectionService,
+    MqttPublisherService,
   ],
   // Exported so other modules (e.g. SonoffModule) can reuse the shared device
   // registry (DeviceService), socket broadcast (DeviceGateway) and the single
@@ -24,7 +26,8 @@ import { DevicePersistenceService } from "./device-persistence.service";
     DeviceService,
     DevicePersistenceService,
     DeviceGateway,
-    MqttConnectionService,
+    MqttPublisherService,
+    MqttModule,
   ],
 })
 export class DeviceModule {}
