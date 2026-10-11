@@ -102,7 +102,7 @@ export default function RoomDetail({
             <div>
               <h2>{name}</h2>
               <p className="room-detail-sub">
-                {devices.length} device{devices.length === 1 ? "" : "s"}
+                {[...devices, ...switches].length} device{([...devices, ...switches].length) === 1 ? "" : "s"}
               </p>
             </div>
           </div>

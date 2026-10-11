@@ -9,6 +9,7 @@ import {
   liveBooleanValue,
   liveDeviceId,
   liveStateKey,
+  deviceBooleanValue,
 } from "./features/devices/deviceRuntime";
 import { getDeviceHistory, type DeviceHistoryEntry } from "./api/devices";
 import RoomCard from "./dashboard/RoomCard";
@@ -205,16 +206,8 @@ export default function App() {
     };
   }, [online, liveConfigs, liveDevices]);
 
-  const valueForConfig = (config: DeviceConfig): boolean | undefined => {
-    const deviceId = liveDeviceId(config);
-    if (deviceId) return liveBooleanValue(config, liveDevices[deviceId]);
-    if (config.kind === "lock") return dummyOn[config.id] ?? config.locked ?? true;
-    if (config.kind === "light") return dummyOn[config.id] ?? false;
-    if (config.kind === "appliance") return dummyOn[config.id] ?? false;
-    if (config.kind === "smoke") return dummyOn[config.id] ?? config.active ?? false;
-    if (config.kind === "gas-leak") return config.detected ?? false;
-    return undefined;
-  };
+  const valueForConfig = (config: DeviceConfig) =>
+    deviceBooleanValue(config, liveDevices, dummyOn);
 
   const statusItems = useMemo<HomeStatusItem[]>(() => {
     const lights = allConfigs.filter((config) => config.kind === "light");

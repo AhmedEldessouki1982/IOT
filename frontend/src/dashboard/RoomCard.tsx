@@ -14,8 +14,7 @@ import {
 } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
 import {
-  liveBooleanValue,
-  liveDeviceId,
+  deviceBooleanValue,
 } from "../features/devices/deviceRuntime";
 import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
 import { motion } from "framer-motion";
@@ -97,16 +96,7 @@ export default function RoomCard({
   // reflects real server state for any light that carries a live deviceId.
   const liveDevices = useHomeStore((s) => s.devices);
   const allDevices = [...devices, ...switches];
-  const valueFor = (config: DeviceConfig): boolean | undefined => {
-    const deviceId = liveDeviceId(config);
-    if (deviceId) return liveBooleanValue(config, liveDevices[deviceId]);
-    if (config.kind === "lock") return dummyOn?.[config.id] ?? config.locked ?? true;
-    if (config.kind === "light") return dummyOn?.[config.id] ?? false;
-    if (config.kind === "appliance") return dummyOn?.[config.id] ?? false;
-    if (config.kind === "smoke") return dummyOn?.[config.id] ?? config.active ?? false;
-    if (config.kind === "gas-leak") return config.detected ?? false;
-    return undefined;
-  };
+  const valueFor = (config: DeviceConfig) => deviceBooleanValue(config, liveDevices, dummyOn);
   const allLights = allDevices.filter((d) => d.kind === "light");
   const lightsOn = allLights.filter((d) => valueFor(d) === true).length;
   const sensorsSafe = allDevices
@@ -116,7 +106,7 @@ export default function RoomCard({
     .filter((d) => d.kind === "lock")
     .every((d) => valueFor(d) !== false);
   const hasActiveLight = lightsOn > 0;
-  const previewDevices = devices.slice(0, switches.length ? 3 : 4);
+  const previewDevices = devices.slice(0, 3);
   const hiddenCount = devices.length - previewDevices.length;
 
   const stopRowClick = (e: MouseEvent) => e.stopPropagation();
