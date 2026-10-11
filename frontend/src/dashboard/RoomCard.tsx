@@ -9,7 +9,6 @@ import {
   BedSingle,
   BedDouble,
   Crown,
-  Droplets,
   ChevronRight,
 } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
@@ -27,7 +26,6 @@ const ROOM_ICON: Record<string, typeof Sofa> = {
   bed1: BedSingle,
   bed2: BedDouble,
   master: Crown,
-  ensuite: Droplets,
 };
 
 const ROOM_SPAN: Record<string, string> = {
@@ -38,7 +36,6 @@ const ROOM_SPAN: Record<string, string> = {
   bed1: "room-card--narrow",
   bed2: "room-card--narrow",
   master: "room-card--narrow",
-  ensuite: "room-card--narrow",
 };
 
 /* Per-room accent — each card glows in its own hue when a light is on,
@@ -51,7 +48,6 @@ const ROOM_ACCENT: Record<string, string> = {
   bed1: "#34d399",
   bed2: "#f472b6",
   master: "#c084fc",
-  ensuite: "#38bdf8",
 };
 
 export const ROOM_ICON_MAP = ROOM_ICON;

@@ -138,7 +138,7 @@ export const ROOMS: Room[] = [
   },
   {
     id: "master",
-    name: "Master Bedroom",
+    name: "Master Suite",
     devices: [
       { kind: "light", id: "light7", label: "Master Bedroom Light" },
       {
@@ -148,12 +148,6 @@ export const ROOMS: Room[] = [
         current: 20.9,
         history: [21.1, 21.0, 20.8, 20.9, 21.0, 20.7, 20.9],
       },
-    ],
-  },
-  {
-    id: "ensuite",
-    name: "Master Toilet",
-    devices: [
       { kind: "light", id: "toilet_master_led", label: "Master Toilet LED Bar" },
       { kind: "light", id: "toilet_master_spots", label: "Master Toilet Spotlights" },
       { kind: "light", id: "toilet_master_exhaust", label: "Master Toilet Exhaust Fan" },
