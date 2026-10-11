@@ -114,8 +114,12 @@ export const ROOMS: Room[] = [
   },
   {
     id: "toilet",
-    name: "Toilet",
-    devices: [{ kind: "light", id: "light3", label: "Toilet Light" }],
+    name: "Main Toilet",
+    devices: [
+      { kind: "light", id: "toilet_main_led", label: "Toilet LED Bar" },
+      { kind: "light", id: "toilet_main_spots", label: "Toilet Spotlights" },
+      { kind: "light", id: "toilet_main_exhaust", label: "Toilet Exhaust Fan" },
+    ],
   },
   {
     id: "corridor",
@@ -148,8 +152,12 @@ export const ROOMS: Room[] = [
   },
   {
     id: "ensuite",
-    name: "Ensuite",
-    devices: [{ kind: "light", id: "light8", label: "Ensuite Light" }],
+    name: "Master Toilet",
+    devices: [
+      { kind: "light", id: "toilet_master_led", label: "Master Toilet LED Bar" },
+      { kind: "light", id: "toilet_master_spots", label: "Master Toilet Spotlights" },
+      { kind: "light", id: "toilet_master_exhaust", label: "Master Toilet Exhaust Fan" },
+    ],
   },
 ];
 
