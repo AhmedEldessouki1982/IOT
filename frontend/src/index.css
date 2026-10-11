@@ -1625,15 +1625,12 @@ body {
    3D VIEWER — reusable room popup (Kitchen today, manifest-driven)
    ================================================================ */
 
-
-
 /* smoke sensor: danger accent when the alarm is raised */
 .smoke-row .device-icon[data-on="false"] {
   color: var(--cc-danger);
   opacity: 1;
   filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.3));
 }
-
 
 .room-card-health + .switch-row {
   margin-top: 10px;

@@ -46,10 +46,12 @@ export function deviceBooleanValue(
 ): boolean | undefined {
   const deviceId = liveDeviceId(config);
   if (deviceId) return liveBooleanValue(config, liveDevices[deviceId]);
-  if (config.kind === "lock") return dummyOn?.[config.id] ?? config.locked ?? true;
+  if (config.kind === "lock")
+    return dummyOn?.[config.id] ?? config.locked ?? true;
   if (config.kind === "light") return dummyOn?.[config.id] ?? false;
   if (config.kind === "appliance") return dummyOn?.[config.id] ?? false;
-  if (config.kind === "smoke") return dummyOn?.[config.id] ?? config.active ?? false;
+  if (config.kind === "smoke")
+    return dummyOn?.[config.id] ?? config.active ?? false;
   if (config.kind === "gas-leak") return config.detected ?? false;
   return undefined;
 }

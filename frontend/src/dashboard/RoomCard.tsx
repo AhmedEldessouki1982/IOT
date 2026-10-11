@@ -12,9 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
-import {
-  deviceBooleanValue,
-} from "../features/devices/deviceRuntime";
+import { deviceBooleanValue } from "../features/devices/deviceRuntime";
 import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
 import { motion } from "framer-motion";
 
@@ -92,7 +90,8 @@ export default function RoomCard({
   // reflects real server state for any light that carries a live deviceId.
   const liveDevices = useHomeStore((s) => s.devices);
   const allDevices = [...devices, ...switches];
-  const valueFor = (config: DeviceConfig) => deviceBooleanValue(config, liveDevices, dummyOn);
+  const valueFor = (config: DeviceConfig) =>
+    deviceBooleanValue(config, liveDevices, dummyOn);
   const allLights = allDevices.filter((d) => d.kind === "light");
   const lightsOn = allLights.filter((d) => valueFor(d) === true).length;
   const sensorsSafe = allDevices
@@ -155,7 +154,9 @@ export default function RoomCard({
             {locksLocked ? "Secured" : "Unlocked"}
           </span>
         )}
-        {allDevices.some((d) => d.kind === "smoke" || d.kind === "gas-leak") && (
+        {allDevices.some(
+          (d) => d.kind === "smoke" || d.kind === "gas-leak",
+        ) && (
           <span data-state={sensorsSafe ? "good" : "danger"}>
             {sensorsSafe ? "Sensors safe" : "Sensor alert"}
           </span>
@@ -178,9 +179,7 @@ export default function RoomCard({
             <CardDevice
               config={config}
               state={
-                isToggleableKind(config.kind)
-                  ? dummyOn?.[config.id]
-                  : undefined
+                isToggleableKind(config.kind) ? dummyOn?.[config.id] : undefined
               }
               onToggle={
                 isToggleableKind(config.kind)
