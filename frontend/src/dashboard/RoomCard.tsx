@@ -101,8 +101,7 @@ export default function RoomCard({
     .filter((d) => d.kind === "lock")
     .every((d) => valueFor(d) !== false);
   const hasActiveLight = lightsOn > 0;
-  const previewDevices = devices.slice(0, 3);
-  const hiddenCount = devices.length - previewDevices.length;
+  const previewDevices = devices;
 
   const stopRowClick = (e: MouseEvent) => e.stopPropagation();
 
@@ -190,18 +189,6 @@ export default function RoomCard({
           </li>
         ))}
       </ul>
-      {hiddenCount > 0 && (
-        <button
-          type="button"
-          className="room-card-more"
-          onClick={(e) => {
-            e.stopPropagation();
-            onExpand?.(id);
-          }}
-        >
-          Open room for {hiddenCount} more
-        </button>
-      )}
     </motion.section>
   );
 }

@@ -805,38 +805,6 @@ body {
   padding-bottom: 6px;
 }
 
-.room-card-more {
-  width: 100%;
-  margin-top: 8px;
-  padding: 9px 10px;
-  border: 1px solid var(--cc-border-subtle);
-  background: var(--cc-ink-subtle);
-  color: var(--cc-text-2);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    color var(--cc-ease),
-    border-color var(--cc-ease),
-    background var(--cc-ease);
-}
-.room-card-more:hover {
-  color: var(--cc-room-accent);
-  background: var(--cc-room-accent-soft);
-  border-color: color-mix(in srgb, var(--cc-room-accent) 32%, transparent);
-}
-.room-card-more:focus-visible {
-  outline: 2px solid var(--cc-room-accent);
-  outline-offset: 2px;
-}
-
-/* ================================================================
-   SONOFF SWITCH ROW — balanced physical-style switch cards
-   Three on/off relay cards laid out in one row inside a room card
-   (currently the Reception 3-gang switch). Responsive: 3-across on
-   desktop, stacks gracefully on small screens.
-   ================================================================ */
-
 .switch-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
