@@ -10,6 +10,8 @@ export interface ActivityItem {
 
 interface ActivityPanelProps {
   items: ActivityItem[];
+  maxItems?: number;
+  title?: string;
 }
 
 function formatTime(value: string): string {
@@ -22,18 +24,23 @@ function formatTime(value: string): string {
   });
 }
 
-export default function ActivityPanel({ items }: ActivityPanelProps) {
+export default function ActivityPanel({
+  items,
+  maxItems = 4,
+  title = "Recent activity",
+}: ActivityPanelProps) {
+  const shown = items.slice(0, maxItems);
   return (
     <aside className="activity-panel" aria-label="Recent activity">
       <header className="activity-panel-head">
         <span className="activity-panel-title">
           <Clock3 size={14} strokeWidth={1.8} aria-hidden="true" />
-          Recent activity
+          {title}
         </span>
       </header>
-      {items.length > 0 ? (
+      {shown.length > 0 ? (
         <ol className="activity-list">
-          {items.slice(0, 4).map((item) => (
+          {shown.map((item) => (
             <li key={item.id} className="activity-item" data-tone={item.tone ?? "info"}>
               <span className="activity-dot" aria-hidden="true" />
               <span className="activity-copy">

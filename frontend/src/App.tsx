@@ -1,5 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
+import {
+  Activity,
+  BellRing,
+  CheckCircle2,
+  Clock3,
+  Filter,
+  Home,
+  LayoutGrid,
+  ListChecks,
+  Radio,
+  Search,
+  Settings,
+  ShieldCheck,
+  SlidersHorizontal,
+  Undo2,
+  WifiOff,
+} from "lucide-react";
 import { useHomeStore } from "./store/useHomeStore";
 import { useDummyToggles } from "./features/devices/useDummyToggles";
 import { ROOMS } from "./dashboard/rooms";
@@ -24,6 +41,49 @@ import HomeStatusStrip, {
 import ActivityPanel, { type ActivityItem } from "./components/ActivityPanel";
 import { SCENES, type SceneAction } from "./dashboard/scenes";
 import "./index.css";
+
+type AppView =
+  | "home"
+  | "rooms"
+  | "scenes"
+  | "security"
+  | "devices"
+  | "activity"
+  | "settings";
+
+interface SceneFeedback {
+  id: string;
+  label: string;
+  detail: string;
+  undo?: () => void;
+}
+
+interface DeviceRecord {
+  config: DeviceConfig;
+  roomName: string;
+  liveId?: string;
+  source: "live" | "demo";
+  health: "online" | "stale" | "unavailable" | "pending" | "demo";
+  stateText: string;
+  lastSeen?: string;
+}
+
+type DeviceHealthFilter = "all" | DeviceRecord["health"];
+type DeviceSourceFilter = "all" | DeviceRecord["source"];
+
+const NAV_ITEMS: Array<{
+  id: AppView;
+  label: string;
+  icon: typeof Home;
+}> = [
+  { id: "home", label: "Home", icon: Home },
+  { id: "rooms", label: "Rooms", icon: LayoutGrid },
+  { id: "scenes", label: "Scenes", icon: SlidersHorizontal },
+  { id: "security", label: "Security", icon: ShieldCheck },
+  { id: "devices", label: "Devices", icon: Radio },
+  { id: "activity", label: "Activity", icon: Activity },
+  { id: "settings", label: "Settings", icon: Settings },
+];
 
 function useClock() {
   const [now, setNow] = useState(() => new Date());
@@ -71,9 +131,17 @@ export default function App() {
     return map;
   }, [allConfigs]);
   const { time, date } = useClock();
+  const [activeView, setActiveView] = useState<AppView>("home");
   const [openRoomId, setOpenRoomId] = useState<string | null>(null);
   const [history, setHistory] = useState<DeviceHistoryEntry[]>([]);
   const [lastScene, setLastScene] = useState<ActivityItem | null>(null);
+  const [sceneFeedback, setSceneFeedback] = useState<SceneFeedback | null>(null);
+  const [pendingLiveIds, setPendingLiveIds] = useState<Record<string, boolean>>({});
+  const [deviceSearch, setDeviceSearch] = useState("");
+  const [deviceHealthFilter, setDeviceHealthFilter] =
+    useState<DeviceHealthFilter>("all");
+  const [deviceSourceFilter, setDeviceSourceFilter] =
+    useState<DeviceSourceFilter>("all");
 
   // Non-live lights default off; locks default locked — each dummy device
   // seeds its own starting value instead of one blanket default.
@@ -97,6 +165,23 @@ export default function App() {
     toggle: toggleDummy,
     reset: resetDummy,
   } = useDummyToggles(dummyInitial);
+
+  const commandLiveBoolean = (
+    deviceId: string,
+    stateKey: string,
+    value: boolean,
+  ) => {
+    setPendingLiveIds((current) => ({ ...current, [deviceId]: true }));
+    void setLiveBoolean(deviceId, stateKey, value).finally(() => {
+      window.setTimeout(() => {
+        setPendingLiveIds((current) => {
+          const next = { ...current };
+          delete next[deviceId];
+          return next;
+        });
+      }, 900);
+    });
+  };
 
   // Emergency shutdown: everything off — every live MQTT device off
   // (light1 + sonoff relays), every dummy light off, and every door lock
@@ -128,7 +213,7 @@ export default function App() {
       const deviceId = liveDeviceId(config);
       if (!deviceId) return;
       const target = config.kind === "lock";
-      void setLiveBoolean(deviceId, liveStateKey(config.kind), target);
+      commandLiveBoolean(deviceId, liveStateKey(config.kind), target);
     });
     const next: Record<string, boolean> = {};
     allConfigs.forEach((d) => {
@@ -146,19 +231,27 @@ export default function App() {
       at: new Date().toISOString(),
       tone: "warn",
     });
+    setSceneFeedback({
+      id: `shutdown-${Date.now()}`,
+      label: "Shutdown applied",
+      detail: "Lights off, doors locked",
+    });
   };
 
   const applyScene = (sceneId: string) => {
     const scene = SCENES.find((s) => s.id === sceneId);
     if (!scene) return;
     const byId = new Map(allConfigs.map((d) => [d.id, d]));
+    const previousDummy = { ...dummyOn };
+    const previousLive = new Map<string, boolean | undefined>();
     const nextDummy = { ...dummyOn };
     const applyAction = (action: SceneAction) => {
       const config = byId.get(action.id);
       if (!config) return;
       const deviceId = liveDeviceId(config);
       if (deviceId) {
-        void setLiveBoolean(deviceId, liveStateKey(config.kind), action.value);
+        previousLive.set(deviceId, liveBooleanValue(config, liveDevices[deviceId]));
+        commandLiveBoolean(deviceId, liveStateKey(config.kind), action.value);
         return;
       }
       nextDummy[action.id] = action.value;
@@ -171,6 +264,27 @@ export default function App() {
       detail: `${scene.actions.length} devices updated`,
       at: new Date().toISOString(),
       tone: scene.id === "away" ? "good" : "info",
+    });
+    setSceneFeedback({
+      id: `scene-${scene.id}-${Date.now()}`,
+      label: `${scene.label} applied`,
+      detail: `${scene.actions.length} devices updated`,
+      undo: () => {
+        resetDummy(previousDummy);
+        previousLive.forEach((value, deviceId) => {
+          const config = [...byId.values()].find(
+            (candidate) => liveDeviceId(candidate) === deviceId,
+          );
+          if (config && typeof value === "boolean") {
+            commandLiveBoolean(deviceId, liveStateKey(config.kind), value);
+          }
+        });
+        setSceneFeedback({
+          id: `undo-${scene.id}-${Date.now()}`,
+          label: `${scene.label} undone`,
+          detail: "Previous device state restored",
+        });
+      },
     });
   };
 
@@ -208,6 +322,108 @@ export default function App() {
 
   const valueForConfig = (config: DeviceConfig) =>
     deviceBooleanValue(config, liveDevices, dummyOn);
+
+  const deviceRecords = useMemo<DeviceRecord[]>(() => {
+    const now = Date.now();
+    return ROOMS.flatMap((room) =>
+      [...room.devices, ...(room.switches ?? [])].map((config) => {
+        const liveId = liveDeviceId(config);
+        const device = liveId ? liveDevices[liveId] : undefined;
+        const lastSeenMs = device ? new Date(device.timestamp).getTime() : 0;
+        const stale =
+          !!device &&
+          Number.isFinite(lastSeenMs) &&
+          now - lastSeenMs > 5 * 60 * 1000;
+        const value = deviceBooleanValue(config, liveDevices, dummyOn);
+        const stateText =
+          config.kind === "lock"
+            ? value === false
+              ? "Unlocked"
+              : "Locked"
+            : config.kind === "smoke"
+              ? value
+                ? "Alarm"
+                : "Armed"
+              : config.kind === "gas-leak"
+                ? value
+                  ? "Detected"
+                  : "Safe"
+                : value
+                  ? "On"
+                  : "Off";
+        return {
+          config,
+          roomName: room.name,
+          liveId,
+          source: liveId ? "live" : "demo",
+          health: liveId
+            ? pendingLiveIds[liveId]
+              ? "pending"
+              : device
+                ? stale
+                  ? "stale"
+                  : "online"
+                : "unavailable"
+            : "demo",
+          stateText,
+          lastSeen: device?.timestamp,
+        };
+      }),
+    );
+  }, [dummyOn, liveDevices, pendingLiveIds]);
+
+  const securityRecords = useMemo(
+    () =>
+      deviceRecords.filter(
+        ({ config }) =>
+          config.kind === "lock" ||
+          config.kind === "smoke" ||
+          config.kind === "gas-leak",
+      ),
+    [deviceRecords],
+  );
+
+  const unavailableLiveCount = deviceRecords.filter(
+    (record) =>
+      record.health === "unavailable" ||
+      record.health === "stale" ||
+      record.health === "pending",
+  ).length;
+
+  const filteredDeviceRecords = useMemo(() => {
+    const query = deviceSearch.trim().toLowerCase();
+    return deviceRecords.filter((record) => {
+      const matchesQuery =
+        !query ||
+        record.config.label.toLowerCase().includes(query) ||
+        record.roomName.toLowerCase().includes(query) ||
+        record.config.kind.toLowerCase().includes(query) ||
+        (record.liveId ?? "").toLowerCase().includes(query);
+      const matchesHealth =
+        deviceHealthFilter === "all" || record.health === deviceHealthFilter;
+      const matchesSource =
+        deviceSourceFilter === "all" || record.source === deviceSourceFilter;
+      return matchesQuery && matchesHealth && matchesSource;
+    });
+  }, [deviceHealthFilter, deviceRecords, deviceSearch, deviceSourceFilter]);
+
+  const readiness = useMemo(() => {
+    const total = deviceRecords.length;
+    const live = deviceRecords.filter((record) => record.source === "live").length;
+    const onlineLive = deviceRecords.filter(
+      (record) => record.source === "live" && record.health === "online",
+    ).length;
+    const attention = unavailableLiveCount;
+    const score = total === 0 ? 0 : Math.round(((total - attention) / total) * 100);
+    return {
+      total,
+      live,
+      demo: total - live,
+      onlineLive,
+      attention,
+      score,
+    };
+  }, [deviceRecords, unavailableLiveCount]);
 
   const statusItems = useMemo<HomeStatusItem[]>(() => {
     const lights = allConfigs.filter((config) => config.kind === "light");
@@ -313,6 +529,277 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, [openRoomId]);
 
+  const renderRoomGrid = (limit?: number) => (
+    <main className="dash-grid">
+      {ROOMS.slice(0, limit).map((room, i) => (
+        <RoomCard
+          key={room.id}
+          id={room.id}
+          name={room.name}
+          devices={room.devices}
+          switches={room.switches}
+          span={room.span}
+          index={i}
+          dummyOn={dummyOn}
+          onDummyToggle={toggleDummy}
+          onExpand={setOpenRoomId}
+        />
+      ))}
+    </main>
+  );
+
+  const formatLastSeen = (value?: string) => {
+    if (!value) return "Never";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Unknown";
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
+
+  const renderKpiRail = () => (
+    <section className="kpi-rail" aria-label="Framework readiness summary">
+      <article className="kpi-card" data-tone={readiness.score > 85 ? "good" : "warn"}>
+        <span>Readiness</span>
+        <strong>{readiness.score}%</strong>
+        <small>{readiness.attention} live device checks</small>
+      </article>
+      <article className="kpi-card">
+        <span>Registry</span>
+        <strong>{readiness.total}</strong>
+        <small>{readiness.live} live · {readiness.demo} demo</small>
+      </article>
+      <article className="kpi-card" data-tone={online ? "good" : "danger"}>
+        <span>Backend</span>
+        <strong>{online ? "Live" : "Offline"}</strong>
+        <small>{readiness.onlineLive}/{readiness.live} live reporting</small>
+      </article>
+    </section>
+  );
+
+  const renderScenes = () => (
+    <section className="business-panel">
+      <div className="panel-headline">
+        <span className="panel-kicker">Scenes</span>
+        <h2>Repeatable customer moments</h2>
+        <p>
+          Scenes are the customer-friendly layer over device commands. Each
+          preset shows the number of controlled devices and gives immediate
+          feedback after it runs.
+        </p>
+      </div>
+      <div className="scene-library">
+        {SCENES.map((scene) => {
+          const Icon = scene.icon;
+          return (
+            <article key={scene.id} className="scene-preset-card">
+              <span className="scene-preset-icon" aria-hidden="true">
+                <Icon size={20} strokeWidth={1.8} />
+              </span>
+              <div>
+                <h3>{scene.label}</h3>
+                <p>{scene.actions.length} device actions</p>
+              </div>
+              <button type="button" onClick={() => applyScene(scene.id)}>
+                Apply
+              </button>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+
+  const renderSecurity = () => (
+    <section className="business-panel business-panel--split">
+      <div>
+        <div className="panel-headline">
+          <span className="panel-kicker">Security</span>
+          <h2>Locks and life-safety at a glance</h2>
+          <p>
+            This view collects the devices a customer checks before sleeping,
+            leaving, or handing over the home.
+          </p>
+        </div>
+        <div className="security-grid">
+          {securityRecords.map((record) => (
+            <article
+              key={record.config.id}
+              className="security-card"
+              data-health={record.health}
+            >
+              <span className="security-card-icon" aria-hidden="true">
+                {record.config.kind === "lock" ? (
+                  <ShieldCheck size={18} />
+                ) : (
+                  <BellRing size={18} />
+                )}
+              </span>
+              <span>
+                <strong>{record.config.label}</strong>
+                <small>{record.roomName}</small>
+              </span>
+              <em>{record.stateText}</em>
+            </article>
+          ))}
+        </div>
+      </div>
+      <ActivityPanel items={activityItems} maxItems={8} title="Security trail" />
+    </section>
+  );
+
+  const renderDevices = () => (
+    <section className="business-panel">
+      <div className="panel-headline">
+        <span className="panel-kicker">Installer view</span>
+        <h2>Device registry and health</h2>
+        <p>
+          A business deployment needs clear live/demo separation, last-seen
+          checks, and stale/unavailable states before anything reaches a
+          customer wall panel.
+        </p>
+      </div>
+      {renderKpiRail()}
+      <div className="device-toolbar" aria-label="Device filters">
+        <label className="field-control field-control--search">
+          <Search size={14} strokeWidth={1.8} aria-hidden="true" />
+          <input
+            value={deviceSearch}
+            onChange={(event) => setDeviceSearch(event.target.value)}
+            placeholder="Search room, device, type, or live id"
+            type="search"
+          />
+        </label>
+        <label className="field-control">
+          <Filter size={14} strokeWidth={1.8} aria-hidden="true" />
+          <select
+            value={deviceHealthFilter}
+            onChange={(event) =>
+              setDeviceHealthFilter(event.target.value as DeviceHealthFilter)
+            }
+          >
+            <option value="all">All health</option>
+            <option value="online">Online</option>
+            <option value="pending">Pending</option>
+            <option value="stale">Stale</option>
+            <option value="unavailable">Unavailable</option>
+            <option value="demo">Demo</option>
+          </select>
+        </label>
+        <label className="field-control">
+          <Radio size={14} strokeWidth={1.8} aria-hidden="true" />
+          <select
+            value={deviceSourceFilter}
+            onChange={(event) =>
+              setDeviceSourceFilter(event.target.value as DeviceSourceFilter)
+            }
+          >
+            <option value="all">All sources</option>
+            <option value="live">Live only</option>
+            <option value="demo">Demo only</option>
+          </select>
+        </label>
+        <span className="device-result-count">
+          {filteredDeviceRecords.length}/{deviceRecords.length} shown
+        </span>
+      </div>
+      <div className="device-admin-list">
+        {filteredDeviceRecords.map((record) => (
+          <article
+            key={record.config.id}
+            className="device-admin-row"
+            data-health={record.health}
+          >
+            <span className="device-admin-state">
+              {record.health === "online" && <CheckCircle2 size={15} />}
+              {record.health === "stale" && <Clock3 size={15} />}
+              {record.health === "pending" && <Clock3 size={15} />}
+              {record.health === "unavailable" && <WifiOff size={15} />}
+              {record.health === "demo" && <ListChecks size={15} />}
+            </span>
+            <span className="device-admin-main">
+              <strong>{record.config.label}</strong>
+              <small>
+                {record.roomName} · {record.config.kind}
+                {record.liveId ? ` · ${record.liveId}` : " · demo"}
+              </small>
+            </span>
+            <span className="device-admin-pill">{record.stateText}</span>
+            <span className="device-admin-last">
+              {record.source === "live" ? formatLastSeen(record.lastSeen) : "Demo"}
+            </span>
+          </article>
+        ))}
+        {filteredDeviceRecords.length === 0 && (
+          <div className="empty-state">
+            <strong>No devices match these filters</strong>
+            <span>Clear the search or switch the health/source filters.</span>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+
+  const renderSettings = () => (
+    <section className="business-panel">
+      <div className="panel-headline">
+        <span className="panel-kicker">Framework</span>
+        <h2>Business-ready defaults</h2>
+        <p>
+          This app is now structured as a reusable local-first smart-home
+          framework. The next backend milestone is moving this room/device
+          registry out of code and into customer configuration.
+        </p>
+      </div>
+      {renderKpiRail()}
+      <div className="settings-grid">
+        <article>
+          <Radio size={18} />
+          <strong>Local-first MQTT</strong>
+          <span>{online ? "Backend reachable" : "Backend offline"}</span>
+        </article>
+        <article>
+          <LayoutGrid size={18} />
+          <strong>Config model</strong>
+          <span>{ROOMS.length} rooms · {deviceRecords.length} devices</span>
+        </article>
+        <article>
+          <ShieldCheck size={18} />
+          <strong>Deployment readiness</strong>
+          <span>{unavailableLiveCount} live devices need attention</span>
+        </article>
+      </div>
+    </section>
+  );
+
+  const renderActiveView = () => {
+    if (activeView === "home") {
+      return (
+        <>
+          <section className="dash-overview" aria-label="Home overview">
+            <HomeStatusStrip items={statusItems} />
+            <ActivityPanel items={activityItems} />
+          </section>
+          {renderRoomGrid(4)}
+        </>
+      );
+    }
+    if (activeView === "rooms") return renderRoomGrid();
+    if (activeView === "scenes") return renderScenes();
+    if (activeView === "security") return renderSecurity();
+    if (activeView === "devices") return renderDevices();
+    if (activeView === "activity") {
+      return (
+        <section className="business-panel">
+          <ActivityPanel items={activityItems} maxItems={20} title="Activity history" />
+        </section>
+      );
+    }
+    return renderSettings();
+  };
+
   return (
     <div className="dash">
       <header className="dash-head">
@@ -344,27 +831,40 @@ export default function App() {
         </span>
       </header>
 
-      <section className="dash-overview" aria-label="Home overview">
-        <HomeStatusStrip items={statusItems} />
-        <ActivityPanel items={activityItems} />
-      </section>
+      <nav className="app-nav" aria-label="App sections">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className="app-nav-item"
+              data-active={activeView === item.id ? "true" : "false"}
+              onClick={() => setActiveView(item.id)}
+            >
+              <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
-      <main className="dash-grid">
-        {ROOMS.map((room, i) => (
-          <RoomCard
-            key={room.id}
-            id={room.id}
-            name={room.name}
-            devices={room.devices}
-            switches={room.switches}
-            span={room.span}
-            index={i}
-            dummyOn={dummyOn}
-            onDummyToggle={toggleDummy}
-            onExpand={setOpenRoomId}
-          />
-        ))}
-      </main>
+      {sceneFeedback && (
+        <section className="scene-feedback" aria-live="polite">
+          <span>
+            <strong>{sceneFeedback.label}</strong>
+            <small>{sceneFeedback.detail}</small>
+          </span>
+          {sceneFeedback.undo && (
+            <button type="button" onClick={sceneFeedback.undo}>
+              <Undo2 size={14} strokeWidth={1.8} aria-hidden="true" />
+              Undo
+            </button>
+          )}
+        </section>
+      )}
+
+      {renderActiveView()}
 
       <AnimatePresence>
         {openRoom && (
