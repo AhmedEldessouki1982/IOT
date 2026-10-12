@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { TimersService } from '../timers/timers.service';
-import { DeviceService } from '../device/device.service';
-import { DeviceGateway } from '../device/device.gateway';
-import { TIMER_RULES, RoomType, PressType } from '../timers/timer.config';
+import { Injectable } from "@nestjs/common";
+import { TimersService } from "../timers/timers.service";
+import { DeviceService } from "../device/device.service";
+import { DeviceGateway } from "../device/device.gateway";
+import { TIMER_RULES } from "../timers/timer.config";
+import { PressType, RoomType } from "../common/press.types";
 
 @Injectable()
 export class DeviceAutomationService {
@@ -13,12 +14,16 @@ export class DeviceAutomationService {
   ) {}
 
   getRoomTypeFor(deviceId: string): RoomType | null {
-    if (deviceId.startsWith('sonoff')) return 'toilet';
-    if (deviceId.startsWith('bedroom')) return 'bedroom';
+    if (deviceId.startsWith("sonoff")) return "toilet";
+    if (deviceId.startsWith("bedroom")) return "bedroom";
     return null;
   }
 
-  handleButtonPress(deviceId: string, gang: number, pressType: PressType): void {
+  handleButtonPress(
+    deviceId: string,
+    gang: number,
+    pressType: PressType,
+  ): void {
     const roomType = this.getRoomTypeFor(deviceId);
     if (!roomType) return;
     const rules = TIMER_RULES[roomType];
@@ -46,17 +51,15 @@ export class DeviceAutomationService {
   }
 
   private turnOn(deviceId: string, gang: number): void {
-    const base = deviceId;
-    this.deviceService.setState(deviceId + ':' + gang, {
-      type: 'switch',
+    this.deviceService.setState(deviceId + ":" + gang, {
+      type: "switch",
       state: { on: true },
     });
   }
 
   private turnOff(deviceId: string, gang: number): void {
-    const base = deviceId;
-    this.deviceService.setState(deviceId + ':' + gang, {
-      type: 'switch',
+    this.deviceService.setState(deviceId + ":" + gang, {
+      type: "switch",
       state: { on: false },
     });
   }

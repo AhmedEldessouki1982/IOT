@@ -1,6 +1,4 @@
-export type RoomType = 'toilet' | 'bedroom';
-
-export type PressType = 'single' | 'long';
+import { PressType, RoomType } from "../common/press.types";
 
 export interface GangTimerRule {
   role: string;
@@ -11,26 +9,26 @@ export interface GangTimerRule {
 export const TIMER_RULES: Record<RoomType, Record<number, GangTimerRule>> = {
   toilet: {
     1: {
-      role: 'LED',
+      role: "LED",
       durations: { single: 10, long: 30 },
     },
     2: {
-      role: 'Spotlights',
+      role: "Spotlights",
       durations: { single: 10, long: 20 },
     },
     3: {
-      role: 'Exhaust fan',
+      role: "Exhaust fan",
       durations: { single: 10, long: 10 },
     },
   },
   bedroom: {
     1: {
-      role: 'LED',
+      role: "LED",
       durations: {},
       noTimer: true,
     },
     2: {
-      role: 'Spotlights',
+      role: "Spotlights",
       durations: { single: 20, long: 30 },
     },
   },

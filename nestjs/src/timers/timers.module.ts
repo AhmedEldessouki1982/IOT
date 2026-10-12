@@ -1,9 +1,7 @@
-import { Module } from '@nestjs/common';
-import { TimersService } from './timers.service';
-import { EventEmitterModule } from '@nestjs/event-emitter';
+import { Module } from "@nestjs/common";
+import { TimersService } from "./timers.service";
 
 @Module({
-  imports: [EventEmitterModule.forRoot()],
   providers: [TimersService],
   exports: [TimersService],
 })
