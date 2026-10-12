@@ -7,6 +7,8 @@ import {
   SonoffRegistryService,
   SonoffSwitchConfig,
 } from "./sonoff-registry.service";
+import { DeviceAutomationService } from "../automation/device-automation.service";
+import { PressType } from "../common/press.types";
 
 @Injectable()
 export class SonoffService implements OnModuleInit {
@@ -18,6 +20,7 @@ export class SonoffService implements OnModuleInit {
     private readonly deviceService: DeviceService,
     private readonly gateway: DeviceGateway,
     private readonly registry: SonoffRegistryService,
+    private readonly automation: DeviceAutomationService,
   ) {
     this.switches = this.registry.getSwitches();
     if (this.switches.length > 0) this.subscribe();
@@ -80,6 +83,11 @@ export class SonoffService implements OnModuleInit {
   }
 
   private handleState(topic: string, buffer: Buffer): void {
+    if (topic.endsWith("/RESULT")) {
+      this.handleResult(topic, buffer);
+      return;
+    }
+
     const match = /^stat\/(.+)\/POWER(\d+)$/.exec(topic);
     if (!match) return;
 
@@ -107,6 +115,47 @@ export class SonoffService implements OnModuleInit {
     if (!gang) return;
 
     this.recordState(gang.deviceId, text === "ON");
+  }
+
+  private handleResult(topic: string, buffer: Buffer): void {
+    const match = /^stat\/(.+)\/RESULT$/.exec(topic);
+    if (!match) return;
+
+    const entry = this.registry.getSwitchByBase(match[1]);
+    if (!entry) return;
+
+    let payload: unknown;
+    try {
+      payload = JSON.parse(buffer.toString());
+    } catch {
+      this.logger.warn(`Sonoff: ignoring non-JSON RESULT on ${topic}`);
+      return;
+    }
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return;
+    }
+
+    for (const [key, value] of Object.entries(payload)) {
+      const buttonMatch = /^Button(\d+)$/.exec(key);
+      if (!buttonMatch) continue;
+      const gangNumber = Number(buttonMatch[1]);
+      const pressType = this.pressTypeFromResult(value);
+      if (!pressType) continue;
+
+      const gang = this.registry.getGangForButton(entry.switchId, gangNumber);
+      if (!gang) continue;
+      this.automation.handleButtonPress(gang.deviceId, gang.gang, pressType);
+    }
+  }
+
+  private pressTypeFromResult(value: unknown): PressType | null {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return null;
+    }
+    const action = (value as { Action?: unknown }).Action;
+    if (action === "SINGLE") return "single";
+    if (action === "HOLD") return "long";
+    return null;
   }
 
   setOutput(channel: number, on: boolean): void {

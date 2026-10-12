@@ -25,6 +25,7 @@ export class MqttConnectionService implements OnModuleDestroy {
   private readonly logger = new Logger(MqttConnectionService.name);
   private readonly client: mqtt.MqttClient;
   private readonly subscriptions = new Map<string, MessageHandler>();
+  private readonly connectHandlers = new Set<() => void>();
 
   constructor(config: ConfigService) {
     const mqttUrl = config.get<string>("MQTT_URL") ?? "mqtt://localhost:1883";
@@ -35,12 +36,15 @@ export class MqttConnectionService implements OnModuleDestroy {
       for (const [topic, handler] of this.subscriptions) {
         this.client.subscribe(topic, (err) => {
           if (err) {
-            this.logger.error(`Failed to subscribe to ${topic}: ${err.message}`);
+            this.logger.error(
+              `Failed to subscribe to ${topic}: ${err.message}`,
+            );
             return;
           }
           this.logger.log(`Subscribed to ${topic}`);
         });
       }
+      for (const handler of this.connectHandlers) handler();
     });
     this.client.on("reconnect", () =>
       this.logger.warn(`MQTT reconnecting to ${mqttUrl}`),
@@ -73,7 +77,9 @@ export class MqttConnectionService implements OnModuleDestroy {
     if (this.client.connected) {
       this.client.subscribe(pattern, (err) => {
         if (err) {
-          this.logger.error(`Failed to subscribe to ${pattern}: ${err.message}`);
+          this.logger.error(
+            `Failed to subscribe to ${pattern}: ${err.message}`,
+          );
           return;
         }
         this.logger.log(`Subscribed to ${pattern}`);
@@ -83,6 +89,11 @@ export class MqttConnectionService implements OnModuleDestroy {
 
   publish(topic: string, payload: string): void {
     this.client.publish(topic, payload);
+  }
+
+  onConnect(handler: () => void): void {
+    this.connectHandlers.add(handler);
+    if (this.client.connected) handler();
   }
 
   private handleMessage(topic: string, buffer: Buffer): void {

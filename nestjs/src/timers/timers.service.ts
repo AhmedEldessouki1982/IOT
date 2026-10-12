@@ -1,5 +1,9 @@
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import {
+  PersistedTimerEntry,
+  TimerPersistenceService,
+} from "./timer-persistence.service";
 
 export interface TimerEntry {
   deviceId: string;
@@ -15,18 +19,22 @@ export interface TimerEvent {
   expiresAt: Date;
 }
 
+interface RuntimeTimer {
+  deviceId: string;
+  gang: number;
+  handle: NodeJS.Timeout;
+  expiresAt: Date;
+}
+
 @Injectable()
 export class TimersService implements OnModuleDestroy {
   private readonly logger = new Logger(TimersService.name);
-  private readonly timers = new Map<
-    string,
-    { handle: NodeJS.Timeout; expiresAt: Date }
-  >();
-  private readonly eventEmitter: EventEmitter2;
+  private readonly timers = new Map<string, RuntimeTimer>();
 
-  constructor(eventEmitter: EventEmitter2) {
-    this.eventEmitter = eventEmitter;
-  }
+  constructor(
+    private readonly eventEmitter: EventEmitter2,
+    private readonly persistence: TimerPersistenceService,
+  ) {}
 
   private getKey(deviceId: string, gang: number): string {
     return `${deviceId}:${gang}`;
@@ -39,35 +47,65 @@ export class TimersService implements OnModuleDestroy {
     onExpire: () => void,
   ): void {
     if (minutes <= 0) return;
-    const key = this.getKey(deviceId, gang);
     const expiresAt = new Date(Date.now() + minutes * 60000);
-    const existing = this.timers.get(key);
-    if (existing) {
-      clearTimeout(existing.handle);
-      this.timers.delete(key);
-    }
-    const handle = setTimeout(() => {
-      this.timers.delete(key);
-      try {
-        onExpire();
-        this.eventEmitter.emit("timer.expired", {
-          deviceId,
-          gang,
-          minutes,
-          expiresAt,
-        });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        this.logger.error(`Timer expired handler error: ${msg}`);
-      }
-    }, minutes * 60000);
-    this.timers.set(key, { handle, expiresAt });
-    this.eventEmitter.emit("timer.started", {
+    this.arm(deviceId, gang, expiresAt, onExpire);
+    this.emitTimerEvent("timer.started", {
       deviceId,
       gang,
       minutes,
       expiresAt,
     });
+    this.persistAndBroadcast();
+  }
+
+  restore(onExpire: (deviceId: string, gang: number) => void): void {
+    let changed = false;
+    for (const entry of this.persistence.getSnapshot()) {
+      const expiresAt = new Date(entry.expiresAt);
+      if (Number.isNaN(expiresAt.getTime())) {
+        changed = true;
+        continue;
+      }
+      if (expiresAt.getTime() <= Date.now()) {
+        onExpire(entry.deviceId, entry.gang);
+        changed = true;
+        continue;
+      }
+      this.arm(entry.deviceId, entry.gang, expiresAt, () =>
+        onExpire(entry.deviceId, entry.gang),
+      );
+    }
+    if (changed) this.persist();
+    this.broadcastUpdate();
+  }
+
+  private arm(
+    deviceId: string,
+    gang: number,
+    expiresAt: Date,
+    onExpire: () => void,
+  ): void {
+    const key = this.getKey(deviceId, gang);
+    const existing = this.timers.get(key);
+    if (existing) clearTimeout(existing.handle);
+    const delay = Math.max(0, expiresAt.getTime() - Date.now());
+    const handle = setTimeout(() => {
+      this.timers.delete(key);
+      try {
+        onExpire();
+        this.emitTimerEvent("timer.expired", {
+          deviceId,
+          gang,
+          minutes: 0,
+          expiresAt,
+        });
+        this.persistAndBroadcast();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.error(`Timer expired handler error: ${msg}`);
+      }
+    }, delay);
+    this.timers.set(key, { deviceId, gang, handle, expiresAt });
   }
 
   cancel(deviceId: string, gang: number): void {
@@ -76,21 +114,20 @@ export class TimersService implements OnModuleDestroy {
     if (existing) {
       clearTimeout(existing.handle);
       this.timers.delete(key);
-      this.eventEmitter.emit("timer.cancelled", {
+      this.emitTimerEvent("timer.cancelled", {
         deviceId,
         gang,
         minutes: 0,
         expiresAt: existing.expiresAt,
       });
+      this.persistAndBroadcast();
     }
   }
 
   cancelForDevice(deviceId: string): void {
-    for (const [key] of this.timers) {
-      const [id] = key.split(":");
-      if (id === deviceId) {
-        const [d, g] = key.split(":");
-        this.cancel(d, parseInt(g));
+    for (const timer of [...this.timers.values()]) {
+      if (timer.deviceId === deviceId) {
+        this.cancel(timer.deviceId, timer.gang);
       }
     }
   }
@@ -109,13 +146,12 @@ export class TimersService implements OnModuleDestroy {
 
   getAll(): TimerEntry[] {
     const result: TimerEntry[] = [];
-    for (const [key, { expiresAt }] of this.timers) {
-      const [deviceId, gangStr] = key.split(":");
-      const remaining = this.getRemaining(deviceId, parseInt(gangStr));
+    for (const { deviceId, gang, expiresAt } of this.timers.values()) {
+      const remaining = this.getRemaining(deviceId, gang);
       if (remaining === null) continue;
       result.push({
         deviceId,
-        gang: parseInt(gangStr),
+        gang,
         expiresAt,
         remainingSeconds: remaining,
       });
@@ -128,5 +164,29 @@ export class TimersService implements OnModuleDestroy {
       clearTimeout(handle);
     }
     this.timers.clear();
+  }
+
+  private emitTimerEvent(type: string, event: TimerEvent): void {
+    this.eventEmitter.emit(type, event);
+  }
+
+  private persistAndBroadcast(): void {
+    this.persist();
+    this.broadcastUpdate();
+  }
+
+  private persist(): void {
+    const entries: PersistedTimerEntry[] = [...this.timers.values()].map(
+      ({ deviceId, gang, expiresAt }) => ({
+        deviceId,
+        gang,
+        expiresAt: expiresAt.toISOString(),
+      }),
+    );
+    this.persistence.save(entries);
+  }
+
+  private broadcastUpdate(): void {
+    this.eventEmitter.emit("timer.update", this.getAll());
   }
 }

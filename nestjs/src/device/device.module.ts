@@ -6,12 +6,11 @@ import { DeviceMqttListener } from "./device.mqtt-listener";
 import { MqttPublisherService } from "../mqtt/mqtt-publisher.service";
 import { MqttModule } from "../mqtt/mqtt.module";
 import { DevicePersistenceService } from "./device-persistence.service";
-import { DeviceTimerController } from "./device-timer.controller";
 import { TimersModule } from "../timers/timers.module";
 
 @Module({
   imports: [MqttModule, TimersModule],
-  controllers: [DeviceController, DeviceTimerController],
+  controllers: [DeviceController],
   providers: [
     DeviceService,
     DevicePersistenceService,

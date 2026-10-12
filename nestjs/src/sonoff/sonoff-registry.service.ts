@@ -123,6 +123,19 @@ export class SonoffRegistryService {
     return this.byDeviceId.get(deviceId);
   }
 
+  getGangForButton(
+    deviceOrSwitchId: string,
+    gang: number,
+  ): SonoffGang | undefined {
+    const byDeviceId = this.byDeviceId.get(deviceOrSwitchId);
+    if (byDeviceId) {
+      return byDeviceId.gang === gang ? byDeviceId : undefined;
+    }
+    return this.gangs.find(
+      (entry) => entry.switchId === deviceOrSwitchId && entry.gang === gang,
+    );
+  }
+
   getSwitchByBase(base: string): SonoffSwitchConfig | undefined {
     return this.byBase.get(base);
   }

@@ -43,8 +43,19 @@ function makeService(switches) {
   const deviceService = new DeviceService(mqtt, persistence);
   const broadcasts = [];
   const gateway = { broadcast: (state) => broadcasts.push(state) };
-  const service = new SonoffService(mqtt, deviceService, gateway, registry);
-  return { service, mqtt, deviceService, broadcasts, registry };
+  const buttonPresses = [];
+  const automation = {
+    handleButtonPress: (deviceId, gang, pressType) =>
+      buttonPresses.push({ deviceId, gang, pressType }),
+  };
+  const service = new SonoffService(
+    mqtt,
+    deviceService,
+    gateway,
+    registry,
+    automation,
+  );
+  return { service, mqtt, deviceService, broadcasts, registry, buttonPresses };
 }
 
 describe("Sonoff registry", () => {
@@ -120,5 +131,23 @@ describe("SonoffService registry routing", () => {
       broadcasts.map((state) => state.deviceId),
       ["switch-a-g1"],
     );
+  });
+
+  it("maps Tasmota RESULT button actions to the matching gang", () => {
+    const { mqtt, buttonPresses } = makeService([
+      {
+        switchId: "toilet-main",
+        base: "tasmota_TOILET",
+        gangs: 3,
+        roomType: "toilet",
+        roomId: "toilet",
+      },
+    ]);
+
+    mqtt.deliver("stat/tasmota_TOILET/RESULT", '{"Button2":{"Action":"HOLD"}}');
+
+    assert.deepEqual(buttonPresses, [
+      { deviceId: "toilet-main-g2", gang: 2, pressType: "long" },
+    ]);
   });
 });

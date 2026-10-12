@@ -3,12 +3,15 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   BadRequestException,
 } from "@nestjs/common";
 import { TimersService } from "../timers/timers.service";
 import { PressType } from "../common/press.types";
+import { DeviceAutomationService } from "../automation/device-automation.service";
+import { SonoffRegistryService } from "../sonoff/sonoff-registry.service";
 
 class ButtonDto {
   gang: number;
@@ -17,7 +20,11 @@ class ButtonDto {
 
 @Controller("api")
 export class DeviceTimerController {
-  constructor(private readonly timers: TimersService) {}
+  constructor(
+    private readonly timers: TimersService,
+    private readonly automation: DeviceAutomationService,
+    private readonly sonoffRegistry: SonoffRegistryService,
+  ) {}
 
   @Get("timers")
   getTimers() {
@@ -35,13 +42,30 @@ export class DeviceTimerController {
 
   @Post("devices/:id/button")
   handleButton(@Param("id") id: string, @Body() body: ButtonDto) {
-    if (
-      !body ||
-      typeof body.gang !== "number" ||
-      (body.pressType !== "single" && body.pressType !== "long")
-    ) {
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
       throw new BadRequestException("Invalid body");
     }
-    return { ok: true, id, gang: body.gang, pressType: body.pressType };
+    if (!Number.isInteger(body.gang) || body.gang < 1 || body.gang > 3) {
+      throw new BadRequestException("gang must be an integer from 1 to 3");
+    }
+    if (body.pressType !== "single" && body.pressType !== "long") {
+      throw new BadRequestException("pressType must be `single` or `long`");
+    }
+
+    const gang = this.sonoffRegistry.getGangForButton(id, body.gang);
+    if (!gang) {
+      throw new NotFoundException(
+        `No Sonoff gang found for ${id}/${body.gang}`,
+      );
+    }
+
+    this.automation.handleButtonPress(gang.deviceId, gang.gang, body.pressType);
+    return {
+      ok: true,
+      id,
+      deviceId: gang.deviceId,
+      gang: gang.gang,
+      pressType: body.pressType,
+    };
   }
 }
