@@ -4,6 +4,7 @@ import { DeviceService } from "../device/device.service";
 import { DeviceGateway } from "../device/device.gateway";
 import { TIMER_RULES } from "../timers/timer.config";
 import { PressType, RoomType } from "../common/press.types";
+import { SonoffRegistryService } from "../sonoff/sonoff-registry.service";
 
 @Injectable()
 export class DeviceAutomationService {
@@ -11,12 +12,11 @@ export class DeviceAutomationService {
     private readonly timers: TimersService,
     private readonly deviceService: DeviceService,
     private readonly gateway: DeviceGateway,
+    private readonly sonoffRegistry: SonoffRegistryService,
   ) {}
 
   getRoomTypeFor(deviceId: string): RoomType | null {
-    if (deviceId.startsWith("sonoff")) return "toilet";
-    if (deviceId.startsWith("bedroom")) return "bedroom";
-    return null;
+    return this.sonoffRegistry.getRoomTypeForDevice(deviceId);
   }
 
   handleButtonPress(
