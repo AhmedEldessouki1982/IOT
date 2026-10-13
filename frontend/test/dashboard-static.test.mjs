@@ -46,20 +46,42 @@ describe("dashboard feature boundaries", () => {
     ]) {
       assert.equal(app.includes(`id: "${section}"`), true);
     }
-    assert.equal(app.includes("renderSecurity"), true);
-    assert.equal(app.includes("renderDevices"), true);
-    assert.equal(app.includes("renderSettings"), true);
+    assert.equal(app.includes("SecurityView"), true);
+    assert.equal(app.includes("DevicesView"), true);
+    assert.equal(app.includes("SettingsView"), true);
   });
 
   it("keeps device registry operations available for business deployments", () => {
-    const app = read("src/App.tsx");
+    const app = read("src/views/DevicesView.tsx");
     const css = read("src/index.css");
 
     assert.equal(app.includes("filteredDeviceRecords"), true);
     assert.equal(app.includes("deviceHealthFilter"), true);
     assert.equal(app.includes("deviceSourceFilter"), true);
-    assert.equal(app.includes("renderKpiRail"), true);
+    assert.equal(app.includes("KpiRail"), true);
     assert.equal(css.includes(".device-toolbar"), true);
     assert.equal(css.includes(".empty-state"), true);
+  });
+
+  it("keeps timers socket-driven and room config derived from dashboard rooms", () => {
+    const timers = read("src/hooks/useTimers.ts");
+    const roomsConfig = read("src/config/rooms.ts");
+    const switchCard = read("src/components/SwitchCard.tsx");
+
+    assert.equal(timers.includes("timer:update"), true);
+    assert.equal(timers.includes("setInterval(fetchTimers, 500)"), false);
+    assert.equal(roomsConfig.includes("../dashboard/rooms"), true);
+    assert.equal(switchCard.includes("/api/devices/${deviceId}/button"), true);
+  });
+
+  it("keeps App as shell while dashboard data lives in hooks and views", () => {
+    const app = read("src/App.tsx");
+    const historyHook = read("src/hooks/useDeviceHistory.ts");
+
+    assert.equal(app.includes("useDeviceHistory"), true);
+    assert.equal(app.includes("useSceneRunner"), true);
+    assert.equal(app.includes("const renderScenes"), false);
+    assert.equal(historyHook.includes("liveIdsKey"), true);
+    assert.equal(historyHook.includes("setTimeout"), true);
   });
 });
