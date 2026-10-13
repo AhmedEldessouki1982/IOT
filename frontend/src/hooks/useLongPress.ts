@@ -1,21 +1,27 @@
 import { useCallback, useEffect, useRef } from "react";
+import { DEFAULT_LONG_PRESS_MS, resolvePressGesture } from "./pressGesture.js";
 
 export function useLongPress(
   onShort: () => void,
   onLong: () => void,
-  ms = 600,
+  ms = DEFAULT_LONG_PRESS_MS,
 ) {
   const timerRef = useRef<number | null>(null);
-  const triggeredRef = useRef(false);
+  const startAtRef = useRef(0);
+  const pointerIdRef = useRef<number | null>(null);
+  const suppressClickRef = useRef(false);
 
   const start = useCallback(
-    () => {
-      triggeredRef.current = false;
+    (event: React.PointerEvent<HTMLElement>) => {
+      pointerIdRef.current = event.pointerId;
+      startAtRef.current = window.performance.now();
+      suppressClickRef.current = false;
       if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
+        window.clearTimeout(timerRef.current);
       }
+      event.currentTarget.setPointerCapture?.(event.pointerId);
       timerRef.current = window.setTimeout(() => {
-        triggeredRef.current = true;
+        suppressClickRef.current = true;
         onLong();
       }, ms);
     },
@@ -23,30 +29,57 @@ export function useLongPress(
   );
 
   const end = useCallback(
-    () => {
+    (event: React.PointerEvent<HTMLElement>) => {
+      if (
+        pointerIdRef.current !== null &&
+        event.pointerId !== pointerIdRef.current
+      ) {
+        return;
+      }
       if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
+        window.clearTimeout(timerRef.current);
         timerRef.current = null;
       }
-      if (!triggeredRef.current) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+      const gesture = resolvePressGesture(
+        window.performance.now() - startAtRef.current,
+        ms,
+      );
+      if (gesture === "short" && !suppressClickRef.current) {
         onShort();
       }
-      triggeredRef.current = false;
+      pointerIdRef.current = null;
     },
-    [onShort],
+    [ms, onShort],
   );
 
-  const cancel = useCallback(() => {
+  const cancel = useCallback((event?: React.PointerEvent<HTMLElement>) => {
     if (timerRef.current !== null) {
-      clearTimeout(timerRef.current);
+      window.clearTimeout(timerRef.current);
       timerRef.current = null;
     }
-    triggeredRef.current = false;
+    if (event && pointerIdRef.current !== null) {
+      event.currentTarget.releasePointerCapture?.(pointerIdRef.current);
+    }
+    pointerIdRef.current = null;
+  }, []);
+
+  const suppressClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    if (!suppressClickRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    suppressClickRef.current = false;
   }, []);
 
   useEffect(() => {
-    return cancel;
+    return () => cancel();
   }, [cancel]);
 
-  return { onMouseDown: start, onMouseUp: end, onMouseLeave: cancel, onTouchStart: start, onTouchEnd: end, onTouchCancel: cancel };
+  return {
+    onPointerDown: start,
+    onPointerUp: end,
+    onPointerLeave: cancel,
+    onPointerCancel: cancel,
+    onClickCapture: suppressClick,
+  };
 }

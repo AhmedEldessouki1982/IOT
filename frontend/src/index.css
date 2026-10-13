@@ -598,7 +598,10 @@ body {
 }
 .device-toolbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(150px, auto) minmax(150px, auto) auto;
+  grid-template-columns: minmax(220px, 1fr) minmax(150px, auto) minmax(
+      150px,
+      auto
+    ) auto;
   align-items: center;
   gap: 10px;
   margin-bottom: 14px;
@@ -1308,6 +1311,28 @@ body {
   color: var(--cc-text-2);
   text-align: center;
   line-height: 1.2;
+}
+
+.timer-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+  padding: 0 7px;
+  border: 1px solid rgba(34, 211, 238, 0.24);
+  border-radius: var(--cc-radius-pill);
+  color: var(--cc-accent);
+  background: var(--cc-accent-soft);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+.timer-badge--low {
+  color: var(--cc-amber);
+  border-color: rgba(245, 158, 11, 0.28);
+  background: rgba(245, 158, 11, 0.1);
 }
 
 /* slightly larger knob inside the card for a physical-button feel */

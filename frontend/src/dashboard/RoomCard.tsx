@@ -15,6 +15,7 @@ import { useHomeStore } from "../store/useHomeStore";
 import { deviceBooleanValue } from "../features/devices/deviceRuntime";
 import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
 import { motion } from "framer-motion";
+import { useTimers } from "../hooks/useTimers";
 
 const ROOM_ICON: Record<string, typeof Sofa> = {
   reception: Sofa,
@@ -89,6 +90,10 @@ export default function RoomCard({
   // Live MQTT devices map (light1 + sonoff1/2/3) so the card's "on" count
   // reflects real server state for any light that carries a live deviceId.
   const liveDevices = useHomeStore((s) => s.devices);
+  const timers = useTimers();
+  const timerByDeviceId = new Map(
+    timers.map((timer) => [timer.deviceId, timer.remainingSeconds]),
+  );
   const allDevices = [...devices, ...switches];
   const valueFor = (config: DeviceConfig) =>
     deviceBooleanValue(config, liveDevices, dummyOn);
@@ -168,6 +173,9 @@ export default function RoomCard({
               key={sw.id}
               deviceId={(sw as { deviceId?: string }).deviceId!}
               label={sw.label}
+              remainingSeconds={timerByDeviceId.get(
+                (sw as { deviceId?: string }).deviceId!,
+              )}
             />
           ))}
         </div>

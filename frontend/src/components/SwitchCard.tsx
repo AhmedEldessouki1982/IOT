@@ -1,5 +1,13 @@
 import { useHomeStore } from "../store/useHomeStore";
 import { Power } from "lucide-react";
+import { apiPost } from "../lib/api";
+import { useLongPress } from "../hooks/useLongPress";
+import TimerBadge from "./TimerBadge";
+
+function timerGangForDeviceId(deviceId: string): number | null {
+  const match = /-g([1-3])$/.exec(deviceId);
+  return match ? Number(match[1]) : null;
+}
 
 /**
  * Dedicated on/off switch CARD for a single live MQTT relay (a Sonoff T3US3C
@@ -13,15 +21,39 @@ import { Power } from "lucide-react";
 export default function SwitchCard({
   deviceId,
   label,
+  remainingSeconds,
 }: {
   deviceId: string;
   label: string;
+  remainingSeconds?: number;
 }) {
   const on = useHomeStore((s) => s.devices[deviceId]?.state.on === true);
   const toggle = useHomeStore((s) => s.toggle);
+  const setBoolean = useHomeStore((s) => s.setBoolean);
   const online = useHomeStore((s) => s.online);
+  const timerGang = timerGangForDeviceId(deviceId);
+  const usesTimerGesture = timerGang !== null;
 
-  const handleClick = () => void toggle(deviceId);
+  const manualOff = () => void setBoolean(deviceId, "on", false);
+  const toggleLegacy = () => void toggle(deviceId);
+  const pressButton = (pressType: "single" | "long") => {
+    if (!usesTimerGesture || !timerGang) {
+      toggleLegacy();
+      return;
+    }
+    if (on) {
+      manualOff();
+      return;
+    }
+    void apiPost(`/api/devices/${deviceId}/button`, {
+      gang: timerGang,
+      pressType,
+    }).catch(() => {});
+  };
+  const press = useLongPress(
+    () => pressButton("single"),
+    () => pressButton("long"),
+  );
 
   return (
     <div className="switch-card" data-on={on ? "true" : "false"}>
@@ -33,13 +65,19 @@ export default function SwitchCard({
         <Power size={15} strokeWidth={1.8} />
       </span>
       <span className="switch-card-label">{label}</span>
+      {remainingSeconds !== undefined && (
+        <TimerBadge seconds={remainingSeconds} />
+      )}
       <button
         type="button"
         className="switch-card-toggle toggle"
         data-on={on ? "true" : "false"}
         aria-pressed={on}
         aria-label={`${label}: ${on ? "on" : "off"}`}
-        onClick={handleClick}
+        {...press}
+        onClick={(event) => {
+          if (event.detail === 0) pressButton("single");
+        }}
         disabled={!online}
       >
         <span className="toggle-knob" />

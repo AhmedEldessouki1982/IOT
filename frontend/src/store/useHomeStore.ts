@@ -11,7 +11,7 @@ import { getDevices, sendCommand, type DeviceState } from "../api/devices";
  * locks live separately in useDummyToggles; only TRUE MQTT devices go here.
  */
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const socket = io(API_URL);
+export const homeSocket = io(API_URL);
 
 interface HomeStore {
   /** Live device states: e.g. { light1: {...}, sonoff1: {...} } */
@@ -31,7 +31,7 @@ interface HomeStore {
 
 export const useHomeStore = create<HomeStore>((set) => ({
   devices: {},
-  online: socket.connected,
+  online: homeSocket.connected,
 
   loadAll: async () => {
     try {
@@ -102,12 +102,12 @@ export const useHomeStore = create<HomeStore>((set) => ({
 // --- live wiring -----------------------------------------------------------
 // Backend broadcasts `device:state` for every live device (light1, sonoff1..3)
 // over WebSocket. Capture them all into the devices map, regardless of id.
-socket.on("device:state", (msg: DeviceState) => {
+homeSocket.on("device:state", (msg: DeviceState) => {
   if (!msg || typeof msg.deviceId !== "string") return;
   useHomeStore.setState((s) => ({
     devices: { ...s.devices, [msg.deviceId]: msg },
   }));
 });
-socket.on("connect", () => useHomeStore.setState({ online: true }));
-socket.on("disconnect", () => useHomeStore.setState({ online: false }));
-socket.on("connect_error", () => {});
+homeSocket.on("connect", () => useHomeStore.setState({ online: true }));
+homeSocket.on("disconnect", () => useHomeStore.setState({ online: false }));
+homeSocket.on("connect_error", () => {});

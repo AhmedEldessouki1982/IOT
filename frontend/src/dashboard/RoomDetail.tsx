@@ -13,6 +13,7 @@ import {
   liveDeviceId,
   liveStateKey,
 } from "../features/devices/deviceRuntime";
+import { useTimers } from "../hooks/useTimers";
 
 interface RoomDetailProps {
   id: string;
@@ -45,13 +46,19 @@ export default function RoomDetail({
   // carries a deviceId rounds-trips here; the rest are local dummy toggles.
   const liveDevices = useHomeStore((s) => s.devices);
   const setLiveBoolean = useHomeStore((s) => s.setBoolean);
+  const timers = useTimers();
+  const timerByDeviceId = new Map(
+    timers.map((timer) => [timer.deviceId, timer.remainingSeconds]),
+  );
 
   const allLights = [...devices, ...switches].filter((d) => d.kind === "light");
   const lockIds = devices.filter((d) => d.kind === "lock").map((d) => d.id);
 
   const liveOn = (d: DeviceConfig) => {
     const deviceId = liveDeviceId(d);
-    return deviceId ? liveBooleanValue(d, liveDevices[deviceId]) === true : false;
+    return deviceId
+      ? liveBooleanValue(d, liveDevices[deviceId]) === true
+      : false;
   };
   const anyLightOn = allLights.some((d) => {
     if (d.kind !== "light") return false;
@@ -102,7 +109,8 @@ export default function RoomDetail({
             <div>
               <h2>{name}</h2>
               <p className="room-detail-sub">
-                {[...devices, ...switches].length} device{([...devices, ...switches].length) === 1 ? "" : "s"}
+                {[...devices, ...switches].length} device
+                {[...devices, ...switches].length === 1 ? "" : "s"}
               </p>
             </div>
           </div>
@@ -148,6 +156,9 @@ export default function RoomDetail({
                 key={sw.id}
                 deviceId={(sw as { deviceId?: string }).deviceId!}
                 label={sw.label}
+                remainingSeconds={timerByDeviceId.get(
+                  (sw as { deviceId?: string }).deviceId!,
+                )}
               />
             ))}
           </div>
@@ -159,9 +170,7 @@ export default function RoomDetail({
               <CardDevice
                 config={config}
                 state={
-                  isToggleableKind(config.kind)
-                    ? dummyOn[config.id]
-                    : undefined
+                  isToggleableKind(config.kind) ? dummyOn[config.id] : undefined
                 }
                 onToggle={
                   isToggleableKind(config.kind)
