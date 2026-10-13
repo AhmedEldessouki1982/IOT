@@ -1,67 +1,43 @@
-# IoT Smart Home — Command Center
+# IoT Smart Home Command Center
 
-A premium IoT smart-home dashboard: **Python mock device → MQTT → NestJS → WebSocket → React UI**.
+A local-first smart-home dashboard and MQTT bridge for an apartment installation:
+**mock/live devices -> Mosquitto -> NestJS -> Socket.IO/REST -> React UI**.
 
 ```
         POST /devices/:id/command        publish JSON command
-  UI ───────────────────────►  NestJS  ───────────────────────────►  Mosquitto
-   ▲                            │                                        │
-   │  socket.io "device:state"   │  subscribe devices/+/state (wildcard) │ subscribe cmd
-   └─────────────────────────────┘◄──────────────────────────────────────┘
-                                          publish JSON DeviceState     Mock device
+  UI ----------------------->  NestJS  -------------------------->  Mosquitto
+   ^                            |                                      |
+   |  socket.io device:state     |  subscribe devices/+/state          | devices
+   |  socket.io timer:update     |  subscribe stat/<base>/#            | Tasmota
+   +----------------------------+<-------------------------------------+
 ```
 
 ## Architecture
 
-| Folder        | Role                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------ |
-| `mock-device` | Python script simulating a smart switch (`light_switch.py`)                                                  |
-| `nestjs`      | Backend: MQTT + REST + Socket.IO gateway (single shared MQTT client)                                         |
-| `frontend`    | React + Vite + TypeScript + Tailwind + Zustand + Framer Motion command center UI (+ WebGL kitchen 3D viewer) |
-| `mosquitto`   | MQTT broker config (local dev only)                                                                          |
+| Folder        | Role                                                                                                     |
+| ------------- | -------------------------------------------------------------------------------------------------------- |
+| `mock-device` | Python MQTT mock for the reference `light1` switch                                                       |
+| `nestjs`      | NestJS backend with REST, Socket.IO, one shared MQTT connection, Sonoff routing, persistence, and timers |
+| `frontend`    | React + Vite + TypeScript dashboard for rooms, scenes, device health, activity, and settings             |
+| `mosquitto`   | Local-development MQTT broker config                                                                     |
 
-## What's Live vs Demo
+## Dashboard Scope
 
-The dashboard is a single-page bento-card grid of the apartment's 8 rooms
-(Reception, Kitchen, Toilet, Corridor, Small Bedroom, Bedroom 2, Master
-Bedroom, Ensuite) — 22 devices in total. Each card lists its devices; tapping
-a card opens a room detail view with bulk actions (all lights on/off,
-lock/unlock all). Header scene presets apply common whole-home states such as
-Evening, Cooking, and Away across live MQTT devices and local demo devices.
+The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently defines **7 rooms** and **26 UI devices**:
 
-The WebGL room viewer is currently isolated from the dashboard while the 3D
-feature gets more work. Existing GLB assets and viewer code remain in the repo
-for the next 3D pass, but users cannot open them from the live dashboard.
+| Room          | Devices                                                                                               |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| Reception     | Ceiling light, front door, room temperature, Reception Line 1, Reception Line 2, Door Bulb            |
+| Kitchen       | Main light, gas detector, room temperature, three kitchen light zones, oven, dishwasher, smoke sensor |
+| Main Toilet   | LED bar, spotlights, exhaust fan                                                                      |
+| Corridor      | Corridor light                                                                                        |
+| Small Bedroom | Bedroom light                                                                                         |
+| Bedroom 2     | Bedroom light                                                                                         |
+| Master Suite  | Bedroom light, room temperature, toilet LED bar, toilet spotlights, exhaust fan                       |
 
-### Live (real MQTT round-trip)
+Live MQTT-backed ids today are `light1`, `sonoff1`, `sonoff2`, and `sonoff3`. The remaining 22 UI devices are local demo controls or read-only demo sensors until their real ids are added to the room config and backend registry.
 
-- **Reception Ceiling Light** (`light1`): the reference live device — an on/off
-  toggle that round-trips the whole pipeline: UI → NestJS → Mosquitto → mock
-  device (Python) → state echoes back over Socket.IO.
-- **Reception Line 1 / Line 2 / Door Bulb** (`sonoff1/2/3`): the three relays of
-  the physical Sonoff T3US3C wall switch flashed with Tasmota, driven over MQTT
-  (`cmnd/…/POWER{1,2,3}`). Live when the switch is connected and broadcasting.
-
-### Interactive but local-only (demo)
-
-- **Front Door** lock: unlock/lock toggle with local state (no backend wiring yet).
-- **All other room lights** (Kitchen, Toilet, Corridor, Small Bedroom,
-  Bedroom 2, Master Bedroom, Ensuite): local toggles — they will round-trip
-  over MQTT the moment a mock or live device publishes their id.
-- **Kitchen appliances** (Oven, Dishwasher) and **Kitchen Smoke Sensor**:
-  local on/off and arm-state toggles, mapped 1:1 to clickable markers inside
-  the kitchen's 3D viewer.
-
-### Read-only demo sensors
-
-- **Room Temperature** (Reception, Kitchen, Master Bedroom): fixed demo
-  readings with a small recent-history strip.
-- **Gas Leak Detector** (Kitchen): static "safe" state.
-
-Demo devices carry a clearly visible **demo** affordance in the UI so it is
-always obvious what is wired to real hardware and what is not. The light/dark
-theme and the emergency **Shutdown** button (all lights off, all doors locked)
-work across both live and demo devices.
+The 3D feature is deliberately isolated for now. This active dashboard does not expose a 3D viewer or GLB workflow.
 
 ## Quick Start
 
@@ -71,43 +47,42 @@ work across both live and demo devices.
 docker compose up -d
 ```
 
-Config lives in `mosquitto/config/mosquitto.conf`:
+Local broker config lives in `mosquitto/config/mosquitto.conf`:
 
-```
+```conf
 listener 1883
 allow_anonymous true
 ```
 
-> **LOCAL DEV ONLY** — before deployment, replace anonymous access with authentication and TLS.
+This repo intentionally keeps the local broker simple. Production security is parked for a later pass.
 
-### 2. Configure the backend (.env)
+### 2. Configure Backend
 
 ```bash
 cd nestjs
 cp .env.example .env
 ```
 
-| Variable               | Default                 | Purpose                                                                                        |
-| ---------------------- | ----------------------- | ---------------------------------------------------------------------------------------------- |
-| `MQTT_URL`             | `mqtt://localhost:1883` | MQTT broker host + port                                                                        |
-| `HTTP_PORT`            | `3000`                  | HTTP + WebSocket listen port                                                                   |
-| `CORS_ORIGIN`          | `http://localhost:5173` | Allowed browser origin                                                                         |
-| `DATA_DIR`             | `.data`                 | Local JSON persistence for latest device state and history                                     |
-| `SONOFF_BASE`          | `tasmota_A3AECD`        | Legacy Tasmota topic base for the Reception switch (_empty = disabled unless registry is set_) |
-| `SONOFF_IP`            | `10.0.1.13`             | Sonoff device IP (informational; control goes via broker)                                      |
-| `SONOFF_SWITCHES_JSON` | unset                   | Optional multi-switch registry JSON. Takes precedence over `SONOFF_BASE`.                      |
-| `SONOFF_SWITCHES_FILE` | unset                   | Optional path to a JSON registry file. Used when `SONOFF_SWITCHES_JSON` is unset.              |
+| Variable               | Default/example         | Purpose                                                                        |
+| ---------------------- | ----------------------- | ------------------------------------------------------------------------------ |
+| `MQTT_URL`             | `mqtt://localhost:1883` | MQTT broker URL                                                                |
+| `HTTP_PORT`            | `3000`                  | Backend HTTP and Socket.IO port; change this if another service owns the port  |
+| `CORS_ORIGIN`          | `http://localhost:5173` | Browser origin allowed to call the backend                                     |
+| `DATA_DIR`             | `.data`                 | JSON persistence directory for latest device state, history, and active timers |
+| `SONOFF_BASE`          | `tasmota_A3AECD`        | Legacy single-switch topic base for Reception; creates `sonoff1..3`            |
+| `SONOFF_IP`            | `10.0.1.13`             | Informational only; control goes through MQTT                                  |
+| `SONOFF_SWITCHES_JSON` | unset                   | Optional multi-switch registry JSON; takes precedence over `SONOFF_BASE`       |
+| `SONOFF_SWITCHES_FILE` | unset                   | Optional path to a registry JSON file when inline JSON is not used             |
 
-### 3. Start the mock device
+### 3. Start Services
 
 ```bash
 cd mock-device
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 python light_switch.py
 ```
-
-### 4. Start the NestJS backend
 
 ```bash
 cd nestjs
@@ -115,75 +90,52 @@ npm install
 npm run start:dev
 ```
 
-### 5. Start the frontend
-
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` — the command center dashboard. Single page:
+Open the Vite URL shown by the frontend dev server.
 
-- `/` — bento-card dashboard (8 rooms · 16 devices) with room detail drill-in,
-  light/dark theme toggle (persisted), live clock + connection status, and the
-  emergency shutdown control
+## Device Contracts
 
-## Device API
+The generic app contract is JSON over `devices/<id>/state` and `devices/<id>/cmd`.
 
-The backend is device-agnostic — devices register automatically over MQTT.
+| Topic                | Direction         | Payload                                                                     |
+| -------------------- | ----------------- | --------------------------------------------------------------------------- |
+| `devices/<id>/cmd`   | Backend -> device | `{"on": true}` or `{"on": false}`                                           |
+| `devices/<id>/state` | Device -> backend | `{"deviceId":"<id>","type":"switch","state":{"on":true},"timestamp":"..."}` |
+| `devices/+/state`    | Device -> backend | Wildcard subscription used by NestJS                                        |
 
-| Method | Endpoint                   | Description                                   |
-| ------ | -------------------------- | --------------------------------------------- |
-| `GET`  | `/devices`                 | All known device states                       |
-| `GET`  | `/devices/:id`             | One device's state (404 if unknown)           |
-| `GET`  | `/devices/:id/history`     | Recent persisted state history for one device |
-| `POST` | `/devices/:id/command`     | Send a JSON command to a device               |
-| `GET`  | `/sonoff`                  | State of all three Sonoff relays (sonoff1..3) |
-| `GET`  | `/sonoff/:channel`         | State of one relay (1..3)                     |
-| `POST` | `/sonoff/:channel/command` | Force a relay, body `{"on": true\|false}`     |
+REST and Socket.IO contracts kept stable:
 
-To add a new device: publish to `devices/<newId>/state` and subscribe to `devices/<newId>/cmd`. Zero backend code changes needed.
+| Method/event | Path/event                | Purpose                                                            |
+| ------------ | ------------------------- | ------------------------------------------------------------------ |
+| `GET`        | `/devices`                | All known device states                                            |
+| `GET`        | `/devices/:id`            | One known device state                                             |
+| `GET`        | `/devices/:id/history`    | Recent persisted history for one device                            |
+| `POST`       | `/devices/:id/command`    | Publish a JSON command to `devices/<id>/cmd`                       |
+| `GET`        | `/api/timers`             | Active timers as `{ deviceId, gang, expiresAt, remainingSeconds }` |
+| `POST`       | `/api/devices/:id/button` | Manual/test trigger for timer press handling                       |
+| Socket.IO    | `device:state`            | Latest device state                                                |
+| Socket.IO    | `timer:update`            | Full active timer list                                             |
 
-## MQTT Topics
+The older `/sonoff` routes are still available for Reception relay compatibility. Route prefixes are intentionally mixed (`/devices`, `/sonoff`, `/api/timers`, `/api/devices/:id/button`) to preserve the existing contracts.
 
-| Topic                      | Direction | Payload                                                                       |
-| -------------------------- | --------- | ----------------------------------------------------------------------------- |
-| `devices/light1/cmd`       | → device  | `{"on": true}` / `{"on": false}`                                              |
-| `devices/light1/state`     | device →  | `{"deviceId":"light1","type":"switch","state":{"on":true},"timestamp":"..."}` |
-| `devices/+/state`          | device →  | Wildcard; NestJS extracts deviceId from topic                                 |
-| `cmnd/<base>/POWER{1,2,3}` | → switch  | `ON` / `OFF`                                                                  |
-| `stat/<base>/POWER#`       | switch →  | `ON` / `OFF` per relay (Sonoff broadcasts)                                    |
+## Sonoff Registry
 
-## Sonoff T3US3C 3-gang switch (flashed Tasmota)
+Tasmota Sonoff T3US3C switches are bridged by `SonoffService` through the single shared `MqttConnectionService`; the backend does not open a second MQTT client.
 
-The physical wall switch is a Sonoff T3US3C flashed with **Tasmota** (MQTT-native,
-no cloud, no Tuya). Its three independent on/off relays are driven and read directly
-over MQTT through the shared Mosquitto broker — no gateway, no Home Assistant.
+Tasmota topics:
 
-`src/sonoff/sonoff.service.ts` bridges configured switches over the shared MQTT
-connection (`MqttConnectionService` — the whole backend holds **one** broker
-connection, shared with the `devices/+/state` listener and the command
-publisher):
+| Topic                  | Direction         | Payload                                        |
+| ---------------------- | ----------------- | ---------------------------------------------- |
+| `cmnd/<base>/POWER<n>` | Backend -> switch | `ON` or `OFF`                                  |
+| `stat/<base>/POWER<n>` | Switch -> backend | `ON` or `OFF`                                  |
+| `stat/<base>/RESULT`   | Switch -> backend | Button action JSON, when configured in Tasmota |
 
-- **subscribes** to `stat/<base>/#` for each registry entry (matches POWER1/POWER2/POWER3) so
-  every physical button press updates state in real time,
-- **subscribes** to each generated `devices/<id>/cmd` topic so REST/UI commands drive the
-  relays,
-- **publishes** `ON`/`OFF` to `cmnd/<base>/POWER{1,2,3}` to drive each relay.
-
-Each POWER channel is surfaced as a normal app device (`sonoff1`, `sonoff2`,
-`sonoff3`) through the existing `DeviceService` registry + WebSocket gateway — the
-frontend treats them exactly like the live `light1`. State also arrives via the
-REST endpoints above.
-
-If no Sonoff config is provided, `SonoffService` logs a warning and skips connecting,
-so the app runs normally without the hardware attached.
-
-### Multi-switch registry
-
-For multiple T3US3C units, set either `SONOFF_SWITCHES_JSON` or
-`SONOFF_SWITCHES_FILE`. Each entry has this shape:
+Use `SONOFF_SWITCHES_JSON` or `SONOFF_SWITCHES_FILE` for multiple wall switches. Each registry entry is:
 
 ```json
 {
@@ -197,47 +149,79 @@ For multiple T3US3C units, set either `SONOFF_SWITCHES_JSON` or
 
 Fields:
 
-- `switchId`: stable app id for this physical wall switch.
-- `base`: Tasmota MQTT topic base used in `stat/<base>/...` and `cmnd/<base>/...`.
-- `gangs`: relay count, `1`, `2`, or `3`.
-- `roomType`: `toilet`, `bedroom`, or `none`; timers use this value.
-- `roomId`: stable room identifier for future customer configuration.
+| Field      | Meaning                                          |
+| ---------- | ------------------------------------------------ |
+| `switchId` | Stable app id for the physical switch            |
+| `base`     | Tasmota MQTT topic base                          |
+| `gangs`    | Relay count: `1`, `2`, or `3`                    |
+| `roomType` | Timer profile: `toilet`, `bedroom`, or `none`    |
+| `roomId`   | Stable room id for future customer configuration |
 
-The existing Reception switch remains backward compatible by using
-`switchId: "reception"`, which generates `sonoff1`, `sonoff2`, and `sonoff3`.
-Every other switch generates deterministic ids as `<switchId>-g<n>`, for example
-`toilet-main-g1`, `toilet-main-g2`, `toilet-main-g3`.
+Backward compatibility: when only `SONOFF_BASE` is set, it creates a legacy Reception registry entry with `switchId: "reception"`, `roomType: "none"`, and device ids `sonoff1`, `sonoff2`, `sonoff3`. New switches generate deterministic ids as `<switchId>-g<n>`, for example `toilet-main-g1`.
 
-### Wiring / channel mapping
+Example registry with Reception plus one toilet switch:
 
-| Channel | Tasmota cmd | Device id | Frontend label   |
-| ------- | ----------- | --------- | ---------------- |
-| 1       | `POWER1`    | `sonoff1` | Reception Line 1 |
-| 2       | `POWER2`    | `sonoff2` | Reception Line 2 |
-| 3       | `POWER3`    | `sonoff3` | Door Bulb        |
+```json
+[
+  {
+    "switchId": "reception",
+    "base": "tasmota_A3AECD",
+    "gangs": 3,
+    "roomType": "none",
+    "roomId": "reception"
+  },
+  {
+    "switchId": "toilet-main",
+    "base": "tasmota_TOILET",
+    "gangs": 3,
+    "roomType": "toilet",
+    "roomId": "toilet"
+  }
+]
+```
 
-### HTTP control fallback (direct to the switch, not via broker)
+Do not add registry entries for rooms until the actual Tasmota topic base and room mapping are known.
 
-For direct control/status you can also hit the switch's Tasmota HTTP API at
-`http://10.0.1.13/cm?cmnd=...` (toggle, e.g. `POWER1%20TOGGLE`; status via
-`Status%200`). The app itself always uses MQTT; this HTTP route is a manual/dev fallback.
+## Timers
 
-## 3D Viewer
+Timer rules live in `nestjs/src/timers/timer.config.ts`:
 
-The WebGL viewer is dormant for now. When re-enabled, it lazy-loads GLB room
-models and projects dashboard devices into the scene as animated wifi-badge
-markers — green + heartbeat pulse when the device is on, red slashed when off;
-hover to highlight, click to toggle, with the 2D dashboard staying in sync.
+| Room type | Gang          | Single press | Long press |
+| --------- | ------------- | ------------ | ---------- |
+| `toilet`  | 1 LED         | 10 min       | 30 min     |
+| `toilet`  | 2 spotlights  | 10 min       | 20 min     |
+| `toilet`  | 3 exhaust fan | 10 min       | 10 min     |
+| `bedroom` | 1 LED         | no timer     | no timer   |
+| `bedroom` | 2 spotlights  | 20 min       | 30 min     |
+| `none`    | any           | no timer     | no timer   |
 
-The GLB is loaded from the stable path `frontend/src/3d/resources/kitchen.glb`,
-which the Blender pipeline overwrites on every render — the dashboard always shows
-"latest" with no code change. Dated exports stay alongside under
-`resources/<yyyy-mm-dd>/` for provenance.
+Press behavior:
+
+- A tap while a timed gang is off starts the single-press timer.
+- A long press while a timed gang is off starts the long-press timer.
+- Pressing a timed gang that is already on restarts the timer with the new duration.
+- Manual OFF from UI or device state cancels that gang's active timer.
+- Active timers persist under `DATA_DIR` and are restored after restart. Expired persisted timers publish OFF after the MQTT connection is ready.
+
+Frontend timer badges use one initial `GET /api/timers`, `timer:update` Socket.IO events, and a local one-second countdown tick.
+
+Tasmota button-action setup notes are in `docs/tasmota-setup.md`.
 
 ## Verification
 
 ```bash
-# Quick test without the UI
+cd nestjs
+npm test
+
+cd ../frontend
+npx tsc --noEmit
+npm test
+npm run build
+```
+
+Manual MQTT smoke test:
+
+```bash
 mosquitto_sub -h localhost -t 'devices/+/state' -v
 mosquitto_pub -h localhost -t 'devices/light1/cmd' -m '{"on": true}'
 ```

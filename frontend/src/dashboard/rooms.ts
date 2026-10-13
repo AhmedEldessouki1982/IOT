@@ -78,7 +78,6 @@ export const ROOMS: Room[] = [
         current: 23.2,
         history: [23.0, 23.4, 23.1, 23.6, 23.2, 23.3, 23.2],
       },
-      // 3D viewers map 1:1 to the kitchen GLB's clickable IoT markers.
       {
         kind: "light",
         id: "light_kitchen_ceiling_main",
