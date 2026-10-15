@@ -13,6 +13,7 @@ import {
   liveStateKey,
 } from "../features/devices/deviceRuntime";
 import { useTimers } from "../hooks/useTimers";
+import { markLocalAction } from "../hooks/localActions";
 
 interface RoomDetailProps {
   id: string;
@@ -72,6 +73,7 @@ export default function RoomDetail({
 
   const setAllLights = (on: boolean) => {
     allLights.forEach((d) => {
+      markLocalAction(liveDeviceId(d) ?? d.id);
       if (d.kind !== "light") return;
       if (isLiveConfig(d)) {
         const deviceId = liveDeviceId(d);
@@ -85,6 +87,7 @@ export default function RoomDetail({
   };
   const setAllLocks = (locked: boolean) => {
     lockIds.forEach((lid) => {
+      markLocalAction(lid);
       if ((dummyOn[lid] ?? true) !== locked) onDummyToggle(lid);
     });
   };

@@ -1,4 +1,5 @@
-import { Lock, LockOpen } from "lucide-react";
+import LockIcon from "../../../components/LockIcon";
+import { useStateChange } from "../../../hooks/useStateChange";
 
 export interface LockDeviceProps {
   variant: "card";
@@ -18,16 +19,13 @@ export default function LockDevice({
   badge,
 }: LockDeviceProps) {
   const locked = state ?? true;
+  const revision = useStateChange(state);
 
   return (
     <div className="device-row lock-row">
       <div className="device-info">
         <span className="device-icon" data-locked={locked}>
-          {locked ? (
-            <Lock size={15} strokeWidth={1.7} />
-          ) : (
-            <LockOpen size={15} strokeWidth={1.7} />
-          )}
+          <LockIcon locked={locked} />
         </span>
         <span className="device-label">{label}</span>
       </div>
@@ -46,7 +44,7 @@ export default function LockDevice({
           aria-label={`${label}: ${locked ? "locked" : "unlocked"}`}
           className="lock-pill"
         >
-          {locked ? "Locked" : "Unlocked"}
+          <span key={revision} className={revision ? "changed-label" : undefined}>{locked ? "Locked" : "Unlocked"}</span>
         </button>
       </div>
     </div>

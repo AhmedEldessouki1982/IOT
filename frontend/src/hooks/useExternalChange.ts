@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { MotionReadiness } from "./MotionReadiness";
 import { isExternalChange } from "./motionRules.js";
 import { lastLocalAction, subscribeSceneFlash } from "./localActions";
 
 export function useExternalChange(key: string, value: unknown) {
+  const ready = useContext(MotionReadiness);
+  value = ready ? value : undefined;
   const previous = useRef({ key, value });
   const [flash, setFlash] = useState({ revision: 0, delay: 0, external: false });
   useEffect(() => {

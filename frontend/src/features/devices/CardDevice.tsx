@@ -10,6 +10,7 @@ import {
 import { Device, type DeviceProps } from "./index";
 import DeviceConnection from "../../components/DeviceConnection";
 import type { ReactNode } from "react";
+import DeviceMotion from "../../components/DeviceMotion";
 
 interface CardDeviceProps {
   config: DeviceConfig;
@@ -33,7 +34,10 @@ export default function CardDevice({
   const icon = deviceIcon(config.kind);
   const deviceId = liveDeviceId(config);
   const isLive = isLiveConfig(config);
-  const row = (content: ReactNode) => <div className="device-shell">{content}{deviceId && <DeviceConnection deviceId={deviceId} />}</div>;
+  const row = (content: ReactNode) => <DeviceMotion deviceKey={deviceId ?? config.id} label={config.label} kind={config.kind}
+    value={isLive ? liveValue : state ?? (config.kind === "lock" ? config.locked ?? true : config.kind === "light" ? config.defaultOn ?? false : false)}>
+    <div className="device-shell">{content}{deviceId && <DeviceConnection deviceId={deviceId} />}</div>
+  </DeviceMotion>;
   const liveValue = deviceId
     ? liveBooleanValue(config, liveDevices[deviceId])
     : undefined;

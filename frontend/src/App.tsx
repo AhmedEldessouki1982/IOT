@@ -30,6 +30,7 @@ import DevicesView from "./views/DevicesView";
 import ActivityView from "./views/ActivityView";
 import SettingsView from "./views/SettingsView";
 import ThemeToggle from "./components/ThemeToggle";
+import { MotionReadiness } from "./hooks/MotionReadiness";
 import { useSceneRunner } from "./hooks/useSceneRunner";
 import { useDeviceRecords } from "./hooks/useDeviceRecords";
 import { useDeviceHistory } from "./hooks/useDeviceHistory";
@@ -81,6 +82,7 @@ function useClock() {
 
 /** Bento card dashboard — display type, glass, spatial light. */
 export default function App() {
+  const [motionReady, setMotionReady] = useState(false);
   const online = useHomeStore((s) => s.online);
   const homeLoadAll = useHomeStore((s) => s.loadAll);
   // Live MQTT devices keyed by backend device id.
@@ -142,7 +144,15 @@ export default function App() {
     // One bulk GET /devices seeds every device that has ever reported state
     // (light1 + sonoff relays) — no per-device requests, so unknown ids can
     // never 404 into the console.
-    homeLoadAll();
+    let cancelled = false;
+    let frame = 0;
+    homeLoadAll().finally(() => {
+      if (cancelled) return;
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => { if (!cancelled) setMotionReady(true); });
+      });
+    });
+    return () => { cancelled = true; cancelAnimationFrame(frame); };
   }, [homeLoadAll]);
 
   const history = useDeviceHistory(liveConfigs, liveDevices, online);
@@ -283,7 +293,8 @@ export default function App() {
   };
 
   return (
-    <div className="dash">
+    <MotionReadiness.Provider value={motionReady}>
+    <div className="dash" data-motion-ready={motionReady}>
       <header className="dash-head">
         <div className="dash-greeting">
           <div className="dash-greeting-top">
@@ -366,5 +377,6 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+    </MotionReadiness.Provider>
   );
 }

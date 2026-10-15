@@ -4,6 +4,7 @@ import { apiPost } from "../lib/api";
 import { useLongPress } from "../hooks/useLongPress";
 import TimerBadge from "./TimerBadge";
 import DeviceConnection from "./DeviceConnection";
+import DeviceMotion from "./DeviceMotion";
 
 function timerGangForDeviceId(deviceId: string): number | null {
   const match = /-g([1-3])$/.exec(deviceId);
@@ -28,7 +29,8 @@ export default function SwitchCard({
   label: string;
   remainingSeconds?: number;
 }) {
-  const on = useHomeStore((s) => s.devices[deviceId]?.state.on === true);
+  const state = useHomeStore((s) => s.devices[deviceId]?.state.on);
+  const on = state === true;
   const toggle = useHomeStore((s) => s.toggle);
   const setBoolean = useHomeStore((s) => s.setBoolean);
   const online = useHomeStore((s) => s.online);
@@ -57,6 +59,7 @@ export default function SwitchCard({
   );
 
   return (
+    <DeviceMotion deviceKey={deviceId} label={label} kind="light" value={typeof state === "boolean" ? state : undefined}>
     <div className="switch-card" data-on={on ? "true" : "false"}>
       <span
         className="switch-card-icon"
@@ -86,5 +89,6 @@ export default function SwitchCard({
       </button>
       <DeviceConnection deviceId={deviceId} />
     </div>
+    </DeviceMotion>
   );
 }

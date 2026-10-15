@@ -16,6 +16,7 @@ import "./styles/components/rooms.css";
 import "./styles/components/panels.css";
 import "./styles/views/operations.css";
 import "./styles/refinements.css";
+import "./styles/motion.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { MotionReadiness } from "./MotionReadiness";
 import { valueChanged } from "./motionRules.js";
 
 export function useStateChange(value: unknown) {
+  const ready = useContext(MotionReadiness);
+  value = ready ? value : undefined;
   const previous = useRef(value);
   const [revision, setRevision] = useState(0);
   useEffect(() => {

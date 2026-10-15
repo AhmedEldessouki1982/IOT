@@ -1,0 +1,33 @@
+.visually-hidden { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.device-motion { position: relative; isolation: isolate; }
+.dash[data-motion-ready="false"] *, .dash[data-motion-ready="false"] *::before, .dash[data-motion-ready="false"] *::after { animation: none !important; transition-duration: 0ms !important; }
+.row-flash { position: absolute; inset: 0; pointer-events: none; border-radius: var(--radius-control); }
+.row-flash::after { content: ""; position: absolute; inset: 0; background: var(--color-accent); border-radius: inherit; opacity: 0; }
+.lock-shackle { transform-origin: 17px 11px; }
+.lock-icon[data-locked="false"] .lock-shackle { transform: translateY(-2px) rotate(-24deg); }
+.lock-pill { position: relative; min-inline-size: 9ch; }
+.lock-pill::after { content: ""; position: absolute; inset: 0; border: 1px solid var(--color-ok); border-radius: inherit; opacity: 0; pointer-events: none; }
+.lock-pill[data-locked="false"]::after { border-color: var(--color-accent); }
+.switch-row > .device-motion + .device-motion { border-block-start: 1px solid var(--color-boundary-soft); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .room-card::before { transition: opacity var(--duration-off) var(--ease-standard); }
+  .room-card[data-on="true"]::before { transition-duration: var(--duration-lit); }
+  .device-motion[data-changed="true"][data-on="true"][data-kind="light"][data-revision="1"] .device-icon,
+  .device-motion[data-changed="true"][data-on="true"][data-kind="appliance"][data-revision="1"] .device-icon,
+  .device-motion[data-changed="true"][data-on="true"][data-revision="1"] .switch-card-icon { animation: lit-pop-a var(--duration-lit) var(--ease-emphasized); }
+  .device-motion[data-changed="true"][data-on="true"][data-kind="light"][data-revision="0"] .device-icon,
+  .device-motion[data-changed="true"][data-on="true"][data-kind="appliance"][data-revision="0"] .device-icon,
+  .device-motion[data-changed="true"][data-on="true"][data-revision="0"] .switch-card-icon { animation: lit-pop-b var(--duration-lit) var(--ease-emphasized); }
+  .row-flash::after { animation: change-flash var(--duration-flash) var(--ease-standard) var(--flash-delay, 0ms) both; }
+  .lock-shackle { transition: transform var(--duration-lock) var(--ease-emphasized); }
+  .changed-label { animation: label-in var(--duration-state) var(--ease-standard); }
+  .device-motion[data-kind="lock"][data-changed="true"][data-revision="1"] .lock-pill::after { animation: lock-confirm-a var(--duration-lock) var(--ease-standard); }
+  .device-motion[data-kind="lock"][data-changed="true"][data-revision="0"] .lock-pill::after { animation: lock-confirm-b var(--duration-lock) var(--ease-standard); }
+  @keyframes lit-pop-a { 50% { transform: scale(1.08); } }
+  @keyframes lit-pop-b { 50% { transform: scale(1.08); } }
+  @keyframes change-flash { from { opacity: 0.18; } to { opacity: 0; } }
+  @keyframes label-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes lock-confirm-a { 40% { opacity: 1; transform: scale(1.04); } }
+  @keyframes lock-confirm-b { 40% { opacity: 1; transform: scale(1.04); } }
+}
