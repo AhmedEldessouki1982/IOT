@@ -7,6 +7,7 @@ export interface PersistedTimerEntry {
   deviceId: string;
   gang: number;
   expiresAt: string;
+  durationSeconds?: number;
 }
 
 function isPersistedTimerEntry(value: unknown): value is PersistedTimerEntry {
@@ -15,7 +16,9 @@ function isPersistedTimerEntry(value: unknown): value is PersistedTimerEntry {
   return (
     typeof entry.deviceId === "string" &&
     Number.isInteger(entry.gang) &&
-    typeof entry.expiresAt === "string"
+    typeof entry.expiresAt === "string" &&
+    (entry.durationSeconds === undefined ||
+      (Number.isFinite(entry.durationSeconds) && entry.durationSeconds > 0))
   );
 }
 

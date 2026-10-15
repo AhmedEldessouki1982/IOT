@@ -7,6 +7,7 @@ export interface TimerEntry {
   gang: number;
   expiresAt: string;
   remainingSeconds: number;
+  durationSeconds?: number;
 }
 
 type TimerListener = () => void;

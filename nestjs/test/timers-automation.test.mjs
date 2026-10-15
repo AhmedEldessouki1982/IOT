@@ -100,6 +100,28 @@ function makeAutomation(switches, persistedTimers = []) {
 }
 
 describe("timer automation", () => {
+  it("includes original duration in snapshots, broadcasts, persistence and restoration", () => {
+    const events = makeEventEmitter();
+    const persistence = makeTimerPersistence();
+    const timers = new TimersService(events, persistence);
+    timers.start("test-g1", 1, 10, () => {});
+    now += 60000;
+    assert.equal(timers.getAll()[0].durationSeconds, 600);
+    assert.equal(timers.getAll()[0].remainingSeconds, 540);
+    assert.equal(persistence.saved[0].durationSeconds, 600);
+    assert.equal(events.emitted.find(e => e.type === "timer.update").payload[0].durationSeconds, 600);
+    const restored = new TimersService(makeEventEmitter(), makeTimerPersistence(persistence.saved));
+    restored.restore(() => {});
+    assert.equal(restored.getAll()[0].durationSeconds, 600);
+    assert.equal(restored.getAll()[0].remainingSeconds, 540);
+  });
+  it("loads legacy persisted timers without inventing a duration", () => {
+    const persistence = makeTimerPersistence([{deviceId:"legacy",gang:1,expiresAt:new Date(now + 5000).toISOString()}]);
+    const timers = new TimersService(makeEventEmitter(), persistence);
+    timers.restore(() => {});
+    assert.equal(timers.getAll()[0].remainingSeconds, 5);
+    assert.equal("durationSeconds" in timers.getAll()[0], false);
+  });
   it("publishes ON for a toilet SINGLE press and OFF after the configured minutes", () => {
     const { automation, mqtt } = makeAutomation([
       {

@@ -10,6 +10,7 @@ export interface TimerEntry {
   gang: number;
   expiresAt: Date;
   remainingSeconds: number;
+  durationSeconds?: number;
 }
 
 export interface TimerEvent {
@@ -20,6 +21,7 @@ export interface TimerEvent {
 }
 
 interface RuntimeTimer {
+  durationSeconds?: number;
   deviceId: string;
   gang: number;
   handle: NodeJS.Timeout;
@@ -48,7 +50,7 @@ export class TimersService implements OnModuleDestroy {
   ): void {
     if (minutes <= 0) return;
     const expiresAt = new Date(Date.now() + minutes * 60000);
-    this.arm(deviceId, gang, expiresAt, onExpire);
+    this.arm(deviceId, gang, expiresAt, onExpire, minutes * 60);
     this.emitTimerEvent("timer.started", {
       deviceId,
       gang,
@@ -72,7 +74,7 @@ export class TimersService implements OnModuleDestroy {
         continue;
       }
       this.arm(entry.deviceId, entry.gang, expiresAt, () =>
-        onExpire(entry.deviceId, entry.gang),
+        onExpire(entry.deviceId, entry.gang), entry.durationSeconds,
       );
     }
     if (changed) this.persist();
@@ -84,6 +86,7 @@ export class TimersService implements OnModuleDestroy {
     gang: number,
     expiresAt: Date,
     onExpire: () => void,
+    durationSeconds?: number,
   ): void {
     const key = this.getKey(deviceId, gang);
     const existing = this.timers.get(key);
@@ -105,7 +108,7 @@ export class TimersService implements OnModuleDestroy {
         this.logger.error(`Timer expired handler error: ${msg}`);
       }
     }, delay);
-    this.timers.set(key, { deviceId, gang, handle, expiresAt });
+    this.timers.set(key, { deviceId, gang, handle, expiresAt, durationSeconds });
   }
 
   cancel(deviceId: string, gang: number): void {
@@ -146,7 +149,7 @@ export class TimersService implements OnModuleDestroy {
 
   getAll(): TimerEntry[] {
     const result: TimerEntry[] = [];
-    for (const { deviceId, gang, expiresAt } of this.timers.values()) {
+    for (const { deviceId, gang, expiresAt, durationSeconds } of this.timers.values()) {
       const remaining = this.getRemaining(deviceId, gang);
       if (remaining === null) continue;
       result.push({
@@ -154,6 +157,7 @@ export class TimersService implements OnModuleDestroy {
         gang,
         expiresAt,
         remainingSeconds: remaining,
+        ...(durationSeconds !== undefined ? { durationSeconds } : {}),
       });
     }
     return result;
@@ -177,10 +181,11 @@ export class TimersService implements OnModuleDestroy {
 
   private persist(): void {
     const entries: PersistedTimerEntry[] = [...this.timers.values()].map(
-      ({ deviceId, gang, expiresAt }) => ({
+      ({ deviceId, gang, expiresAt, durationSeconds }) => ({
         deviceId,
         gang,
         expiresAt: expiresAt.toISOString(),
+        ...(durationSeconds !== undefined ? { durationSeconds } : {}),
       }),
     );
     this.persistence.save(entries);

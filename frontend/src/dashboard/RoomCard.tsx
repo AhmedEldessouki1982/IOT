@@ -122,6 +122,8 @@ export default function RoomCard({
               remainingSeconds={timerByDeviceId.get(
                 (sw as { deviceId?: string }).deviceId!,
               )}
+              durationSeconds={timers.find(t => t.deviceId === (sw as {deviceId?: string}).deviceId)?.durationSeconds}
+              expiresAt={timers.find(t => t.deviceId === (sw as {deviceId?: string}).deviceId)?.expiresAt}
             />
           ))}
         </div>

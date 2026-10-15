@@ -24,10 +24,14 @@ export default function SwitchCard({
   deviceId,
   label,
   remainingSeconds,
+  durationSeconds,
+  expiresAt,
 }: {
   deviceId: string;
   label: string;
   remainingSeconds?: number;
+  durationSeconds?: number;
+  expiresAt?: string;
 }) {
   const state = useHomeStore((s) => s.devices[deviceId]?.state.on);
   const on = state === true;
@@ -69,9 +73,7 @@ export default function SwitchCard({
         <Power size={15} strokeWidth={1.8} />
       </span>
       <span className="switch-card-label">{label}</span>
-      {remainingSeconds !== undefined && (
-        <TimerBadge seconds={remainingSeconds} />
-      )}
+      <TimerBadge seconds={remainingSeconds ?? 0} durationSeconds={durationSeconds} expiresAt={expiresAt} deviceId={deviceId} />
       <button
         type="button"
         className="switch-card-toggle toggle"
