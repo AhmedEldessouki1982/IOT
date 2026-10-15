@@ -4,6 +4,7 @@ import {
   Activity,
   Home,
   LayoutGrid,
+  MoreHorizontal,
   Radio,
   Settings,
   ShieldCheck,
@@ -19,11 +20,7 @@ import {
   deviceBooleanValue,
 } from "./features/devices/deviceRuntime";
 import RoomDetail from "./dashboard/RoomDetail";
-import ThemeToggle from "./components/ThemeToggle";
-import EmergencyShutdown from "./components/EmergencyShutdown";
-import SceneControls from "./components/SceneControls";
 import { statusIcon, type HomeStatusItem } from "./components/HomeStatusStrip";
-import { SCENES } from "./dashboard/scenes";
 import HomeView from "./views/HomeView";
 import RoomsView from "./views/RoomsView";
 import ScenesView from "./views/ScenesView";
@@ -97,6 +94,7 @@ export default function App() {
   );
   const { time, date } = useClock();
   const [activeView, setActiveView] = useState<AppView>("home");
+  const [moreOpen, setMoreOpen] = useState(false);
   const [openRoomId, setOpenRoomId] = useState<string | null>(null);
 
   // Non-live lights default off; locks default locked — each dummy device
@@ -123,9 +121,7 @@ export default function App() {
   } = useDummyToggles(dummyInitial);
 
   const {
-    anythingOn,
     applyScene,
-    handleShutdown,
     lastScene,
     pendingLiveIds,
     sceneFeedback,
@@ -287,33 +283,25 @@ export default function App() {
           </div>
           <p data-online={online}>
             <span className="dash-status-dot" aria-hidden="true" />
-            {online ? "All systems OK — live" : "Offline — local controls only"}
+            {online ? "Live home status" : "Local controls available"}
           </p>
         </div>
-        <span className="dash-controls">
-          <SceneControls scenes={SCENES} onApply={applyScene} />
-          <ThemeToggle />
-          <EmergencyShutdown onShutdown={handleShutdown} active={anythingOn} />
-          <span className="dash-summary">
-            {ROOMS.length} rooms ·{" "}
-            {ROOMS.reduce(
-              (a, r) => a + r.devices.length + (r.switches?.length ?? 0),
-              0,
-            )}{" "}
-            devices
-          </span>
-        </span>
+        <span className="dash-time-compact" aria-hidden="true">{time}</span>
       </header>
+
+      {!online && <div className="offline-banner" role="status">Hub offline. Showing last known state. Demo controls remain available.</div>}
 
       <nav className="app-nav" aria-label="App sections">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
+          const mobileHidden = ["devices", "activity", "settings"].includes(item.id);
           return (
             <button
               key={item.id}
               type="button"
-              className="app-nav-item"
+              className={`app-nav-item${mobileHidden ? " app-nav-item--more" : ""}`}
               data-active={activeView === item.id ? "true" : "false"}
+              aria-current={activeView === item.id ? "page" : undefined}
               onClick={() => setActiveView(item.id)}
             >
               <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
@@ -321,6 +309,18 @@ export default function App() {
             </button>
           );
         })}
+        <div className="more-nav">
+          <button type="button" className="app-nav-item more-nav-trigger" aria-expanded={moreOpen} onClick={() => setMoreOpen((open) => !open)}>
+            <MoreHorizontal size={20} aria-hidden="true" />
+            <span>More</span>
+          </button>
+          {moreOpen && <div className="more-nav-menu" aria-label="More sections">
+            {NAV_ITEMS.filter((item) => ["devices", "activity", "settings"].includes(item.id)).map((item) => {
+              const Icon = item.icon;
+              return <button type="button" key={item.id} className="app-nav-item" data-active={activeView === item.id ? "true" : "false"} onClick={() => { setActiveView(item.id); setMoreOpen(false); }}><Icon size={18} aria-hidden="true" /><span>{item.label}</span></button>;
+            })}
+          </div>}
+        </div>
       </nav>
 
       {sceneFeedback && (

@@ -1,6 +1,7 @@
 import { LayoutGrid, Radio, ShieldCheck } from "lucide-react";
 import { ROOMS } from "../dashboard/rooms";
 import KpiRail from "./KpiRail";
+import ThemeToggle from "../components/ThemeToggle";
 import type { DeviceRecord, ReadinessSummary } from "../hooks/useDeviceRecords";
 
 interface SettingsViewProps {
@@ -47,6 +48,7 @@ export default function SettingsView({
           <span>{unavailableLiveCount} live devices need attention</span>
         </article>
       </div>
+      <div className="settings-theme"><strong>Appearance</strong><ThemeToggle /></div>
     </section>
   );
 }
