@@ -1,0 +1,190 @@
+.device-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-boundary-soft);
+}
+
+.device-row:last-child {
+  border-block-end: 0;
+}
+
+.device-icon,
+.switch-card-icon,
+.room-card-icon,
+.room-detail-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: var(--color-text-secondary);
+}
+
+.device-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.device-label,
+.switch-card-label {
+  overflow-wrap: anywhere;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.device-row:has(.toggle) .device-icon[data-on="true"],
+.switch-card[data-on="true"] .switch-card-icon {
+  color: var(--color-accent);
+}
+
+.device-row:has(.toggle) .device-icon[data-on="false"] {
+  color: var(--color-text-secondary);
+}
+
+.toggle {
+  position: relative;
+  display: inline-flex;
+  width: 52px;
+  height: 32px;
+  min-width: 52px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 6px;
+  border: 1px solid var(--color-boundary);
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  cursor: pointer;
+}
+
+.toggle[data-on="true"] {
+  justify-content: flex-end;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.toggle-knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-text-primary);
+}
+
+.toggle[data-on="true"] .toggle-knob {
+  background: var(--color-accent-ink);
+}
+
+.cc-live-dot--sm {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-inline-start: var(--space-2);
+  border-radius: 50%;
+  background: var(--color-danger);
+}
+
+.cc-live-dot--sm[data-live="true"] {
+  background: var(--color-ok);
+}
+
+.gasleak-status,
+.lock-pill {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-boundary);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.gasleak-status[data-state="safe"],
+.lock-pill[data-locked="true"] {
+  border-color: var(--color-ok);
+  color: var(--color-ok);
+}
+
+.gasleak-status[data-state="danger"],
+.lock-pill[data-locked="false"] {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.roomtemp-value {
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.roomtemp-num {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+}
+
+.roomtemp-unit {
+  margin-inline-start: var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.roomtemp-spark {
+  display: none;
+}
+
+.switch-row {
+  display: grid;
+  gap: 0;
+}
+
+.switch-card {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding: var(--space-2) 0;
+  border-block-end: 1px solid var(--color-boundary-soft);
+}
+
+.switch-card:last-child {
+  border-block-end: 0;
+}
+
+.switch-card[data-on="true"] {
+  color: var(--color-accent);
+}
+
+.switch-card-label {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.switch-card-toggle {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.timer-badge {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: start;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-badge--low {
+  color: var(--color-danger);
+}

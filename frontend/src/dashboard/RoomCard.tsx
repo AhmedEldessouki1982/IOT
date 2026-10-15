@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
 import { deviceBooleanValue } from "../features/devices/deviceRuntime";
-import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
 import { motion } from "framer-motion";
 import { useTimers } from "../hooks/useTimers";
 
@@ -37,20 +37,7 @@ const ROOM_SPAN: Record<string, string> = {
   master: "room-card--narrow",
 };
 
-/* Per-room accent — each card glows in its own hue when a light is on,
-   a subtle command-center touch without breaking the shared palette. */
-const ROOM_ACCENT: Record<string, string> = {
-  reception: "#22d3ee",
-  kitchen: "#f59e0b",
-  toilet: "#60a5fa",
-  corridor: "#a78bfa",
-  bed1: "#34d399",
-  bed2: "#f472b6",
-  master: "#c084fc",
-};
-
 export const ROOM_ICON_MAP = ROOM_ICON;
-export const ROOM_ACCENT_MAP = ROOM_ACCENT;
 
 interface RoomCardProps {
   id: string;
@@ -60,7 +47,6 @@ interface RoomCardProps {
   switches?: DeviceConfig[];
   /** Grid span class for the bento card (defaults to wide). */
   span?: string;
-  index?: number;
   dummyOn?: Record<string, boolean>;
   onDummyToggle?: (id: string) => void;
   /** Opens the full-screen room detail view for this room. */
@@ -78,14 +64,12 @@ export default function RoomCard({
   devices,
   switches = [],
   span,
-  index = 0,
   dummyOn,
   onDummyToggle,
   onExpand,
 }: RoomCardProps) {
   const Icon = ROOM_ICON[id] ?? BedSingle;
   const spanClass = span ?? ROOM_SPAN[id] ?? "room-card--wide";
-  const accent = ROOM_ACCENT[id] ?? "#22d3ee";
 
   // Live MQTT devices map (light1 + sonoff1/2/3) so the card's "on" count
   // reflects real server state for any light that carries a live deviceId.
@@ -122,7 +106,6 @@ export default function RoomCard({
       layoutId={`room-card-${id}`}
       className={`room-card ${spanClass}`}
       data-on={hasActiveLight ? "true" : "false"}
-      style={{ "--i": index, "--cc-room-accent": accent } as CSSProperties}
       onClick={() => onExpand?.(id)}
       onKeyDown={handleCardKeyDown}
       role={onExpand ? "button" : undefined}

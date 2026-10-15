@@ -53,7 +53,7 @@ describe("dashboard feature boundaries", () => {
 
   it("keeps device registry operations available for business deployments", () => {
     const app = read("src/views/DevicesView.tsx");
-    const css = read("src/index.css");
+    const css = read("src/styles/components/panels.css");
 
     assert.equal(app.includes("filteredDeviceRecords"), true);
     assert.equal(app.includes("deviceHealthFilter"), true);

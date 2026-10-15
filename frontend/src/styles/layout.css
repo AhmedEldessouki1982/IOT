@@ -1,0 +1,227 @@
+.dash {
+  min-height: 100vh;
+  padding: var(--space-8);
+  background: var(--color-canvas);
+}
+
+.dash-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  max-width: var(--content-max);
+  margin: 0 auto var(--space-6);
+}
+
+.dash-greeting-top {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.dash-greeting h1 {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.dash-clock {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+}
+
+.dash-time {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-date,
+.dash-greeting p {
+  font-size: var(--font-size-sm);
+}
+
+.dash-greeting p {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+}
+
+.dash-status-dot,
+.room-card-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--color-ok);
+}
+
+.dash-greeting p[data-online="false"] .dash-status-dot {
+  background: var(--color-danger);
+}
+
+.dash-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dash-summary {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.app-nav,
+.scene-feedback,
+.business-panel {
+  border: 1px solid var(--color-boundary-soft);
+  border-radius: var(--radius-surface);
+  background: var(--color-surface);
+}
+
+.app-nav {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  max-width: var(--content-max);
+  margin: 0 auto var(--space-6);
+  padding: var(--space-2);
+}
+
+.app-nav-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 88px;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.app-nav-item[data-active="true"] {
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  font-weight: 700;
+  box-shadow: inset 0 -3px var(--color-accent);
+}
+
+.scene-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  max-width: var(--content-max);
+  margin: 0 auto var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+
+.scene-feedback strong,
+.scene-feedback small {
+  display: block;
+}
+
+.scene-feedback small {
+  margin-block-start: var(--space-1);
+  color: var(--color-text-secondary);
+}
+
+.scene-feedback button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-boundary);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-raised);
+}
+
+.business-panel {
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding: var(--space-6);
+}
+
+.business-panel--split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+  gap: var(--space-6);
+}
+
+.panel-headline {
+  margin-block-end: var(--space-6);
+}
+
+.panel-kicker {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.panel-headline h2 {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: var(--font-size-xl);
+}
+
+.panel-headline p {
+  max-width: 70ch;
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+@media (max-width: 1023px) {
+  .dash {
+    padding: var(--space-6) var(--space-4) calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .dash-head {
+    margin-block-end: var(--space-4);
+  }
+
+  .business-panel--split {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 639px) {
+  .dash {
+    padding: var(--space-4) var(--space-3) calc(92px + env(safe-area-inset-bottom));
+  }
+
+  .dash-head {
+    align-items: flex-start;
+  }
+
+  .dash-greeting h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .dash-clock {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .dash-controls,
+  .dash-summary {
+    display: none;
+  }
+
+  .business-panel {
+    padding: var(--space-4);
+  }
+
+  .panel-headline h2 {
+    font-size: var(--font-size-lg);
+  }
+}

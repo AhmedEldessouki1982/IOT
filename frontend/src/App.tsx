@@ -35,7 +35,6 @@ import { useSceneRunner } from "./hooks/useSceneRunner";
 import { useDeviceRecords } from "./hooks/useDeviceRecords";
 import { useDeviceHistory } from "./hooks/useDeviceHistory";
 import { useActivityItems } from "./hooks/useActivityItems";
-import "./index.css";
 
 type AppView =
   | "home"

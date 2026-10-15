@@ -1,0 +1,55 @@
+:root {
+  color-scheme: dark;
+  --color-canvas: #141511;
+  --color-surface: #1d1f19;
+  --color-surface-raised: #282a23;
+  --color-text-primary: #f4f2e9;
+  --color-text-secondary: #b9bcaf;
+  --color-accent: #f2b544;
+  --color-accent-ink: #28200f;
+  --color-ok: #72c993;
+  --color-danger: #f07b74;
+  --color-boundary: #686b60;
+  --color-boundary-soft: #41443a;
+  --color-overlay: #090a08;
+  --font-ui: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 26px;
+  --font-size-2xl: 34px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --radius-control: 6px;
+  --radius-surface: 12px;
+  --duration-press: 100ms;
+  --duration-state: 160ms;
+  --duration-panel: 190ms;
+  --focus-ring: 0 0 0 3px var(--color-canvas), 0 0 0 5px var(--color-accent);
+  --layout-sidebar: 232px;
+  --content-max: 1440px;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-canvas: #f4f3ee;
+  --color-surface: #ffffff;
+  --color-surface-raised: #eaeae3;
+  --color-text-primary: #20221c;
+  --color-text-secondary: #55594f;
+  --color-accent: #805000;
+  --color-accent-ink: #ffffff;
+  --color-ok: #246b3d;
+  --color-danger: #a12620;
+  --color-boundary: #77796f;
+  --color-boundary-soft: #b6b8ae;
+  --color-overlay: #20221c;
+}

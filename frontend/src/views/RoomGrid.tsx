@@ -16,7 +16,7 @@ export default function RoomGrid({
 }: RoomGridProps) {
   return (
     <main className="dash-grid">
-      {ROOMS.slice(0, limit).map((room, i) => (
+      {ROOMS.slice(0, limit).map((room) => (
         <RoomCard
           key={room.id}
           id={room.id}
@@ -24,7 +24,6 @@ export default function RoomGrid({
           devices={room.devices}
           switches={room.switches}
           span={room.span}
-          index={i}
           dummyOn={dummyOn}
           onDummyToggle={onDummyToggle}
           onExpand={onExpand}

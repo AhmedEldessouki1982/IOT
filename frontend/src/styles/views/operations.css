@@ -1,0 +1,19 @@
+.device-admin-state[data-health="online"] {
+  color: var(--color-ok);
+}
+
+.device-admin-state[data-health="stale"],
+.device-admin-state[data-health="pending"] {
+  color: var(--color-accent);
+}
+
+.device-admin-state[data-health="unavailable"] {
+  color: var(--color-danger);
+}
+
+.device-admin-main small code,
+.device-admin-main code {
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}

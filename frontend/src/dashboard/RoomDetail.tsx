@@ -1,10 +1,9 @@
 import { motion } from "framer-motion";
 import { X, Lightbulb, Lock } from "lucide-react";
-import type { CSSProperties } from "react";
 import { isToggleableKind, type DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
 import SwitchCard from "../components/SwitchCard";
-import { ROOM_ICON_MAP, ROOM_ACCENT_MAP } from "./RoomCard";
+import { ROOM_ICON_MAP } from "./RoomCard";
 import { BedSingle } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
 import {
@@ -40,7 +39,6 @@ export default function RoomDetail({
   onClose,
 }: RoomDetailProps) {
   const Icon = ROOM_ICON_MAP[id] ?? BedSingle;
-  const accent = ROOM_ACCENT_MAP[id] ?? "#22d3ee";
 
   // Live MQTT device states (light1 + sonoff1/2/3) — any light config that
   // carries a deviceId rounds-trips here; the rest are local dummy toggles.
@@ -98,7 +96,6 @@ export default function RoomDetail({
       <motion.section
         layoutId={`room-card-${id}`}
         className="room-detail"
-        style={{ "--cc-room-accent": accent } as CSSProperties}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="room-detail-head">
