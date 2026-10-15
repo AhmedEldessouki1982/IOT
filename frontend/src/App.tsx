@@ -170,7 +170,7 @@ export default function App() {
           minute: "2-digit",
           hour12: false,
         })
-      : "No events";
+      : "No activity";
     return [
       {
         id: "lights",
@@ -293,11 +293,9 @@ export default function App() {
             </span>
           </div>
           <p data-online={online}>
-            <span className="dash-status-dot" aria-hidden="true" />
-            {online ? "Live home status" : "Local controls available"}
+            {online && <><span className="dash-status-dot" aria-hidden="true" />Live home status</>}
           </p>
         </div>
-        <span className="dash-time-compact" aria-hidden="true">{time}</span>
       </header>
 
       {!online && <div className="offline-banner" role="status">Hub offline. Showing last known state. Demo controls remain available.</div>}

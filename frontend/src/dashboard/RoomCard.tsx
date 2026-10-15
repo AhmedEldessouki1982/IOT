@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
 import { deviceBooleanValue } from "../features/devices/deviceRuntime";
-import type { KeyboardEvent, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import { motion } from "framer-motion";
 import { useTimers } from "../hooks/useTimers";
 
@@ -80,23 +80,13 @@ export default function RoomCard({
 
   const stopRowClick = (e: MouseEvent) => e.stopPropagation();
 
-  const handleCardKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onExpand?.(id);
-    }
-  };
-
   return (
     <motion.section
       layoutId={`room-card-${id}`}
       className="room-card"
       data-on={hasActiveLight ? "true" : "false"}
       onClick={() => onExpand?.(id)}
-      onKeyDown={handleCardKeyDown}
-      role={onExpand ? "button" : undefined}
-      tabIndex={onExpand ? 0 : undefined}
-      aria-label={onExpand ? `Open ${name} details` : undefined}
+      role="group"
     >
       <header className="room-card-head">
         <div className="room-card-title">
@@ -109,12 +99,7 @@ export default function RoomCard({
           <span className="room-card-count">
             {allLights.length ? `${lightsOn} of ${allLights.length} lights on` : `${allDevices.length} devices`}
           </span>
-          <ChevronRight
-            size={13}
-            strokeWidth={2}
-            className="room-card-expand-hint"
-            aria-hidden="true"
-          />
+          {onExpand && <button type="button" className="room-card-expand" aria-label={`Open ${name} details`} onClick={(event) => { event.stopPropagation(); onExpand(id); }}><ChevronRight size={18} strokeWidth={2} aria-hidden="true" /></button>}
         </span>
       </header>
       <div className="room-card-health" aria-label={`${name} summary`}>

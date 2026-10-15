@@ -1,10 +1,8 @@
-import { motion } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 import { useThemeStore, type ThemeMode } from "../store/useThemeStore";
 
 /**
- * Light/dark switch — a glass segmented control whose animated knob rides a
- * spring track between the sun and moon. State lives in useThemeStore.
+ * Light/dark selection, persisted by useThemeStore.
  */
 export default function ThemeToggle() {
   const theme = useThemeStore((s) => s.theme);
@@ -26,9 +24,7 @@ export default function ThemeToggle() {
         aria-label="Light theme"
         onClick={() => select("light")}
       >
-        {theme === "light" ? (
-          <motion.span layoutId="theme-knob" className="theme-knob" />
-        ) : null}
+        {theme === "light" ? <span className="theme-knob" /> : null}
         <Sun size={15} strokeWidth={1.8} className="theme-toggle-icon" />
       </button>
       <button
@@ -38,9 +34,7 @@ export default function ThemeToggle() {
         aria-label="Dark theme"
         onClick={() => select("dark")}
       >
-        {theme === "dark" ? (
-          <motion.span layoutId="theme-knob" className="theme-knob" />
-        ) : null}
+        {theme === "dark" ? <span className="theme-knob" /> : null}
         <Moon size={15} strokeWidth={1.8} className="theme-toggle-icon" />
       </button>
     </div>

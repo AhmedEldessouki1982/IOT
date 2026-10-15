@@ -97,6 +97,9 @@ export default function RoomDetail({
         layoutId={`room-card-${id}`}
         className="room-detail"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="room-detail-title"
       >
         <header className="room-detail-head">
           <div className="room-detail-title">
@@ -104,7 +107,7 @@ export default function RoomDetail({
               <Icon size={20} strokeWidth={1.6} />
             </span>
             <div>
-              <h2>{name}</h2>
+              <h2 id="room-detail-title">{name}</h2>
               <p className="room-detail-sub">
                 {[...devices, ...switches].length} device
                 {[...devices, ...switches].length === 1 ? "" : "s"}
@@ -116,6 +119,7 @@ export default function RoomDetail({
             className="room-detail-close"
             onClick={onClose}
             aria-label="Close room detail"
+            autoFocus
           >
             <X size={17} strokeWidth={1.8} />
           </button>

@@ -40,7 +40,7 @@
 .shutdown-confirm span { flex: 1 1 100%; }
 .shutdown-confirm button { min-height: 44px; padding-inline: var(--space-3); border: 1px solid var(--color-boundary); border-radius: var(--radius-control); background: var(--color-surface-raised); color: var(--color-text-primary); }
 .shutdown-confirm .shutdown-confirm-primary { border-color: var(--color-danger); color: var(--color-danger); }
-.security-quick-action { margin-block-start: var(--space-5); }
+.security-quick-action { margin-block-start: var(--space-6); }
 
 .home-status-strip,
 .kpi-rail {
@@ -91,6 +91,7 @@
 }
 
 .home-status-value {
+  display: block;
   font-size: var(--font-size-lg);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -102,6 +103,7 @@
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
 }
+.home-status-label { display: block; }
 
 .activity-panel {
   padding: var(--space-4);
@@ -115,6 +117,9 @@
 }
 
 .activity-panel-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
   font-size: var(--font-size-md);
 }

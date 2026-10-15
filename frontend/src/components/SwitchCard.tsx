@@ -72,7 +72,8 @@ export default function SwitchCard({
         type="button"
         className="switch-card-toggle toggle"
         data-on={on ? "true" : "false"}
-        aria-pressed={on}
+        role="switch"
+        aria-checked={on}
         aria-label={`${label}: ${on ? "on" : "off"}`}
         {...press}
         onClick={(event) => {

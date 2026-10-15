@@ -44,7 +44,8 @@ export default function DeviceToggle({
             type="button"
             onClick={handleClick}
             data-on={on}
-            aria-pressed={on}
+            role="switch"
+            aria-checked={on}
             aria-label={`${label}: ${on ? "on" : "off"}`}
             className="toggle"
           >

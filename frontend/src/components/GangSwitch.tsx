@@ -44,7 +44,8 @@ export default function GangSwitch({
             onClick={handleClick}
             {...press}
             data-on={isOn}
-            aria-pressed={isOn}
+            role="switch"
+            aria-checked={isOn}
             aria-label={`${label}: ${isOn ? "on" : "off"}`}
             className="toggle"
           >
