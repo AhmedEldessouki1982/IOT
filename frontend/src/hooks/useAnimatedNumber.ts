@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { cubicBezier, useReducedMotion } from "framer-motion";
 import { animatedInteger } from "./motionRules.js";
+import { motionEase } from "./motionTokens";
 
 export function useAnimatedNumber(value: number, ms: number) {
   const reduced = useReducedMotion();
@@ -14,9 +15,10 @@ export function useAnimatedNumber(value: number, ms: number) {
       return;
     }
     const start = performance.now();
+    const easing = cubicBezier(...motionEase());
     let frame: number;
     const tick = (now: number) => {
-      current.current = animatedInteger(from, value, now - start, ms);
+      current.current = animatedInteger(from, value, now - start, ms, false, easing(Math.min(1, Math.max(0, (now - start) / ms))));
       setDisplay(current.current);
       if (now - start < ms) frame = requestAnimationFrame(tick);
     };

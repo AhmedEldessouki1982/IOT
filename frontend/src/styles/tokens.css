@@ -52,6 +52,7 @@
   --motion-enter: 6px;
   --motion-press: 0.97;
   --toggle-travel: 18px;
+  --size-lock-control: 112px;
   --focus-ring: 0 0 0 3px var(--color-canvas), 0 0 0 5px var(--color-accent);
   --layout-sidebar: 232px;
   --content-max: 1440px;

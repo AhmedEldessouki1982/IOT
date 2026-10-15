@@ -33,6 +33,8 @@ import ThemeToggle from "./components/ThemeToggle";
 import { MotionReadiness } from "./hooks/MotionReadiness";
 import ConnectionBanner from "./components/ConnectionBanner";
 import ViewFrame from "./components/ViewFrame";
+import KioskOverlay from "./components/KioskOverlay";
+import { useKiosk } from "./hooks/useKiosk";
 import { useSceneRunner } from "./hooks/useSceneRunner";
 import { useDeviceRecords } from "./hooks/useDeviceRecords";
 import { useDeviceHistory } from "./hooks/useDeviceHistory";
@@ -84,6 +86,7 @@ function useClock() {
 
 /** Bento card dashboard — display type, glass, spatial light. */
 export default function App() {
+  const kiosk = useKiosk();
   const [motionReady, setMotionReady] = useState(false);
   const online = useHomeStore((s) => s.online);
   const homeLoadAll = useHomeStore((s) => s.loadAll);
@@ -286,6 +289,7 @@ export default function App() {
       return <ActivityView activityItems={activityItems} />;
     return (
       <SettingsView
+        kiosk={kiosk}
         readiness={readiness}
         records={deviceRecords}
         unavailableLiveCount={unavailableLiveCount}
@@ -296,7 +300,7 @@ export default function App() {
 
   return (
     <MotionReadiness.Provider value={motionReady}>
-    <div className="dash" data-motion-ready={motionReady}>
+    <div className="dash" data-motion-ready={motionReady} {...(kiosk.asleep ? { inert: "" } : {})}>
       <header className="dash-head">
         <div className="dash-greeting">
           <div className="dash-greeting-top">
@@ -379,6 +383,7 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+    <AnimatePresence>{kiosk.asleep && <KioskOverlay online={online} summary={`${statusItems[0].value} lights on, ${statusItems[1].value} doors locked`} />}</AnimatePresence>
     </MotionReadiness.Provider>
   );
 }

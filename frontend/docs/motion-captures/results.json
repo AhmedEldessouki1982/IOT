@@ -1,0 +1,549 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "reduced": false,
+      "fonts": {
+        "family": "Ubuntu, \"Noto Sans Arabic\", ui-sans-serif, system-ui, sans-serif",
+        "loaded": true,
+        "old": false
+      },
+      "initialInfinite": 0,
+      "initialRoomAnimations": 0,
+      "lit": {
+        "on": "true",
+        "animations": [
+          "lit-pop-a"
+        ]
+      },
+      "external": {
+        "flash": true,
+        "announcement": "Reception Ceiling Light turned off"
+      },
+      "lock": "Front Door: unlocked",
+      "interactionShift": 0,
+      "shiftSources": [],
+      "timer": {
+        "text": "00:45",
+        "offset": "92.5",
+        "infinite": 1
+      },
+      "scene": {
+        "state": "done",
+        "commands": 5,
+        "announcement": "Evening scene applied"
+      },
+      "settledInfinite": 0,
+      "confirm": {
+        "before": 5,
+        "open": true,
+        "noCommands": true
+      },
+      "shortHoldCancelled": true,
+      "fullHoldApplied": true,
+      "views": [
+        {
+          "theme": "light",
+          "view": "Home",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Rooms",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Scenes",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Security",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Devices",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Activity",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Settings",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Home",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Rooms",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Scenes",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Security",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Devices",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Activity",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Settings",
+          "overflow": false,
+          "small": []
+        }
+      ],
+      "idle": true,
+      "wake": {
+        "asleep": false,
+        "noCommand": true
+      },
+      "keyboardWake": {
+        "asleep": false,
+        "noCommand": true
+      }
+    },
+    {
+      "width": 1440,
+      "reduced": true,
+      "fonts": {
+        "family": "Ubuntu, \"Noto Sans Arabic\", ui-sans-serif, system-ui, sans-serif",
+        "loaded": true,
+        "old": false
+      },
+      "initialInfinite": 0,
+      "initialRoomAnimations": 0,
+      "lit": {
+        "on": "true",
+        "animations": []
+      },
+      "external": {
+        "flash": true,
+        "announcement": "Reception Ceiling Light turned off"
+      },
+      "lock": "Front Door: unlocked",
+      "interactionShift": 0,
+      "shiftSources": [],
+      "timer": {
+        "text": "00:46",
+        "offset": "92.33333333333333",
+        "infinite": 0
+      },
+      "scene": {
+        "state": "done",
+        "commands": 5,
+        "announcement": "Evening scene applied"
+      },
+      "settledInfinite": 0,
+      "confirm": {
+        "before": 5,
+        "open": true,
+        "noCommands": true
+      },
+      "shortHoldCancelled": true,
+      "fullHoldApplied": true,
+      "views": [
+        {
+          "theme": "light",
+          "view": "Home",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Rooms",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Scenes",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Security",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Devices",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Activity",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Settings",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Home",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Rooms",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Scenes",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Security",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Devices",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Activity",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Settings",
+          "overflow": false,
+          "small": []
+        }
+      ],
+      "idle": true,
+      "wake": {
+        "asleep": false,
+        "noCommand": true
+      },
+      "keyboardWake": {
+        "asleep": false,
+        "noCommand": true
+      }
+    },
+    {
+      "width": 390,
+      "reduced": false,
+      "fonts": {
+        "family": "Ubuntu, \"Noto Sans Arabic\", ui-sans-serif, system-ui, sans-serif",
+        "loaded": true,
+        "old": false
+      },
+      "initialInfinite": 0,
+      "initialRoomAnimations": 0,
+      "lit": {
+        "on": "true",
+        "animations": [
+          "lit-pop-a"
+        ]
+      },
+      "external": {
+        "flash": true,
+        "announcement": "Reception Ceiling Light turned off"
+      },
+      "lock": "Front Door: unlocked",
+      "interactionShift": 0,
+      "shiftSources": [],
+      "timer": {
+        "text": "00:45",
+        "offset": "92.5",
+        "infinite": 1
+      },
+      "scene": {
+        "state": "done",
+        "commands": 5,
+        "announcement": "Evening scene applied"
+      },
+      "settledInfinite": 0,
+      "confirm": {
+        "before": 5,
+        "open": true,
+        "noCommands": true
+      },
+      "shortHoldCancelled": true,
+      "fullHoldApplied": true,
+      "views": [
+        {
+          "theme": "light",
+          "view": "Home",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Rooms",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Scenes",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Security",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Devices",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Activity",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Settings",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Home",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Rooms",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Scenes",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Security",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Devices",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Activity",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Settings",
+          "overflow": false,
+          "small": []
+        }
+      ],
+      "idle": true,
+      "wake": {
+        "asleep": false,
+        "noCommand": true
+      },
+      "keyboardWake": {
+        "asleep": false,
+        "noCommand": true
+      }
+    },
+    {
+      "width": 390,
+      "reduced": true,
+      "fonts": {
+        "family": "Ubuntu, \"Noto Sans Arabic\", ui-sans-serif, system-ui, sans-serif",
+        "loaded": true,
+        "old": false
+      },
+      "initialInfinite": 0,
+      "initialRoomAnimations": 0,
+      "lit": {
+        "on": "true",
+        "animations": []
+      },
+      "external": {
+        "flash": true,
+        "announcement": "Reception Ceiling Light turned off"
+      },
+      "lock": "Front Door: unlocked",
+      "interactionShift": 0,
+      "shiftSources": [],
+      "timer": {
+        "text": "00:46",
+        "offset": "92.33333333333333",
+        "infinite": 0
+      },
+      "scene": {
+        "state": "done",
+        "commands": 5,
+        "announcement": "Evening scene applied"
+      },
+      "settledInfinite": 0,
+      "confirm": {
+        "before": 5,
+        "open": true,
+        "noCommands": true
+      },
+      "shortHoldCancelled": true,
+      "fullHoldApplied": true,
+      "views": [
+        {
+          "theme": "light",
+          "view": "Home",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Rooms",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Scenes",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Security",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Devices",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Activity",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "light",
+          "view": "Settings",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Home",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Rooms",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Scenes",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Security",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Devices",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Activity",
+          "overflow": false,
+          "small": []
+        },
+        {
+          "theme": "dark",
+          "view": "Settings",
+          "overflow": false,
+          "small": []
+        }
+      ],
+      "idle": true,
+      "wake": {
+        "asleep": false,
+        "noCommand": true
+      },
+      "keyboardWake": {
+        "asleep": false,
+        "noCommand": true
+      }
+    }
+  ],
+  "exceptions": []
+}

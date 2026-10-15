@@ -8,6 +8,19 @@ scenes, and shutdown. Installer detail stays available in its own sections.
 The visual signature is a warm amber lit state against quiet graphite or
 chalk surfaces; the amber is reserved for an active light and its room.
 
+## Pass 2 Revision
+
+Ubuntu 400/500/700 replaces Manrope; Ubuntu Mono 400/700 replaces Plex and is
+also used for changing digits. The package-registered family names are tested.
+Home now uses a divided status strip, a full-width actions band with shutdown
+separated at the inline end, and adjacent active/recent lists. Mobile KPIs are
+compact two-column rows. The sidebar adds the brand and an appearance shortcut.
+Room health chips no longer repeat the light count; demo rows have no status dot.
+
+The current motion catalog and rules are in `design-system.md`. Initial load
+does not animate. Shutdown now uses a 1.2-second hold plus native keyboard
+confirmation, and opt-in wall-panel mode defaults to five idle minutes.
+
 ## Tokens
 
 ### Color
@@ -34,12 +47,10 @@ chosen independently for contrast.
 
 ### Type
 
-- UI and body: **Manrope Variable**. Its open counters and sturdy numerals suit
-  a wall display viewed at a distance while keeping household copy familiar.
-- Device identifiers only: **IBM Plex Mono**. Its forms distinguish technical
-  ids in the installer registry without turning normal labels into code.
-- Display role: Manrope Variable at a heavier weight for the greeting and
-  prominent counts, keeping the interface to one downloaded family.
+- UI/body/display: **Ubuntu**. Its open forms suit a wall display and the owner's
+  requested identity; only its real 400/500/700 weights are used.
+- Device identifiers and updating digits: **Ubuntu Mono**, for predictable
+  digit widths in clocks, countdowns and live counts.
 
 Six sizes: `12px`, `14px`, `16px`, `20px`, `26px`, `34px`, exposed as
 `--font-size-xs` through `--font-size-2xl`. Body copy uses 14px or larger.

@@ -11,12 +11,7 @@ interface EmergencyShutdownProps {
   label?: string;
 }
 
-/**
- * Emergency shutdown — a deliberately offset, high-contrast button (power
- * icon + word) that turns everything off with one tap. Distinct from the
- * theme toggle so it reads as a heavier, destructive action. Reusable: the
- * caller decides what "all off" means for its device set.
- */
+/** Deliberate pointer hold with a native confirmation dialog for keyboard use. */
 export default function EmergencyShutdown({
   onShutdown,
   active = false,
@@ -27,6 +22,11 @@ export default function EmergencyShutdown({
   const dialog = useRef<HTMLDialogElement>(null);
   const press = useLongPress(() => {}, () => { setHolding(false); onShutdown(); }, motionMs("hold"));
   useEffect(() => { if (confirming) dialog.current?.showModal(); }, [confirming]);
+  useEffect(() => {
+    const cancel = () => { setHolding(false); press.onPointerCancel(); };
+    window.addEventListener("blur", cancel);
+    return () => window.removeEventListener("blur", cancel);
+  }, [press.onPointerCancel]);
   return (
     <div className="shutdown-action">
       <button

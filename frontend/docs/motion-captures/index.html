@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard motion verification</title>
+<style>
+body { font: 16px system-ui; margin: 24px; color: #20221c; background: #f4f3ee; }
+h1 { font-size: 26px; } h2 { font-size: 20px; margin-top: 32px; }
+.strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; }
+figure { margin: 0; flex: 0 0 auto; } img { display: block; max-height: 420px; max-width: 85vw; border: 1px solid #77796f; }
+figcaption { font-size: 14px; padding-top: 8px; }
+label { display: inline-flex; gap: 8px; align-items: center; margin-right: 24px; }
+select { font: inherit; min-height: 44px; }
+</style>
+<h1>Dashboard motion verification</h1>
+<p>Isolated Chrome with mocked API traffic. Frames are sequential captures, not exact-duration video. The JSON report records font, interaction, accessibility, and layout measurements.</p>
+<label>Viewport <select id="size"><option>1440</option><option>390</option></select></label>
+<label>Motion <select id="mode"><option value="motion">Enabled</option><option value="reduced">Reduced</option></select></label>
+<main id="captures"></main>
+<script>
+const render = () => {
+  const root = document.querySelector('#captures'); root.replaceChildren();
+  for (const name of ['lit','external','lock','timer','scene','idle','wake']) {
+    const section = document.createElement('section');
+    const h = document.createElement('h2'); h.textContent = name; section.append(h);
+    const strip = document.createElement('div'); strip.className = 'strip'; section.append(strip);
+    for (let i=0;i<(name==='idle'?1:3);i++) {
+      const figure=document.createElement('figure'); const image=document.createElement('img');
+      image.src=`${size.value}-${mode.value}-${name}-${i}.jpg`; image.alt=`${name}, frame ${i+1}`; image.loading='lazy';
+      const caption=document.createElement('figcaption'); caption.textContent=`Frame ${i+1}`;
+      figure.append(image,caption);strip.append(figure);
+    }
+    root.append(section);
+  }
+};
+document.querySelectorAll('select').forEach(el=>el.addEventListener('change',render));render();
+</script>
+</html>

@@ -13,7 +13,8 @@ test("external changes exclude the local action window", () => {
   assert.equal(isExternalChange(undefined, true, undefined, 2000), false);
 });
 test("numbers round, finish exactly, handle decreases and reduced motion", () => {
-  assert.equal(animatedInteger(0, 8, 200, 400), 7);
+  assert.equal(animatedInteger(0, 8, 200, 400), 4);
+  assert.equal(animatedInteger(0, 8, 200, 400, false, 0.875), 7);
   assert.equal(animatedInteger(8, 0, 400, 400), 0);
   assert.equal(animatedInteger(0, 8, 1, 400, true), 8);
   assert.equal(animatedInteger(0, 8, 0, 0), 8);

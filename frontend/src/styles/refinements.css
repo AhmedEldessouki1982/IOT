@@ -111,13 +111,13 @@
     animation: surface-enter var(--duration-panel) var(--ease-settle) both;
   }
   .toggle, .room-card, .device-icon, .switch-card-icon {
-    transition: background-color var(--duration-state), border-color var(--duration-state), color var(--duration-state);
+    transition: background-color var(--duration-state) var(--ease-standard), border-color var(--duration-state) var(--ease-standard), color var(--duration-state) var(--ease-standard);
   }
   .toggle-knob {
-    transition: transform var(--duration-state) var(--ease-settle), background-color var(--duration-state);
+    transition: transform var(--duration-state) var(--ease-settle), background-color var(--duration-state) var(--ease-standard);
   }
   .app-nav-item, .scene-button, .theme-toggle-opt, .room-card-expand, .lock-pill, .room-detail-action {
-    transition: background-color var(--duration-state), border-color var(--duration-state), transform var(--duration-press) var(--ease-settle);
+    transition: background-color var(--duration-state) var(--ease-standard), border-color var(--duration-state) var(--ease-standard), transform var(--duration-press) var(--ease-settle);
   }
   .scene-button:active, .room-card-expand:active, .room-detail-action:active, .lock-pill:active {
     transform: scale(var(--motion-press));

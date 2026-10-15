@@ -1,5 +1,4 @@
 import LockIcon from "../../../components/LockIcon";
-import { useStateChange } from "../../../hooks/useStateChange";
 
 export interface LockDeviceProps {
   variant: "card";
@@ -19,7 +18,6 @@ export default function LockDevice({
   badge,
 }: LockDeviceProps) {
   const locked = state ?? true;
-  const revision = useStateChange(state);
 
   return (
     <div className="device-row lock-row">
@@ -44,7 +42,7 @@ export default function LockDevice({
           aria-label={`${label}: ${locked ? "locked" : "unlocked"}`}
           className="lock-pill"
         >
-          <span key={revision} className={revision ? "changed-label" : undefined}>{locked ? "Locked" : "Unlocked"}</span>
+          <span className="lock-labels"><span aria-hidden={!locked} className="lock-label-locked">Locked</span><span aria-hidden={locked} className="lock-label-unlocked">Unlocked</span></span>
         </button>
       </div>
     </div>
