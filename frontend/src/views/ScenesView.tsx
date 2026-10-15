@@ -1,4 +1,5 @@
 import { SCENES } from "../dashboard/scenes";
+import SceneActionButton from "../components/SceneActionButton";
 
 interface ScenesViewProps {
   onApplyScene: (sceneId: string) => void;
@@ -23,9 +24,7 @@ export default function ScenesView({ onApplyScene }: ScenesViewProps) {
                 <h3>{scene.label}</h3>
                 <p>Changes {scene.actions.length} devices</p>
               </div>
-              <button type="button" onClick={() => onApplyScene(scene.id)}>
-                Apply
-              </button>
+              <SceneActionButton scene={scene} onApply={onApplyScene} />
             </article>
           );
         })}

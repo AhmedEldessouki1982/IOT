@@ -1,5 +1,22 @@
 .visually-hidden { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .device-motion { position: relative; isolation: isolate; }
+.view-stage { display: grid; position: relative; }
+.home-status-value { font-family: var(--font-ui); }
+.home-status-value[data-numeric="true"] { font-family: var(--font-mono); }
+.scene-action { min-width: 0; }
+.scene-action .scene-button { width: 100%; }
+.scene-button[data-state="done"] { color: var(--color-ok); border-color: var(--color-ok); }
+.scene-button:disabled { cursor: progress; }
+.scene-error { display: block; color: var(--color-danger); font-size: var(--font-size-xs); margin-block-start: var(--space-1); }
+.shutdown-btn { touch-action: none; user-select: none; }
+.hold-indicator { position: relative; display: grid; place-items: center; width: 28px; height: 28px; }
+.hold-indicator > svg:last-child { position: absolute; inset: 0; width: 28px; height: 28px; transform: rotate(-90deg); }
+.hold-indicator circle { fill: none; stroke: currentColor; stroke-width: 2; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.shutdown-btn[data-holding="true"] circle { stroke-dashoffset: 0; }
+.shutdown-dialog { max-inline-size: min(400px, calc(100% - var(--space-8))); margin: auto; }
+.shutdown-dialog:not([open]) { display: none; }
+.shutdown-dialog::backdrop { background: color-mix(in srgb, var(--color-overlay) 70%, transparent); }
+.reconnecting-dot { display: inline-block; inline-size: 8px; block-size: 8px; margin-inline-end: var(--space-2); border-radius: 50%; background: var(--color-accent); }
 .dash[data-motion-ready="false"] *, .dash[data-motion-ready="false"] *::before, .dash[data-motion-ready="false"] *::after { animation: none !important; transition-duration: 0ms !important; }
 .row-flash { position: absolute; inset: 0; pointer-events: none; border-radius: var(--radius-control); }
 .row-flash::after { content: ""; position: absolute; inset: 0; background: var(--color-accent); border-radius: inherit; opacity: 0; }
@@ -18,6 +35,9 @@
 .timer-badge--low .timer-ring-value { stroke: var(--color-danger); }
 
 @media (prefers-reduced-motion: no-preference) {
+  .shutdown-btn[data-holding="true"] circle { transition: stroke-dashoffset var(--duration-hold) var(--ease-linear); }
+  .reconnecting-dot { animation: reconnect-pulse var(--duration-idle) var(--ease-standard) infinite; }
+  @keyframes reconnect-pulse { 50% { opacity: 0.4; } }
   .timer-ring-value { transition: stroke-dashoffset var(--duration-tick) var(--ease-linear), stroke var(--duration-state) var(--ease-standard); }
   .timer-badge--low .timer-numerals { animation: timer-warning var(--duration-tick) var(--ease-standard) infinite; }
   @keyframes timer-warning { 50% { opacity: 0.55; } }

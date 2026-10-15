@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Power } from "lucide-react";
+import { useLongPress } from "../hooks/useLongPress";
+import { motionMs } from "../hooks/motionTokens";
 
 interface EmergencyShutdownProps {
   /** Toggles the shutdown state. */
@@ -21,24 +23,34 @@ export default function EmergencyShutdown({
   label = "Shutdown",
 }: EmergencyShutdownProps) {
   const [confirming, setConfirming] = useState(false);
+  const [holding, setHolding] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const press = useLongPress(() => {}, () => { setHolding(false); onShutdown(); }, motionMs("hold"));
+  useEffect(() => { if (confirming) dialog.current?.showModal(); }, [confirming]);
   return (
     <div className="shutdown-action">
       <button
         type="button"
         className="shutdown-btn"
         data-active={active}
-        onClick={() => setConfirming(true)}
+        {...press}
+        data-holding={holding}
+        onPointerDown={(event) => { if (event.button !== 0 || !event.isPrimary) return; setHolding(true); press.onPointerDown(event); }}
+        onPointerUp={(event) => { setHolding(false); press.onPointerUp(event); }}
+        onPointerLeave={(event) => { setHolding(false); press.onPointerLeave(event); }}
+        onPointerCancel={(event) => { setHolding(false); press.onPointerCancel(event); }}
+        onClick={(event) => { if (event.detail === 0) setConfirming(true); }}
         aria-label={label}
-        title={`${label} — all lights off, all doors locked`}
+        title="Hold to shut down: lights off, doors locked"
       >
-        <Power size={18} strokeWidth={2} />
+        <span className="hold-indicator"><Power size={18} strokeWidth={2} /><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" pathLength="100" /></svg></span>
         <span>{label}</span>
       </button>
-      {confirming && <div className="shutdown-confirm" role="group" aria-label="Confirm shut down">
+      {confirming && <dialog ref={dialog} className="shutdown-confirm shutdown-dialog" aria-label="Confirm shut down" onClose={() => setConfirming(false)}>
         <span>Turn off lights and lock doors?</span>
-        <button type="button" onClick={() => setConfirming(false)}>Cancel</button>
+        <button type="button" autoFocus onClick={() => setConfirming(false)}>Cancel</button>
         <button type="button" className="shutdown-confirm-primary" onClick={() => { setConfirming(false); onShutdown(); }}>Shut down</button>
-      </div>}
+      </dialog>}
     </div>
   );
 }

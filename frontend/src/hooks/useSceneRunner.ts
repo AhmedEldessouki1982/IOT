@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { flashScene, markLocalAction } from "./localActions";
+import { useHomeStore } from "../store/useHomeStore";
 import type { DeviceState } from "../api/devices";
 import type { ActivityItem } from "../components/ActivityPanel";
 import { SCENES, type SceneAction } from "../dashboard/scenes";
@@ -51,8 +53,9 @@ export function useSceneRunner({
     stateKey: string,
     value: boolean,
   ) => {
+    markLocalAction(deviceId);
     setPendingLiveIds((current) => ({ ...current, [deviceId]: true }));
-    void setLiveBoolean(deviceId, stateKey, value).finally(() => {
+    return setLiveBoolean(deviceId, stateKey, value).finally(() => {
       window.setTimeout(() => {
         setPendingLiveIds((current) => {
           const next = { ...current };
@@ -93,6 +96,7 @@ export function useSceneRunner({
     });
     const next: Record<string, boolean> = {};
     allConfigs.forEach((d) => {
+      markLocalAction(liveDeviceId(d) ?? d.id);
       if (isLiveConfig(d)) return;
       if (d.kind === "light" && !d.deviceId) next[d.id] = false;
       if (d.kind === "lock") next[d.id] = true;
@@ -118,6 +122,15 @@ export function useSceneRunner({
     const scene = SCENES.find((s) => s.id === sceneId);
     if (!scene) return;
     const byId = new Map(allConfigs.map((d) => [d.id, d]));
+    const dispatched: Promise<void>[] = [];
+    const liveUnavailable = !useHomeStore.getState().online && scene.actions.some(action => {
+      const config = byId.get(action.id);
+      return config && isLiveConfig(config);
+    });
+    flashScene(scene.actions.map(action => {
+      const config = byId.get(action.id);
+      return config ? liveDeviceId(config) ?? config.id : action.id;
+    }));
     const previousDummy = { ...dummyOn };
     const previousLive = new Map<string, boolean | undefined>();
     const nextDummy = { ...dummyOn };
@@ -130,7 +143,7 @@ export function useSceneRunner({
           deviceId,
           liveBooleanValue(config, liveDevices[deviceId]),
         );
-        commandLiveBoolean(deviceId, liveStateKey(config.kind), action.value);
+        dispatched.push(commandLiveBoolean(deviceId, liveStateKey(config.kind), action.value));
         return;
       }
       nextDummy[action.id] = action.value;
@@ -149,6 +162,7 @@ export function useSceneRunner({
       label: `${scene.label} applied`,
       detail: `${scene.actions.length} devices updated`,
       undo: () => {
+        allConfigs.forEach(config => markLocalAction(liveDeviceId(config) ?? config.id));
         resetDummy(previousDummy);
         previousLive.forEach((value, deviceId) => {
           const config = [...byId.values()].find(
@@ -164,6 +178,13 @@ export function useSceneRunner({
           detail: "Previous device state restored",
         });
       },
+    });
+    return Promise.all(dispatched).then(() => {
+      if (liveUnavailable) throw new Error("Hub offline. Local changes applied; retry when connected.");
+    }).catch((error: unknown) => {
+      const detail = error instanceof Error ? error.message : "Scene could not finish. Try again.";
+      setSceneFeedback(current => current ? { ...current, label: `${scene.label} needs attention`, detail } : null);
+      throw new Error(detail);
     });
   };
 

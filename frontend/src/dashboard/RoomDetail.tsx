@@ -14,6 +14,7 @@ import {
 } from "../features/devices/deviceRuntime";
 import { useTimers } from "../hooks/useTimers";
 import { markLocalAction } from "../hooks/localActions";
+import { motionEase } from "../hooks/motionTokens";
 
 interface RoomDetailProps {
   id: string;
@@ -99,14 +100,15 @@ export default function RoomDetail({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration }}
+      transition={{ duration, ease: motionEase() }}
     >
       <motion.section
+        layoutId={reducedMotion ? undefined : `room-card-${id}`}
         className="room-detail"
         initial={{ opacity: reducedMotion ? 1 : 0, y: enterOffset }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: reducedMotion ? 1 : 0, y: enterOffset }}
-        transition={{ duration }}
+        transition={{ duration, ease: motionEase() }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

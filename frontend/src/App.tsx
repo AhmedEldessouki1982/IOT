@@ -31,6 +31,8 @@ import ActivityView from "./views/ActivityView";
 import SettingsView from "./views/SettingsView";
 import ThemeToggle from "./components/ThemeToggle";
 import { MotionReadiness } from "./hooks/MotionReadiness";
+import ConnectionBanner from "./components/ConnectionBanner";
+import ViewFrame from "./components/ViewFrame";
 import { useSceneRunner } from "./hooks/useSceneRunner";
 import { useDeviceRecords } from "./hooks/useDeviceRecords";
 import { useDeviceHistory } from "./hooks/useDeviceHistory";
@@ -310,7 +312,7 @@ export default function App() {
         </div>
       </header>
 
-      {!online && <div className="offline-banner" role="status">Hub offline. Showing last known state. Demo controls remain available.</div>}
+      <ConnectionBanner online={online} />
 
       <nav className="app-nav" aria-label="App sections">
         <div className="nav-brand"><Home size={24} aria-hidden="true" /><span>AL-Mashareq<small>Home control</small></span></div>
@@ -361,7 +363,7 @@ export default function App() {
         </section>
       )}
 
-      <main key={activeView} className="view-content">{renderActiveView()}</main>
+      <div className="view-stage"><AnimatePresence initial={false} mode="popLayout"><ViewFrame key={activeView}>{renderActiveView()}</ViewFrame></AnimatePresence></div>
 
       <AnimatePresence>
         {openRoom && (

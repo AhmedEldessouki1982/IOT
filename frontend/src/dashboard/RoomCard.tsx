@@ -15,6 +15,8 @@ import { useHomeStore } from "../store/useHomeStore";
 import { deviceBooleanValue } from "../features/devices/deviceRuntime";
 import type { MouseEvent } from "react";
 import { useTimers } from "../hooks/useTimers";
+import { motion, useReducedMotion } from "framer-motion";
+import { motionMs, motionEase } from "../hooks/motionTokens";
 
 const ROOM_ICON: Record<string, typeof Sofa> = {
   reception: Sofa,
@@ -52,6 +54,7 @@ export default function RoomCard({
   onExpand,
 }: RoomCardProps) {
   const Icon = ROOM_ICON[id] ?? BedSingle;
+  const reduced = useReducedMotion();
 
   // Live MQTT devices map (light1 + sonoff1/2/3) so the card's "on" count
   // reflects real server state for any light that carries a live deviceId.
@@ -77,7 +80,9 @@ export default function RoomCard({
   const stopRowClick = (e: MouseEvent) => e.stopPropagation();
 
   return (
-    <section
+    <motion.section
+      layoutId={reduced ? undefined : `room-card-${id}`}
+      transition={{ duration: reduced ? 0 : motionMs("view") / 1000, ease: motionEase() }}
       className="room-card"
       data-on={hasActiveLight ? "true" : "false"}
       onClick={() => onExpand?.(id)}
@@ -145,6 +150,6 @@ export default function RoomCard({
           </li>
         ))}
       </ul>
-    </section>
+    </motion.section>
   );
 }

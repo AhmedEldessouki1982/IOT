@@ -1,4 +1,5 @@
 import { Activity, Lightbulb, Lock, Radio, ShieldCheck } from "lucide-react";
+import StatusValue from "./StatusValue";
 
 export interface HomeStatusItem {
   id: string;
@@ -35,7 +36,7 @@ export default function HomeStatusStrip({ items }: HomeStatusStripProps) {
               <Icon size={15} strokeWidth={1.8} />
             </span>
             <span>
-              <span className="home-status-value">{item.value}</span>
+              <StatusValue value={item.value} />
               <span className="home-status-label">{item.label}</span>
             </span>
           </article>
