@@ -17,17 +17,20 @@ chalk surfaces; the amber is reserved for an active light and its room.
 | `--color-canvas` | `#141511` | `#F4F3EE` | App background |
 | `--color-surface` | `#1D1F19` | `#FFFFFF` | Cards and sidebar |
 | `--color-surface-raised` | `#282A23` | `#EAEAE3` | Nested rows and selected controls |
-| `--color-text` | `#F4F2E9` | `#20221C` | Primary text |
+| `--color-text-primary` | `#F4F2E9` | `#20221C` | Primary text |
 | `--color-text-secondary` | `#B9BCAF` | `#55594F` | Supporting text; minimum 4.5:1 |
 | `--color-accent` | `#F2B544` | `#805000` | Lit state and primary action |
 | `--color-ok` | `#72C993` | `#246B3D` | Secure and healthy states |
 | `--color-danger` | `#F07B74` | `#A12620` | Alarm and offline state |
 | `--color-boundary` | `#686B60` | `#77796F` | Control and panel boundaries; minimum 3:1 |
 
-The semantic green/red values remain distinct from amber so state is not
-carried by color alone. Borders use a solid neutral token, never translucent
-white overlays. The dark and light accent values are chosen independently to
-keep amber controls legible against their respective surfaces.
+The six base colors per theme are canvas, surface, raised surface, primary
+text, secondary text, and accent. The functional tokens `--color-ok`,
+`--color-danger`, and `--color-boundary` add status and boundary colors;
+`--color-boundary-soft`, `--color-accent-ink`, and `--color-overlay` are
+supporting values. Semantic colors never carry status alone. Borders use solid
+neutral tokens, never translucent white overlays. Dark and light accents are
+chosen independently for contrast.
 
 ### Type
 
@@ -61,7 +64,7 @@ bar with a More menu for the three installer sections.
 ```text
 +------------------+  +---------------------------------------------------+
 | Home             |  | Hi, Ahmed                         Tue 12:30       |
-| Rooms            |  | Hub connected                                      |
+| Rooms            |  | Live home status                                    |
 | Scenes           |  +---------------------------------------------------+
 | Security         |  | Lights on | Doors | Sensors | Hub | Last activity |
 | Devices          |  +---------------------------+-----------------------+
@@ -79,7 +82,7 @@ bar with a More menu for the three installer sections.
 ```text
 +--------------------------------------+
 | Hi, Ahmed                 12:30      |
-| Hub connected                        |
+| Offline notice appears below when needed |
 +--------------------------------------+
 | Lights on   Doors   Sensors   Hub    |
 +--------------------------------------+
@@ -123,7 +126,7 @@ bar with a More menu for the three installer sections.
 ```text
 +--------------------------------------+
 | Hi, Ahmed                 12:30      |
-| Hub connected                        |
+| Offline notice appears below when needed |
 +--------------------------------------+
 | Rooms                                |
 +--------------------------------------+

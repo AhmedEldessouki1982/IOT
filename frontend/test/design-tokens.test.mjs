@@ -53,6 +53,11 @@ describe("design tokens", () => {
   });
 
   it("uses no more than the six type scale values in declarations", () => {
+    const tokenCss = readFileSync(join(stylesRoot, "tokens.css"), "utf8");
+    const typeScale = [...tokenCss.matchAll(/--font-size-(?:xs|sm|md|lg|xl|2xl):\s*(\d+)px\s*;/g)]
+      .map((match) => Number(match[1]));
+    assert.deepEqual(typeScale, [12, 14, 16, 20, 26, 34]);
+    assert.ok(Math.min(...typeScale) >= 12, "No font token may be below 12px");
     const declarations = cssFiles(sourceRoot)
       .filter((path) => !path.endsWith("tokens.css"))
       .flatMap((path) => [

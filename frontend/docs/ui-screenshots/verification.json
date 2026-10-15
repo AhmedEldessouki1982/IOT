@@ -1,0 +1,377 @@
+{
+  "summary": {
+    "screenshots": 42,
+    "horizontalOverflow": 0,
+    "viewsWithSmallTargets": 0,
+    "shutdownConfirmation": true,
+    "cancelDismissed": true
+  },
+  "results": [
+    {
+      "theme": "dark",
+      "size": "desktop",
+      "view": "Home",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "desktop",
+      "view": "Rooms",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "desktop",
+      "view": "Scenes",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "desktop",
+      "view": "Security",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "desktop",
+      "view": "Devices",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "desktop",
+      "view": "Activity",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "desktop",
+      "view": "Settings",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "tablet",
+      "view": "Home",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "tablet",
+      "view": "Rooms",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "tablet",
+      "view": "Scenes",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "tablet",
+      "view": "Security",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "tablet",
+      "view": "Devices",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "tablet",
+      "view": "Activity",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "tablet",
+      "view": "Settings",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "mobile",
+      "view": "Home",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "mobile",
+      "view": "Rooms",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "mobile",
+      "view": "Scenes",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "mobile",
+      "view": "Security",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "mobile",
+      "view": "Devices",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "mobile",
+      "view": "Activity",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "dark",
+      "size": "mobile",
+      "view": "Settings",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "desktop",
+      "view": "Home",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "desktop",
+      "view": "Rooms",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "desktop",
+      "view": "Scenes",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "desktop",
+      "view": "Security",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "desktop",
+      "view": "Devices",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "desktop",
+      "view": "Activity",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "desktop",
+      "view": "Settings",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "tablet",
+      "view": "Home",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "tablet",
+      "view": "Rooms",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "tablet",
+      "view": "Scenes",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "tablet",
+      "view": "Security",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "tablet",
+      "view": "Devices",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "tablet",
+      "view": "Activity",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "tablet",
+      "view": "Settings",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "mobile",
+      "view": "Home",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "mobile",
+      "view": "Rooms",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "mobile",
+      "view": "Scenes",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "mobile",
+      "view": "Security",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "mobile",
+      "view": "Devices",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "mobile",
+      "view": "Activity",
+      "overflow": false,
+      "smallTargets": []
+    },
+    {
+      "theme": "light",
+      "size": "mobile",
+      "view": "Settings",
+      "overflow": false,
+      "smallTargets": []
+    }
+  ],
+  "narrow": [
+    {
+      "theme": "dark",
+      "view": "Home",
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "view": "Rooms",
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "view": "Scenes",
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "view": "Security",
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "view": "Devices",
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "view": "Activity",
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "view": "Settings",
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "view": "Home",
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "view": "Rooms",
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "view": "Scenes",
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "view": "Security",
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "view": "Devices",
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "view": "Activity",
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "view": "Settings",
+      "overflow": false
+    }
+  ]
+}

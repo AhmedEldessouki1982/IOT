@@ -122,7 +122,7 @@ export default function DevicesView({
             <td data-label="Room">{record.roomName}</td>
             <td data-label="Type">{record.config.kind}</td>
             <td data-label="ID"><code>{record.liveId ?? "Demo"}</code></td>
-            <td data-label="State"><span className="device-admin-pill">{record.stateText}</span>{record.source === "demo" && <small className="device-demo-label">Demo</small>}</td>
+            <td data-label="State"><span className="device-admin-pill">{record.config.kind === "room-temp" ? `${(record.config.current ?? 22).toFixed(1)} °C` : record.stateText}</span>{record.source === "demo" && <small className="device-demo-label">Demo</small>}</td>
             <td data-label="Last seen">{record.source === "live" ? formatLastSeen(record.lastSeen) : "Demo device"}</td>
           </tr>)}</tbody>
         </table>
