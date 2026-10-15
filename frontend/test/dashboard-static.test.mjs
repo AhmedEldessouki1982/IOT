@@ -51,6 +51,16 @@ describe("dashboard feature boundaries", () => {
     assert.equal(app.includes("SettingsView"), true);
   });
 
+  it("keeps the full room grid exclusive to Rooms", () => {
+    const home = read("src/views/HomeView.tsx");
+    const rooms = read("src/views/RoomGrid.tsx");
+    const roomStyles = read("src/styles/components/rooms.css");
+    assert.equal(home.includes("RoomGrid"), false);
+    assert.equal(rooms.includes("ROOMS.map"), true);
+    assert.equal(roomStyles.includes("room-card--wide"), false);
+    assert.equal(roomStyles.includes("room-card--narrow"), false);
+  });
+
   it("keeps device registry operations available for business deployments", () => {
     const app = read("src/views/DevicesView.tsx");
     const css = read("src/styles/components/panels.css");

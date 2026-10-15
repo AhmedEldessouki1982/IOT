@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Power } from "lucide-react";
 
@@ -20,18 +21,26 @@ export default function EmergencyShutdown({
   active = false,
   label = "Shutdown",
 }: EmergencyShutdownProps) {
+  const [confirming, setConfirming] = useState(false);
   return (
-    <motion.button
-      type="button"
-      className="shutdown-btn"
-      data-active={active}
-      onClick={onShutdown}
-      whileTap={{ scale: 0.94 }}
-      aria-label={label}
-      title={`${label} — all lights off, all doors locked`}
-    >
-      <Power size={14} strokeWidth={2} />
-      <span>{active ? "Shut down" : label}</span>
-    </motion.button>
+    <div className="shutdown-action">
+      <motion.button
+        type="button"
+        className="shutdown-btn"
+        data-active={active}
+        onClick={() => setConfirming(true)}
+        whileTap={{ scale: 0.98 }}
+        aria-label={label}
+        title={`${label} — all lights off, all doors locked`}
+      >
+        <Power size={18} strokeWidth={2} />
+        <span>{label}</span>
+      </motion.button>
+      {confirming && <div className="shutdown-confirm" role="group" aria-label="Confirm shut down">
+        <span>Turn off lights and lock doors?</span>
+        <button type="button" onClick={() => setConfirming(false)}>Cancel</button>
+        <button type="button" className="shutdown-confirm-primary" onClick={() => { setConfirming(false); onShutdown(); }}>Shut down</button>
+      </div>}
+    </div>
   );
 }

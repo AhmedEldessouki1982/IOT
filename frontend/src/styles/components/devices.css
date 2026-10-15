@@ -147,7 +147,7 @@
 
 .switch-card {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
+  grid-template-columns: 28px minmax(0, 1fr) auto 52px 8px;
   align-items: center;
   gap: var(--space-3);
   min-height: 52px;
@@ -169,13 +169,13 @@
 }
 
 .switch-card-toggle {
-  grid-column: 3;
+  grid-column: 4;
   grid-row: 1;
 }
 
 .timer-badge {
-  grid-column: 2;
-  grid-row: 2;
+  grid-column: 3;
+  grid-row: 1;
   justify-self: start;
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-control);

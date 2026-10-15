@@ -14,6 +14,7 @@ import {
 import { useHomeStore } from "./store/useHomeStore";
 import { useDummyToggles } from "./features/devices/useDummyToggles";
 import { ROOMS } from "./dashboard/rooms";
+import { SCENES } from "./dashboard/scenes";
 import type { DeviceConfig } from "./features/devices";
 import {
   isLiveConfig,
@@ -121,7 +122,9 @@ export default function App() {
   } = useDummyToggles(dummyInitial);
 
   const {
+    anythingOn,
     applyScene,
+    handleShutdown,
     lastScene,
     pendingLiveIds,
     sceneFeedback,
@@ -208,6 +211,11 @@ export default function App() {
   }, [allConfigs, dummyOn, history, lastScene, liveDevices, online]);
 
   const activityItems = useActivityItems(allConfigs, history, lastScene);
+  const activeItems = useMemo(() => ROOMS.flatMap((room) =>
+    [...room.devices, ...(room.switches ?? [])]
+      .filter((config) => config.kind !== "lock" && valueForConfig(config) === true)
+      .map((config) => ({ config, roomId: room.id, roomName: room.name })),
+  ).sort((a, b) => Number(b.config.kind === "light") - Number(a.config.kind === "light")), [dummyOn, liveDevices]);
 
   const openRoom = openRoomId
     ? (ROOMS.find((r) => r.id === openRoomId) ?? null)
@@ -229,9 +237,12 @@ export default function App() {
         <HomeView
           statusItems={statusItems}
           activityItems={activityItems}
-          dummyOn={dummyOn}
-          onDummyToggle={toggleDummy}
-          onExpand={setOpenRoomId}
+          activeItems={activeItems}
+          scenes={SCENES}
+          onApplyScene={applyScene}
+          onShutdown={handleShutdown}
+          shutdownActive={anythingOn}
+          onOpenRoom={setOpenRoomId}
         />
       );
     }
@@ -248,7 +259,7 @@ export default function App() {
       return <ScenesView onApplyScene={applyScene} />;
     if (activeView === "security")
       return (
-        <SecurityView records={securityRecords} activityItems={activityItems} />
+        <SecurityView records={securityRecords} activityItems={activityItems} onShutdown={handleShutdown} shutdownActive={anythingOn} />
       );
     if (activeView === "devices")
       return (

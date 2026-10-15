@@ -27,16 +27,6 @@ const ROOM_ICON: Record<string, typeof Sofa> = {
   master: Crown,
 };
 
-const ROOM_SPAN: Record<string, string> = {
-  reception: "room-card--wide",
-  kitchen: "room-card--wide",
-  toilet: "room-card--narrow",
-  corridor: "room-card--narrow",
-  bed1: "room-card--narrow",
-  bed2: "room-card--narrow",
-  master: "room-card--narrow",
-};
-
 export const ROOM_ICON_MAP = ROOM_ICON;
 
 interface RoomCardProps {
@@ -45,8 +35,6 @@ interface RoomCardProps {
   devices: DeviceConfig[];
   /** Live Sonoff switch relays to show as balanced switch cards. */
   switches?: DeviceConfig[];
-  /** Grid span class for the bento card (defaults to wide). */
-  span?: string;
   dummyOn?: Record<string, boolean>;
   onDummyToggle?: (id: string) => void;
   /** Opens the full-screen room detail view for this room. */
@@ -63,13 +51,11 @@ export default function RoomCard({
   name,
   devices,
   switches = [],
-  span,
   dummyOn,
   onDummyToggle,
   onExpand,
 }: RoomCardProps) {
   const Icon = ROOM_ICON[id] ?? BedSingle;
-  const spanClass = span ?? ROOM_SPAN[id] ?? "room-card--wide";
 
   // Live MQTT devices map (light1 + sonoff1/2/3) so the card's "on" count
   // reflects real server state for any light that carries a live deviceId.
@@ -104,7 +90,7 @@ export default function RoomCard({
   return (
     <motion.section
       layoutId={`room-card-${id}`}
-      className={`room-card ${spanClass}`}
+      className="room-card"
       data-on={hasActiveLight ? "true" : "false"}
       onClick={() => onExpand?.(id)}
       onKeyDown={handleCardKeyDown}
@@ -121,9 +107,8 @@ export default function RoomCard({
         </div>
         <span className="room-card-meta">
           <span className="room-card-count">
-            {allDevices.length} · {allLights.length ? `${lightsOn} on` : "—"}
+            {allLights.length ? `${lightsOn} of ${allLights.length} lights on` : `${allDevices.length} devices`}
           </span>
-          <span className="room-card-dot" aria-hidden="true" />
           <ChevronRight
             size={13}
             strokeWidth={2}

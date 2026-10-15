@@ -1,15 +1,20 @@
 import { BellRing, ShieldCheck } from "lucide-react";
 import ActivityPanel, { type ActivityItem } from "../components/ActivityPanel";
 import type { DeviceRecord } from "../hooks/useDeviceRecords";
+import EmergencyShutdown from "../components/EmergencyShutdown";
 
 interface SecurityViewProps {
   records: DeviceRecord[];
   activityItems: ActivityItem[];
+  onShutdown: () => void;
+  shutdownActive: boolean;
 }
 
 export default function SecurityView({
   records,
   activityItems,
+  onShutdown,
+  shutdownActive,
 }: SecurityViewProps) {
   return (
     <section className="business-panel business-panel--split">
@@ -43,6 +48,10 @@ export default function SecurityView({
               <em>{record.stateText}</em>
             </article>
           ))}
+        </div>
+        <div className="security-quick-action">
+          <h3>Quick actions</h3>
+          <EmergencyShutdown onShutdown={onShutdown} active={shutdownActive} />
         </div>
       </div>
       <ActivityPanel
