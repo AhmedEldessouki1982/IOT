@@ -107,7 +107,7 @@
 
 /* Motion is bounded to interaction feedback; no ambient loops or staggered cards. */
 @media (prefers-reduced-motion: no-preference) {
-  .view-content, .more-nav-menu, .shutdown-confirm, .scene-feedback {
+  .more-nav-menu, .shutdown-confirm {
     animation: surface-enter var(--duration-panel) var(--ease-settle) both;
   }
   .toggle, .room-card, .device-icon, .switch-card-icon {
