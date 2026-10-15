@@ -16,7 +16,7 @@ const ICONS = {
   lights: Lightbulb,
   doors: Lock,
   sensors: ShieldCheck,
-  mqtt: Radio,
+  hub: Radio,
   activity: Activity,
 };
 

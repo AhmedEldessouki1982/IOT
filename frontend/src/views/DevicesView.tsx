@@ -21,7 +21,7 @@ interface DevicesViewProps {
 }
 
 function formatLastSeen(value?: string) {
-  if (!value) return "Never";
+  if (!value) return "No data yet";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Unknown";
   return date.toLocaleTimeString([], {
@@ -62,13 +62,8 @@ export default function DevicesView({
   return (
     <section className="business-panel">
       <div className="panel-headline">
-        <span className="panel-kicker">Installer view</span>
-        <h2>Device registry and health</h2>
-        <p>
-          A business deployment needs clear live/demo separation, last-seen
-          checks, and stale/unavailable states before anything reaches a
-          customer wall panel.
-        </p>
+        <h2>Devices</h2>
+        <p>Check device status, room assignment, and recent connection time.</p>
       </div>
       <KpiRail readiness={readiness} online={online} />
       <div className="device-toolbar" aria-label="Device filters">
@@ -114,42 +109,24 @@ export default function DevicesView({
           {filteredDeviceRecords.length}/{records.length} shown
         </span>
       </div>
-      <div className="device-admin-list">
-        {filteredDeviceRecords.map((record) => (
-          <article
-            key={record.config.id}
-            className="device-admin-row"
-            data-health={record.health}
-          >
-            <span className="device-admin-state">
+      {filteredDeviceRecords.length ? <div className="device-admin-list">
+        <table className="device-admin-table">
+          <thead><tr><th scope="col">Name</th><th scope="col">Room</th><th scope="col">Type</th><th scope="col">ID</th><th scope="col">State</th><th scope="col">Last seen</th></tr></thead>
+          <tbody>{filteredDeviceRecords.map((record) => <tr key={record.config.id} data-health={record.health}>
+            <td data-label="Name"><span className="device-admin-state" aria-hidden="true">
               {record.health === "online" && <CheckCircle2 size={15} />}
-              {record.health === "stale" && <Clock3 size={15} />}
-              {record.health === "pending" && <Clock3 size={15} />}
+              {(record.health === "stale" || record.health === "pending") && <Clock3 size={15} />}
               {record.health === "unavailable" && <WifiOff size={15} />}
               {record.health === "demo" && <ListChecks size={15} />}
-            </span>
-            <span className="device-admin-main">
-              <strong>{record.config.label}</strong>
-              <small>
-                {record.roomName} · {record.config.kind}
-                {record.liveId ? ` · ${record.liveId}` : " · demo"}
-              </small>
-            </span>
-            <span className="device-admin-pill">{record.stateText}</span>
-            <span className="device-admin-last">
-              {record.source === "live"
-                ? formatLastSeen(record.lastSeen)
-                : "Demo"}
-            </span>
-          </article>
-        ))}
-        {filteredDeviceRecords.length === 0 && (
-          <div className="empty-state">
-            <strong>No devices match these filters</strong>
-            <span>Clear the search or switch the health/source filters.</span>
-          </div>
-        )}
-      </div>
+            </span><strong>{record.config.label}</strong></td>
+            <td data-label="Room">{record.roomName}</td>
+            <td data-label="Type">{record.config.kind}</td>
+            <td data-label="ID"><code>{record.liveId ?? "Demo"}</code></td>
+            <td data-label="State"><span className="device-admin-pill">{record.stateText}</span>{record.source === "demo" && <small className="device-demo-label">Demo</small>}</td>
+            <td data-label="Last seen">{record.source === "live" ? formatLastSeen(record.lastSeen) : "Demo device"}</td>
+          </tr>)}</tbody>
+        </table>
+      </div> : <div className="empty-state"><strong>No devices match these filters</strong><span>Clear the search or choose different filters.</span></div>}
     </section>
   );
 }

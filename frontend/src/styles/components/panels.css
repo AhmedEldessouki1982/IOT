@@ -318,6 +318,16 @@
   border-radius: var(--radius-control);
 }
 
+.device-admin-table { width: 100%; border-collapse: collapse; text-align: start; }
+.device-admin-table th { padding: var(--space-3); background: var(--color-surface-raised); color: var(--color-text-secondary); font-size: var(--font-size-xs); font-weight: 600; text-align: start; }
+.device-admin-table td { min-height: 52px; padding: var(--space-3); border-block-end: 1px solid var(--color-boundary-soft); vertical-align: middle; }
+.device-admin-table tbody tr:last-child td { border-block-end: 0; }
+.device-admin-table td:first-child { white-space: nowrap; }
+.device-admin-table td:first-child strong { vertical-align: middle; }
+.device-admin-state { display: inline-flex; margin-inline-end: var(--space-2); vertical-align: middle; }
+.device-admin-table code { font-family: var(--font-mono); font-size: var(--font-size-xs); }
+.device-demo-label { display: inline-block; margin-inline-start: var(--space-2); color: var(--color-text-secondary); }
+
 .device-admin-row {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) auto auto;
@@ -390,4 +400,14 @@
   .device-admin-last {
     grid-column: 2 / -1;
   }
+}
+
+@media (max-width: 1023px) {
+  .device-admin-list { overflow: visible; border: 0; }
+  .device-admin-table, .device-admin-table tbody { display: block; }
+  .device-admin-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .device-admin-table tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-1) var(--space-3); margin-block-end: var(--space-3); padding: var(--space-3); border: 1px solid var(--color-boundary-soft); border-radius: var(--radius-control); background: var(--color-surface); }
+  .device-admin-table td { display: grid; grid-template-columns: minmax(72px, 0.7fr) minmax(0, 1fr); gap: var(--space-2); min-width: 0; padding: var(--space-1) 0; border: 0; overflow-wrap: anywhere; }
+  .device-admin-table td::before { content: attr(data-label); color: var(--color-text-secondary); font-size: var(--font-size-xs); }
+  .device-admin-table td:first-child { white-space: normal; }
 }

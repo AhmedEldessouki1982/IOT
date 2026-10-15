@@ -54,7 +54,7 @@ export default function ActivityPanel({
           ))}
         </ol>
       ) : (
-        <p className="activity-empty">Activity appears when live devices report state.</p>
+        <p className="activity-empty">Recent home activity will appear here when a device changes state.</p>
       )}
     </aside>
   );

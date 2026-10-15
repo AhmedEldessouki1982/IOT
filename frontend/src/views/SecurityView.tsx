@@ -20,12 +20,8 @@ export default function SecurityView({
     <section className="business-panel business-panel--split">
       <div>
         <div className="panel-headline">
-          <span className="panel-kicker">Security</span>
-          <h2>Locks and life-safety at a glance</h2>
-          <p>
-            This view collects the devices a customer checks before sleeping,
-            leaving, or handing over the home.
-          </p>
+          <h2>Security</h2>
+          <p>Check locks and safety sensors, or shut down the home.</p>
         </div>
         <div className="security-grid">
           {records.map((record) => (
@@ -48,6 +44,7 @@ export default function SecurityView({
               <em>{record.stateText}</em>
             </article>
           ))}
+          {records.length === 0 && <p className="empty-state">Locks and safety sensor status will appear here when configured.</p>}
         </div>
         <div className="security-quick-action">
           <h3>Quick actions</h3>

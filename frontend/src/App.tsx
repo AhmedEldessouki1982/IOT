@@ -194,11 +194,11 @@ export default function App() {
         icon: statusIcon("sensors"),
       },
       {
-        id: "mqtt",
-        label: "MQTT",
-        value: online ? "Live" : "Offline",
+        id: "hub",
+        label: "Hub",
+        value: online ? "Connected" : "Offline",
         tone: online ? "good" : "danger",
-        icon: statusIcon("mqtt"),
+        icon: statusIcon("hub"),
       },
       {
         id: "activity",

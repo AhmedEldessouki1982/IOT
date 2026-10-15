@@ -12,19 +12,19 @@ export default function KpiRail({ readiness, online }: KpiRailProps) {
         className="kpi-card"
         data-tone={readiness.score > 85 ? "good" : "warn"}
       >
-        <span>Readiness</span>
+        <span>Devices ready</span>
         <strong>{readiness.score}%</strong>
-        <small>{readiness.attention} live device checks</small>
+        <small>{readiness.attention} live devices need attention</small>
       </article>
       <article className="kpi-card">
         <span>Registry</span>
         <strong>{readiness.total}</strong>
         <small>
-          {readiness.live} live · {readiness.demo} demo
+          {readiness.live} live, {readiness.demo} demo
         </small>
       </article>
       <article className="kpi-card" data-tone={online ? "good" : "danger"}>
-        <span>Backend</span>
+        <span>Hub</span>
         <strong>{online ? "Live" : "Offline"}</strong>
         <small>
           {readiness.onlineLive}/{readiness.live} live reporting

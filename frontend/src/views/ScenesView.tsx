@@ -8,13 +8,8 @@ export default function ScenesView({ onApplyScene }: ScenesViewProps) {
   return (
     <section className="business-panel">
       <div className="panel-headline">
-        <span className="panel-kicker">Scenes</span>
-        <h2>Repeatable customer moments</h2>
-        <p>
-          Scenes are the customer-friendly layer over device commands. Each
-          preset shows the number of controlled devices and gives immediate
-          feedback after it runs.
-        </p>
+        <h2>Scenes</h2>
+        <p>Set the home for common moments with one action.</p>
       </div>
       <div className="scene-library">
         {SCENES.map((scene) => {
@@ -26,7 +21,7 @@ export default function ScenesView({ onApplyScene }: ScenesViewProps) {
               </span>
               <div>
                 <h3>{scene.label}</h3>
-                <p>{scene.actions.length} device actions</p>
+                <p>Changes {scene.actions.length} devices</p>
               </div>
               <button type="button" onClick={() => onApplyScene(scene.id)}>
                 Apply
