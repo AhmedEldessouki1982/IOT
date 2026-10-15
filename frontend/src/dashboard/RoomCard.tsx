@@ -97,10 +97,8 @@ export default function RoomCard({
           {onExpand && <button type="button" className="room-card-expand" aria-label={`Open ${name} details`} onClick={(event) => { event.stopPropagation(); onExpand(id); }}><ChevronRight size={18} strokeWidth={2} aria-hidden="true" /></button>}
         </span>
       </header>
-      <div className="room-card-health" aria-label={`${name} summary`}>
-        <span data-state={hasActiveLight ? "warn" : "good"}>
-          {lightsOn} light{lightsOn === 1 ? "" : "s"} on
-        </span>
+      {(allDevices.some((d) => ["lock", "smoke", "gas-leak"].includes(d.kind)) || allDevices.some((d) => timerByDeviceId.has("deviceId" in d ? d.deviceId ?? "" : ""))) && <div className="room-card-health" aria-label={`${name} summary`}>
+        {allDevices.some((d) => timerByDeviceId.has("deviceId" in d ? d.deviceId ?? "" : "")) && <span>Timer running</span>}
         {allDevices.some((d) => d.kind === "lock") && (
           <span data-state={locksLocked ? "good" : "danger"}>
             {locksLocked ? "Secured" : "Unlocked"}
@@ -113,7 +111,7 @@ export default function RoomCard({
             {sensorsSafe ? "Sensors safe" : "Sensor alert"}
           </span>
         )}
-      </div>
+      </div>}
       {switches.length > 0 && (
         <div className="switch-row" onClick={stopRowClick}>
           {switches.map((sw) => (

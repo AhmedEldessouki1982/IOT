@@ -68,6 +68,26 @@
 .home-section-head h2 { margin: 0; }
 .toggle:disabled { cursor: not-allowed; opacity: 0.5; }
 
+.device-connection { display: flex; align-items: center; gap: var(--space-1); padding-inline-start: 40px; color: var(--color-text-secondary); font-size: var(--font-size-xs); }
+.device-connection .cc-live-dot--sm { margin: 0; }
+.device-shell { padding-block-end: var(--space-1); }
+.device-row, .switch-card { border: 0; }
+.room-card-item + .room-card-item, .room-detail-item + .room-detail-item,
+.switch-card + .switch-card, .switch-row:has(+ ul > li) { border-block-start: 1px solid var(--color-boundary-soft); }
+.switch-row:has(+ ul > li) { border-block-start: 0; border-block-end: 1px solid var(--color-boundary-soft); }
+.switch-card { grid-template-columns: 28px minmax(0, 1fr) auto 52px; }
+.switch-card .device-connection { grid-column: 2 / -1; padding: 0; }
+.room-card-expand { border: 0; background: transparent; }
+.room-card-expand svg { width: 20px; height: 20px; }
+.app-nav-item > svg { flex: 0 0 20px; width: 20px; height: 20px; }
+.more-nav-trigger { align-self: stretch; }
+@media (min-width: 640px) {
+  .home-quick-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3) var(--space-6); align-items: start; }
+  .home-quick-actions .home-section-head { grid-column: 1 / -1; margin: 0; }
+  .home-quick-actions .shutdown-action { margin: 0; padding-inline-start: var(--space-6); border-inline-start: 1px solid var(--color-boundary-soft); align-self: center; }
+  .home-quick-actions .scene-button { min-height: 48px; }
+}
+
 @media (min-width: 1024px) {
   .app-nav-item[data-active="true"] { box-shadow: inset 3px 0 var(--color-accent); }
 }
@@ -81,6 +101,8 @@
   .home-status-card:nth-child(even) { border-inline-end: 0; }
   .home-status-card { border-block-end: 1px solid var(--color-boundary-soft); }
   .home-status-card:last-child { border-block-end: 0; flex-direction: row; align-items: center; min-height: 72px; }
+  .home-status-card { min-height: 72px; flex-direction: row; align-items: center; justify-content: flex-start; padding: var(--space-2); }
+  .home-status-value { font-size: var(--font-size-lg); }
 }
 
 /* Motion is bounded to interaction feedback; no ambient loops or staggered cards. */

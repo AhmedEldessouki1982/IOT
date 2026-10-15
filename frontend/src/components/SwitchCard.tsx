@@ -3,6 +3,7 @@ import { Power } from "lucide-react";
 import { apiPost } from "../lib/api";
 import { useLongPress } from "../hooks/useLongPress";
 import TimerBadge from "./TimerBadge";
+import DeviceConnection from "./DeviceConnection";
 
 function timerGangForDeviceId(deviceId: string): number | null {
   const match = /-g([1-3])$/.exec(deviceId);
@@ -83,11 +84,7 @@ export default function SwitchCard({
       >
         <span className="toggle-knob" />
       </button>
-      <span
-        className="cc-live-dot--sm"
-        data-live={online ? "true" : "false"}
-        aria-hidden="true"
-      />
+      <DeviceConnection deviceId={deviceId} />
     </div>
   );
 }

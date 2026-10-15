@@ -8,6 +8,8 @@ import {
   liveStateKey,
 } from "./deviceRuntime";
 import { Device, type DeviceProps } from "./index";
+import DeviceConnection from "../../components/DeviceConnection";
+import type { ReactNode } from "react";
 
 interface CardDeviceProps {
   config: DeviceConfig;
@@ -31,6 +33,7 @@ export default function CardDevice({
   const icon = deviceIcon(config.kind);
   const deviceId = liveDeviceId(config);
   const isLive = isLiveConfig(config);
+  const row = (content: ReactNode) => <div className="device-shell">{content}{deviceId && <DeviceConnection deviceId={deviceId} />}</div>;
   const liveValue = deviceId
     ? liveBooleanValue(config, liveDevices[deviceId])
     : undefined;
@@ -49,9 +52,8 @@ export default function CardDevice({
       state: isLive ? liveValue === true : state,
       onToggle: isLive ? () => toggle(config.deviceId!) : onToggle,
       icon,
-      badge: isLive ? "live" : "demo",
     };
-    return <Device {...props} />;
+    return row(<Device {...props} />);
   }
 
   if (config.kind === "lock") {
@@ -61,21 +63,20 @@ export default function CardDevice({
       label: config.label,
       state: isLive ? liveValue === true : (state ?? config.locked ?? true),
       onToggle: isLive ? setLiveValue : onToggle,
-      badge: isLive ? "live" : "demo",
     };
-    return <Device {...props} />;
+    return row(<Device {...props} />);
   }
 
   if (config.kind === "appliance") {
     const props: DeviceProps = {
       kind: "appliance",
+      icon,
       variant: "card",
       label: config.label,
       state: isLive ? liveValue === true : state,
       onToggle: isLive ? setLiveValue : onToggle,
-      badge: isLive ? "live" : "demo",
     };
-    return <Device {...props} />;
+    return row(<Device {...props} />);
   }
 
   if (config.kind === "smoke") {
@@ -85,9 +86,8 @@ export default function CardDevice({
       label: config.label,
       state: isLive ? liveValue === true : (state ?? config.active ?? false),
       onToggle: isLive ? setLiveValue : onToggle,
-      badge: isLive ? "live" : "demo",
     };
-    return <Device {...props} />;
+    return row(<Device {...props} />);
   }
 
   if (config.kind === "gas-leak") {
@@ -97,7 +97,7 @@ export default function CardDevice({
       label: config.label,
       current: config.detected ?? false,
     };
-    return <Device {...props} />;
+    return row(<Device {...props} />);
   }
 
   const props: DeviceProps = {
@@ -107,5 +107,5 @@ export default function CardDevice({
     current: config.current ?? 22,
     history: config.history,
   };
-  return <Device {...props} />;
+  return row(<Device {...props} />);
 }
