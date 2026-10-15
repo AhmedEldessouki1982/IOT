@@ -29,6 +29,7 @@ import SecurityView from "./views/SecurityView";
 import DevicesView from "./views/DevicesView";
 import ActivityView from "./views/ActivityView";
 import SettingsView from "./views/SettingsView";
+import ThemeToggle from "./components/ThemeToggle";
 import { useSceneRunner } from "./hooks/useSceneRunner";
 import { useDeviceRecords } from "./hooks/useDeviceRecords";
 import { useDeviceHistory } from "./hooks/useDeviceHistory";
@@ -301,6 +302,7 @@ export default function App() {
       {!online && <div className="offline-banner" role="status">Hub offline. Showing last known state. Demo controls remain available.</div>}
 
       <nav className="app-nav" aria-label="App sections">
+        <div className="nav-brand"><Home size={24} aria-hidden="true" /><span>AL-Mashareq<small>Home control</small></span></div>
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const mobileHidden = ["devices", "activity", "settings"].includes(item.id);
@@ -313,13 +315,13 @@ export default function App() {
               aria-current={activeView === item.id ? "page" : undefined}
               onClick={() => setActiveView(item.id)}
             >
-              <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
+              <Icon size={20} strokeWidth={1.8} aria-hidden="true" />
               <span>{item.label}</span>
             </button>
           );
         })}
         <div className="more-nav">
-          <button type="button" className="app-nav-item more-nav-trigger" aria-expanded={moreOpen} onClick={() => setMoreOpen((open) => !open)}>
+          <button type="button" className="app-nav-item more-nav-trigger" data-active={["devices", "activity", "settings"].includes(activeView)} aria-expanded={moreOpen} onClick={() => setMoreOpen((open) => !open)}>
             <MoreHorizontal size={20} aria-hidden="true" />
             <span>More</span>
           </button>
@@ -330,6 +332,7 @@ export default function App() {
             })}
           </div>}
         </div>
+        <div className="nav-footer"><span>Appearance</span><ThemeToggle /></div>
       </nav>
 
       {sceneFeedback && (
@@ -347,7 +350,7 @@ export default function App() {
         </section>
       )}
 
-      {renderActiveView()}
+      <main key={activeView} className="view-content">{renderActiveView()}</main>
 
       <AnimatePresence>
         {openRoom && (

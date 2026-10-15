@@ -12,8 +12,8 @@
   --color-boundary: #686b60;
   --color-boundary-soft: #41443a;
   --color-overlay: #090a08;
-  --font-ui: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-ui: "Ubuntu", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Ubuntu Mono", ui-monospace, monospace;
   --font-size-xs: 12px;
   --font-size-sm: 14px;
   --font-size-md: 16px;
@@ -33,6 +33,10 @@
   --duration-press: 100ms;
   --duration-state: 160ms;
   --duration-panel: 190ms;
+  --ease-settle: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-enter: 6px;
+  --motion-press: 0.97;
+  --toggle-travel: 18px;
   --focus-ring: 0 0 0 3px var(--color-canvas), 0 0 0 5px var(--color-accent);
   --layout-sidebar: 232px;
   --content-max: 1440px;

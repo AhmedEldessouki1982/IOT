@@ -8,14 +8,28 @@ text, secondary text, amber accent), plus semantic good/danger colors and
 neutral boundaries. Text and boundary contrast is checked in
 `test/design-tokens.test.mjs`.
 
-Manrope Variable is the UI and display family: its clear forms remain legible
-on wall panels, and its sturdy numerals work for glanceable readings. IBM Plex
-Mono is reserved for technical device IDs in the Devices registry.
+Ubuntu is the self-hosted UI family, using only 400, 500, and 700 weights.
+Ubuntu Mono 400/700 provides stable widths for clocks, countdowns and live
+numbers as well as device IDs. The registered family names are tested against
+the package CSS. Noto Sans Arabic is an installed-system fallback for Arabic;
+it is not downloaded by the dashboard. The six-size scale remains unchanged.
 
 The six type roles are 12, 14, 16, 20, 26, and 34px (`xs` through `2xl`). The
 spacing scale is 4, 8, 12, 16, 24, 32, 40, and 48px. Controls use a 6px radius;
 grouped surfaces use 12px. Motion tokens are 100, 160, and 190ms; reduced
 motion removes nonessential transitions.
+
+## Interaction Refinement
+
+The sidebar carries the home-control identity and an appearance shortcut. Home
+uses one divided status strip, full-width scene actions, and adjacent active-device
+and activity lists. Sections remain unframed so the controls carry the emphasis.
+
+Switch thumbs slide in 160ms; scene buttons respond to press in 100ms. Views,
+the More menu, confirmation prompts, and room details enter in 190ms. There are
+no looping or staggered animations. CSS motion is enabled only with
+`prefers-reduced-motion: no-preference`; the room dialog also checks that
+preference in JavaScript. Motion does not delay commands or change device state.
 
 ## Anatomy
 

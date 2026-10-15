@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { X, Lightbulb, Lock } from "lucide-react";
 import { isToggleableKind, type DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
@@ -25,10 +25,7 @@ interface RoomDetailProps {
   onClose: () => void;
 }
 
-/** Full room drill-in — same device rows as the bento card, larger, plus
- *  room-level quick actions (all lights, all locks) that only appear when
- *  the room actually has that kind of device. Shares `layoutId` with its
- *  RoomCard so the open/close reads as one continuous surface. */
+/** Room detail with device rows and room-level actions for available kinds. */
 export default function RoomDetail({
   id,
   name,
@@ -39,6 +36,14 @@ export default function RoomDetail({
   onClose,
 }: RoomDetailProps) {
   const Icon = ROOM_ICON_MAP[id] ?? BedSingle;
+  const reducedMotion = useReducedMotion();
+  const motionTokens = getComputedStyle(document.documentElement);
+  const duration = reducedMotion ? 0 : Number.parseFloat(
+    motionTokens.getPropertyValue("--duration-panel"),
+  ) / 1000;
+  const enterOffset = reducedMotion ? 0 : Number.parseFloat(
+    motionTokens.getPropertyValue("--motion-enter"),
+  );
 
   // Live MQTT device states (light1 + sonoff1/2/3) — any light config that
   // carries a deviceId rounds-trips here; the rest are local dummy toggles.
@@ -91,11 +96,14 @@ export default function RoomDetail({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.18 }}
+      transition={{ duration }}
     >
       <motion.section
-        layoutId={`room-card-${id}`}
         className="room-detail"
+        initial={{ opacity: reducedMotion ? 1 : 0, y: enterOffset }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: reducedMotion ? 1 : 0, y: enterOffset }}
+        transition={{ duration }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

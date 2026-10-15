@@ -26,7 +26,15 @@ body {
   background: var(--color-canvas);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
+  line-height: 1.5;
+  letter-spacing: 0;
 }
+
+.dash-time, .timer-badge, .home-status-value, .roomtemp-num {
+  font-family: var(--font-mono);
+}
+.dash-time { min-inline-size: 5ch; }
+.timer-badge { min-inline-size: 5ch; }
 
 button,
 input,

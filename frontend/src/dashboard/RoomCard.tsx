@@ -14,7 +14,6 @@ import {
 import { useHomeStore } from "../store/useHomeStore";
 import { deviceBooleanValue } from "../features/devices/deviceRuntime";
 import type { MouseEvent } from "react";
-import { motion } from "framer-motion";
 import { useTimers } from "../hooks/useTimers";
 
 const ROOM_ICON: Record<string, typeof Sofa> = {
@@ -41,11 +40,8 @@ interface RoomCardProps {
   onExpand?: (id: string) => void;
 }
 
-/** Bento room card — icon + name + meta, warm wash when any light is on.
- *  Live Sonoff relays render as a balanced switch-card row; the rest as the
- *  usual compact device list. Clicking the card (anywhere but a device control)
- *  opens the room detail view; `layoutId` gives that transition a shared-element
- *  feel. */
+/** Room summary with a warm tint when a light is on. Device controls stop
+ *  propagation so opening the detail view never also toggles a device. */
 export default function RoomCard({
   id,
   name,
@@ -81,8 +77,7 @@ export default function RoomCard({
   const stopRowClick = (e: MouseEvent) => e.stopPropagation();
 
   return (
-    <motion.section
-      layoutId={`room-card-${id}`}
+    <section
       className="room-card"
       data-on={hasActiveLight ? "true" : "false"}
       onClick={() => onExpand?.(id)}
@@ -150,6 +145,6 @@ export default function RoomCard({
           </li>
         ))}
       </ul>
-    </motion.section>
+    </section>
   );
 }

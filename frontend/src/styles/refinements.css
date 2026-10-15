@@ -1,0 +1,111 @@
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-3) var(--space-6);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+}
+.nav-brand > svg { color: var(--color-accent); flex-shrink: 0; }
+.nav-brand small, .nav-footer > span {
+  display: block;
+  margin-block-start: var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+}
+.nav-footer {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-start: auto;
+  padding: var(--space-4) var(--space-3);
+  border-block-start: 1px solid var(--color-boundary-soft);
+}
+.app-nav-item--more:not(.app-nav-item--more + .app-nav-item--more) {
+  margin-block-start: var(--space-6);
+}
+.view-content { min-width: 0; }
+.home-summary { gap: var(--space-6); }
+.home-quick-actions { grid-column: 1 / -1; }
+.home-quick-actions, .home-active, .home-summary > .activity-panel {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.home-summary > .home-status-strip {
+  gap: 0;
+  border-block: 1px solid var(--color-boundary-soft);
+}
+.home-status-card {
+  border: 0;
+  border-radius: 0;
+  border-inline-end: 1px solid var(--color-boundary-soft);
+  padding: var(--space-4);
+  background: transparent;
+}
+.home-status-card:last-child { border-inline-end: 0; }
+.home-status-icon svg { width: 20px; height: 20px; }
+.home-status-value { font-size: var(--font-size-xl); }
+.home-quick-actions .scene-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.home-quick-actions .scene-button {
+  min-height: 72px;
+  justify-content: flex-start;
+  padding: var(--space-4);
+  gap: var(--space-3);
+  font-weight: 500;
+}
+.home-quick-actions .scene-button svg { width: 20px; height: 20px; flex-shrink: 0; }
+.home-section-head, .home-summary .activity-panel-head {
+  margin-block-end: var(--space-3);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-boundary-soft);
+}
+.home-section-head h2 { margin: 0; }
+.toggle:disabled { cursor: not-allowed; opacity: 0.5; }
+
+@media (min-width: 1024px) {
+  .app-nav-item[data-active="true"] { box-shadow: inset 3px 0 var(--color-accent); }
+}
+@media (max-width: 1023px) {
+  .nav-brand, .nav-footer { display: none; }
+  .app-nav-item--more:not(.app-nav-item--more + .app-nav-item--more) { margin-block-start: 0; }
+}
+@media (max-width: 639px) {
+  .home-quick-actions .scene-controls { gap: var(--space-2); }
+  .home-quick-actions .scene-button { flex-direction: column; padding: var(--space-3) var(--space-2); }
+  .home-status-card:nth-child(even) { border-inline-end: 0; }
+  .home-status-card { border-block-end: 1px solid var(--color-boundary-soft); }
+  .home-status-card:last-child { border-block-end: 0; flex-direction: row; align-items: center; min-height: 72px; }
+}
+
+/* Motion is bounded to interaction feedback; no ambient loops or staggered cards. */
+@media (prefers-reduced-motion: no-preference) {
+  .view-content, .more-nav-menu, .shutdown-confirm, .scene-feedback {
+    animation: surface-enter var(--duration-panel) var(--ease-settle) both;
+  }
+  .toggle, .room-card, .device-icon, .switch-card-icon {
+    transition: background-color var(--duration-state), border-color var(--duration-state), color var(--duration-state);
+  }
+  .toggle-knob {
+    transition: transform var(--duration-state) var(--ease-settle), background-color var(--duration-state);
+  }
+  .app-nav-item, .scene-button, .theme-toggle-opt, .room-card-expand, .lock-pill, .room-detail-action {
+    transition: background-color var(--duration-state), border-color var(--duration-state), transform var(--duration-press) var(--ease-settle);
+  }
+  .scene-button:active, .room-card-expand:active, .room-detail-action:active, .lock-pill:active {
+    transform: scale(var(--motion-press));
+  }
+  @keyframes surface-enter {
+    from { opacity: 0; transform: translateY(var(--motion-enter)); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+@media (hover: hover) {
+  .app-nav-item:hover, .room-card-expand:hover { background: var(--color-surface-raised); }
+  .scene-button:hover { border-color: var(--color-accent); }
+}
