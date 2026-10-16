@@ -1,7 +1,10 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { RoomType } from "../common/press.types";
 import { DeviceService } from "../device/device.service";
-import { SonoffGang, SonoffRegistryService } from "../sonoff/sonoff-registry.service";
+import {
+  SonoffGang,
+  SonoffRegistryService,
+} from "../sonoff/sonoff-registry.service";
 import { TimersService } from "../timers/timers.service";
 import { DeviceAutomationService } from "../automation/device-automation.service";
 import {
@@ -114,10 +117,9 @@ export class RoutinesService {
     const routine = getRoutineForRoomType(first.roomType);
     const rules = routineGangsFor(first.roomType, 3);
     const timerByKey = new Map(
-      this.timers.getAll().map((entry) => [
-        `${entry.deviceId}:${entry.gang}`,
-        entry,
-      ]),
+      this.timers
+        .getAll()
+        .map((entry) => [`${entry.deviceId}:${entry.gang}`, entry]),
     );
 
     const gangViews: GangView[] = gangs
@@ -134,9 +136,7 @@ export class RoutinesService {
           role: rule?.role ?? `gang${gang.gang}`,
           label: rule?.label ?? `Gang ${gang.gang}`,
           stages,
-          hint: rule
-            ? routineHint(rule)
-            : `Gang ${gang.gang}`,
+          hint: rule ? routineHint(rule) : `Gang ${gang.gang}`,
           stage: this.currentStage(stages, timer),
           on: state?.state.on === true,
           timer: timer
