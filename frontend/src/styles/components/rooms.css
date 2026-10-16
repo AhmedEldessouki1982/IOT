@@ -176,6 +176,35 @@
   margin-block: var(--space-4);
 }
 
+/* Nested rooms — a room card rendered inside another (e.g. the Master Toilet
+   inside the Master Suite). The same RoomCard component, one level in. */
+.room-card-nested {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.room-card[data-inset="true"] {
+  padding: var(--space-3);
+  border-color: var(--color-boundary-soft);
+  background: var(--color-surface-raised);
+}
+
+.room-card[data-inset="true"] .room-card-name {
+  font-size: var(--font-size-lg);
+}
+
+.room-detail-nested {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-boundary-soft);
+}
+
+.room-detail-nested-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-lg);
+}
+
 @media (max-width: 639px) {
   .dash-grid { grid-template-columns: minmax(0, 1fr); }
   .room-card {

@@ -1,4 +1,4 @@
-import { ROOMS } from "../dashboard/rooms";
+import { ALL_ROOMS } from "../dashboard/rooms";
 import { liveDeviceId } from "../features/devices/deviceRuntime";
 
 export interface GangConfig {
@@ -21,7 +21,7 @@ function gangForDeviceId(deviceId: string, fallback: number): number {
   return fallback;
 }
 
-export const ROOMS_CONFIG: RoomConfig[] = ROOMS.map((room) => ({
+export const ROOMS_CONFIG: RoomConfig[] = ALL_ROOMS.map((room) => ({
   id: room.id,
   name: room.name,
   gangs: [...room.devices, ...(room.switches ?? [])]

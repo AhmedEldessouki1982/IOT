@@ -61,6 +61,23 @@ describe("dashboard feature boundaries", () => {
     assert.equal(roomStyles.includes("room-card--narrow"), false);
   });
 
+  it("nests the master toilet inside the master suite", () => {
+    const rooms = read("src/dashboard/rooms.ts");
+    const roomCard = read("src/dashboard/RoomCard.tsx");
+    const roomDetail = read("src/dashboard/RoomDetail.tsx");
+    const roomGrid = read("src/views/RoomGrid.tsx");
+
+    // the nested room is an ordinary Room config bound to its own routine room
+    assert.equal(rooms.includes('routineId: "toilet-master"'), true);
+    assert.equal(rooms.includes("toilet-master-g1"), true);
+    assert.equal(rooms.includes("export const ALL_ROOMS"), true);
+
+    // rendered by reusing the same card / detail components, one level in
+    assert.equal(roomCard.includes("nested.map"), true);
+    assert.equal(roomGrid.includes("nested={room.nested}"), true);
+    assert.equal(roomDetail.includes('className="room-detail-nested"'), true);
+  });
+
   it("keeps device registry operations available for business deployments", () => {
     const app = read("src/views/DevicesView.tsx");
     const css = read("src/styles/components/panels.css");

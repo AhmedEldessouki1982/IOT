@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useHomeStore } from "./store/useHomeStore";
 import { useDummyToggles } from "./features/devices/useDummyToggles";
-import { ROOMS } from "./dashboard/rooms";
+import { ALL_ROOMS } from "./dashboard/rooms";
 import { SCENES } from "./dashboard/scenes";
 import type { DeviceConfig } from "./features/devices";
 import {
@@ -94,7 +94,7 @@ export default function App() {
   const liveDevices = useHomeStore((s) => s.devices);
   const setLiveBoolean = useHomeStore((s) => s.setBoolean);
   const allConfigs = useMemo(
-    () => ROOMS.flatMap((r) => [...r.devices, ...(r.switches ?? [])]),
+    () => ALL_ROOMS.flatMap((r) => [...r.devices, ...(r.switches ?? [])]),
     [],
   );
   const liveConfigs = useMemo(
@@ -227,14 +227,14 @@ export default function App() {
   }, [allConfigs, dummyOn, history, lastScene, liveDevices, online]);
 
   const activityItems = useActivityItems(allConfigs, history, lastScene);
-  const activeItems = useMemo(() => ROOMS.flatMap((room) =>
+  const activeItems = useMemo(() => ALL_ROOMS.flatMap((room) =>
     [...room.devices, ...(room.switches ?? [])]
       .filter((config) => config.kind !== "lock" && valueForConfig(config) === true)
       .map((config) => ({ config, roomId: room.id, roomName: room.name })),
   ).sort((a, b) => Number(b.config.kind === "light") - Number(a.config.kind === "light")), [dummyOn, liveDevices]);
 
   const openRoom = openRoomId
-    ? (ROOMS.find((r) => r.id === openRoomId) ?? null)
+    ? (ALL_ROOMS.find((r) => r.id === openRoomId) ?? null)
     : null;
 
   // Esc closes the room detail view.
@@ -377,6 +377,7 @@ export default function App() {
             devices={openRoom.devices}
             switches={openRoom.switches}
             routineId={openRoom.routineId}
+            nested={openRoom.nested}
             dummyOn={dummyOn}
             onDummyToggle={toggleDummy}
             onClose={() => setOpenRoomId(null)}

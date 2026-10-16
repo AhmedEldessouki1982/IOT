@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { DeviceState } from "../api/devices";
-import { ROOMS } from "../dashboard/rooms";
+import { ALL_ROOMS } from "../dashboard/rooms";
 import type { DeviceConfig } from "../features/devices";
 import {
   deviceBooleanValue,
@@ -33,7 +33,7 @@ export function useDeviceRecords(
 ) {
   const deviceRecords = useMemo<DeviceRecord[]>(() => {
     const now = Date.now();
-    return ROOMS.flatMap((room) =>
+    return ALL_ROOMS.flatMap((room) =>
       [...room.devices, ...(room.switches ?? [])].map((config) => {
         const liveId = liveDeviceId(config);
         const device = liveId ? liveDevices[liveId] : undefined;

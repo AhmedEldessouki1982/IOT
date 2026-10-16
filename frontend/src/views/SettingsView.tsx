@@ -1,5 +1,5 @@
 import { LayoutGrid, Radio, ShieldCheck } from "lucide-react";
-import { ROOMS } from "../dashboard/rooms";
+import { ALL_ROOMS } from "../dashboard/rooms";
 import KpiRail from "./KpiRail";
 import ThemeToggle from "../components/ThemeToggle";
 import type { useKiosk } from "../hooks/useKiosk";
@@ -37,7 +37,7 @@ export default function SettingsView({
           <LayoutGrid size={18} />
           <strong>Config model</strong>
           <span>
-            {ROOMS.length} rooms, {records.length} devices
+            {ALL_ROOMS.length} rooms, {records.length} devices
           </span>
         </article>
         <article>

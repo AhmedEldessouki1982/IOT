@@ -241,3 +241,63 @@ describe("local wall switches (offline-capable buttons)", () => {
     assert.equal(fakeTimeouts.length, 0);
   });
 });
+
+const MASTER_TOILET = {
+  switchId: "toilet-master",
+  base: "MasterRoomToilet",
+  gangs: 3,
+  roomType: "toilet",
+  roomId: "toilet-master",
+  buttonMode: "local",
+};
+
+describe("a second toilet on the shared routine", () => {
+  it("maps each switch base to its own gang ids", () => {
+    const { registry } = makeRig([LOCAL_TOILET, MASTER_TOILET]);
+
+    assert.deepEqual(
+      registry.getSwitches().map((sw) => sw.base),
+      ["mainToilet", "MasterRoomToilet"],
+    );
+    assert.deepEqual(
+      registry.getGangs().map((gang) => gang.deviceId),
+      [
+        "toilet-main-g1",
+        "toilet-main-g2",
+        "toilet-main-g3",
+        "toilet-master-g1",
+        "toilet-master-g2",
+        "toilet-master-g3",
+      ],
+    );
+  });
+
+  it("supervises each wall touch from its own base, with no cross-talk", () => {
+    const { mqtt, timers, deviceService } = makeRig([
+      LOCAL_TOILET,
+      MASTER_TOILET,
+    ]);
+
+    mqtt.deliver("stat/mainToilet/POWER1", "ON");
+    mqtt.deliver("stat/MasterRoomToilet/POWER2", "ON");
+
+    assert.equal(deviceService.getState("toilet-main-g1")?.state.on, true);
+    assert.equal(deviceService.getState("toilet-master-g2")?.state.on, true);
+    assert.equal(deviceService.getState("toilet-master-g1"), undefined);
+    assert.equal(deviceService.getState("toilet-main-g2"), undefined);
+
+    // the same routine: both touches arm the gang's first stage (10 min)
+    assert.equal(timers.getDurationSeconds("toilet-main-g1", 1), 10 * 60);
+    assert.equal(timers.getDurationSeconds("toilet-master-g2", 2), 10 * 60);
+  });
+
+  it("routes a dashboard command to the master toilet base", () => {
+    const { mqtt } = makeRig([LOCAL_TOILET, MASTER_TOILET]);
+
+    mqtt.deliver("devices/toilet-master-g3/cmd", '{"on":true}');
+
+    assert.deepEqual(mqtt.published, [
+      { topic: "cmnd/MasterRoomToilet/POWER3", payload: "ON" },
+    ]);
+  });
+});

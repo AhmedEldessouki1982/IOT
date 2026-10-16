@@ -120,3 +120,33 @@ Registry entry (`.env`):
 
 Device ids are `toilet-main-g1..3`. The switch's Tasmota `Topic` is `mainToilet`
 and its `MqttHost` is the broker's LAN IP.
+
+### Master Toilet (implemented)
+
+The same routine and the same button behaviour as the main toilet — only the
+registry entry and the `roomId` differ.
+
+| Gang | Role        | Click cycle       |
+| ---- | ----------- | ----------------- |
+| 1    | LED profile | 10 m → 30 m → off |
+| 2    | Spotlights  | 10 m → 30 m → off |
+| 3    | Exhaust fan | 10 m → off        |
+
+Registry entry (`.env`):
+
+```json
+{ "switchId": "toilet-master", "base": "MasterRoomToilet", "gangs": 3, "roomType": "toilet", "roomId": "toilet-master", "buttonMode": "local" }
+```
+
+Device ids are `toilet-master-g1..3`; the Tasmota `Topic` is `MasterRoomToilet`
+and its `MqttHost` is the broker's LAN IP. On the device that means the same
+T3US3C template and settings as the main toilet (`SetOption73 0`, `PowerRetain
+1`, `PowerOnState 3`, `SetOption1 1`, `SetOption32 40`).
+
+In the dashboard the master toilet is a **nested card** inside the Master Suite:
+`frontend/src/dashboard/rooms.ts` declares it under the `master` room's
+`nested` array, and the suite renders it by reusing `RoomCard`/`RoomDetail` one
+level in. `routineId` must equal the registry `roomId` — the room card passes it
+to `GET /api/rooms/<routineId>`, and for the main toilet the two are both
+`"toilet"`.
+

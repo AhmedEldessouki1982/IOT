@@ -7,12 +7,20 @@ export interface Room {
   /** Live Sonoff 3-gang switch relays shown as balanced switch cards. */
   switches?: DeviceConfig[];
   /**
-   * Backend routine id (see GET /api/rooms). When set, the room renders the
-   * reusable RoutinePanel: role text, press hints, live state and countdowns.
+   * Backend routine **room id** (see GET /api/rooms). When set, the room
+   * renders the reusable RoutinePanel (role text, press hints, live state and
+   * countdowns) fetched from `GET /api/rooms/<routineId>`, so it must match the
+   * switch's registry `roomId`. For the main toilet both happen to be "toilet".
    */
   routineId?: string;
   /** Grid span class for the room's bento card (defaults to wide). */
   span?: string;
+  /**
+   * Rooms inside this one, rendered as nested cards (e.g. the Master Toilet
+   * inside the Master Suite). A nested room is an ordinary Room config, so it
+   * reuses every component unchanged.
+   */
+  nested?: Room[];
 }
 
 /**
@@ -176,24 +184,48 @@ export const ROOMS: Room[] = [
         current: 20.9,
         history: [21.1, 21.0, 20.8, 20.9, 21.0, 20.7, 20.9],
       },
+    ],
+    // The master toilet is its own switch (Tasmota topic "MasterRoomToilet")
+    // and its own routine room, nested here as a card. Same "toilet" preset as
+    // the main toilet: gang1 LED profile 10 → 30 → off, gang2 Spotlights
+    // 10 → 30 → off, gang3 Exhaust 10 → off. Roles + stages come from the
+    // backend (RoutinePanel), so nothing is duplicated in the UI.
+    nested: [
       {
-        kind: "light",
-        id: "toilet_master_led",
-        label: "Master Toilet LED Bar",
-      },
-      {
-        kind: "light",
-        id: "toilet_master_spots",
-        label: "Master Toilet Spotlights",
-      },
-      {
-        kind: "light",
-        id: "toilet_master_exhaust",
-        label: "Master Toilet Exhaust Fan",
+        id: "toilet-master",
+        name: "Master Toilet",
+        routineId: "toilet-master",
+        devices: [],
+        switches: [
+          {
+            kind: "light",
+            id: "toilet-master-g1",
+            deviceId: "toilet-master-g1",
+            label: "LED profile",
+          },
+          {
+            kind: "light",
+            id: "toilet-master-g2",
+            deviceId: "toilet-master-g2",
+            label: "Spotlights",
+          },
+          {
+            kind: "light",
+            id: "toilet-master-g3",
+            deviceId: "toilet-master-g3",
+            label: "Exhaust fan",
+          },
+        ],
       },
     ],
   },
 ];
+
+/** Every room including nested ones (parents first, then their children). */
+export const ALL_ROOMS: Room[] = ROOMS.flatMap((room) => [
+  room,
+  ...(room.nested ?? []),
+]);
 
 /** Live device ids (MQTT-backed) that must round-trip through useHomeStore. */
 export const LIVE_DEVICE_IDS = [
@@ -204,6 +236,9 @@ export const LIVE_DEVICE_IDS = [
   "toilet-main-g1",
   "toilet-main-g2",
   "toilet-main-g3",
+  "toilet-master-g1",
+  "toilet-master-g2",
+  "toilet-master-g3",
 ];
 
 /** Sonoff 3-gang relay ids rendered as balanced switch cards. */
@@ -214,6 +249,9 @@ export const SONOFF_DEVICE_IDS = [
   "toilet-main-g1",
   "toilet-main-g2",
   "toilet-main-g3",
+  "toilet-master-g1",
+  "toilet-master-g2",
+  "toilet-master-g3",
 ];
 
 /** True when a device id belongs to the physical Sonoff 3-gang switch. */

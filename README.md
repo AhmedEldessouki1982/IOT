@@ -23,7 +23,7 @@ A local-first smart-home dashboard and MQTT bridge for an apartment installation
 
 ## Dashboard Scope
 
-The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently defines **7 rooms** and **26 UI devices**:
+The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently defines **7 top-level rooms** — plus the **Master Toilet nested inside the Master Suite** — and **26 UI devices**:
 
 | Room          | Devices                                                                                               |
 | ------------- | ----------------------------------------------------------------------------------------------------- |
@@ -33,10 +33,15 @@ The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently 
 | Corridor      | Corridor light                                                                                        |
 | Small Bedroom | Bedroom light                                                                                         |
 | Bedroom 2     | Bedroom light                                                                                         |
-| Master Suite  | Bedroom light, room temperature, toilet LED bar, toilet spotlights, exhaust fan                       |
+| Master Suite  | Bedroom light, room temperature — with a **nested Master Toilet** card (live routine gangs `toilet-master-g1..3`) |
+
+Nested rooms are ordinary `Room` configs listed under a parent room's `nested`
+array; `RoomCard`, `RoomDetail` and the routine panel render them unchanged.
+`ALL_ROOMS` flattens the tree for anything that needs every room.
 
 Live MQTT-backed ids today are `light1`, `sonoff1`, `sonoff2`, `sonoff3`, and the
-Main Toilet routine gangs `toilet-main-g1`, `toilet-main-g2`, `toilet-main-g3`.
+Main Toilet and Master Toilet routine gangs `toilet-main-g1..3` and
+`toilet-master-g1..3`.
 The remaining UI devices are local demo controls or read-only demo sensors until
 their real ids are added to the room config and backend registry.
 
@@ -167,7 +172,7 @@ Fields:
 
 Backward compatibility: when only `SONOFF_BASE` is set, it creates a legacy Reception registry entry with `switchId: "reception"`, `roomType: "none"`, and device ids `sonoff1`, `sonoff2`, `sonoff3`. New switches generate deterministic ids as `<switchId>-g<n>`, for example `toilet-main-g1`.
 
-Example registry with Reception plus one toilet switch:
+Example registry with Reception plus both toilets:
 
 ```json
 [
@@ -185,9 +190,20 @@ Example registry with Reception plus one toilet switch:
     "roomType": "toilet",
     "roomId": "toilet",
     "buttonMode": "local"
+  },
+  {
+    "switchId": "toilet-master",
+    "base": "MasterRoomToilet",
+    "gangs": 3,
+    "roomType": "toilet",
+    "roomId": "toilet-master",
+    "buttonMode": "local"
   }
 ]
 ```
+
+Both toilets share the `toilet` routine, so the second switch is one registry
+entry plus one room config — no new code.
 
 Do not add registry entries for rooms until the actual Tasmota topic base and room mapping are known.
 

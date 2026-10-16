@@ -2,7 +2,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { X, Lightbulb, Lock } from "lucide-react";
 import { isToggleableKind, type DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
-import { RoutinePanel } from "../features/routines";
+import { RoutineSwitchRow } from "../features/routines";
 import { ROOM_ICON_MAP } from "./RoomCard";
 import { BedSingle } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
@@ -14,6 +14,7 @@ import {
 } from "../features/devices/deviceRuntime";
 import { markLocalAction } from "../hooks/localActions";
 import { motionEase } from "../hooks/motionTokens";
+import type { Room } from "./rooms";
 
 interface RoomDetailProps {
   id: string;
@@ -23,6 +24,8 @@ interface RoomDetailProps {
   switches?: DeviceConfig[];
   /** Backend routine id — renders the reusable RoutinePanel when set. */
   routineId?: string;
+  /** Nested rooms, shown as labelled sections inside this detail view. */
+  nested?: Room[];
   dummyOn: Record<string, boolean>;
   onDummyToggle: (id: string) => void;
   onClose: () => void;
@@ -35,6 +38,7 @@ export default function RoomDetail({
   devices,
   switches = [],
   routineId,
+  nested = [],
   dummyOn,
   onDummyToggle,
   onClose,
@@ -54,8 +58,15 @@ export default function RoomDetail({
   const liveDevices = useHomeStore((s) => s.devices);
   const setLiveBoolean = useHomeStore((s) => s.setBoolean);
 
-  const allLights = [...devices, ...switches].filter((d) => d.kind === "light");
-  const lockIds = devices.filter((d) => d.kind === "lock").map((d) => d.id);
+  // Nested rooms are part of this room, so their lights and locks join the
+  // room-level "all on / all off" actions.
+  const nestedDevices = nested.flatMap((room) => [
+    ...room.devices,
+    ...(room.switches ?? []),
+  ]);
+  const allDevices = [...devices, ...switches, ...nestedDevices];
+  const allLights = allDevices.filter((d) => d.kind === "light");
+  const lockIds = allDevices.filter((d) => d.kind === "lock").map((d) => d.id);
 
   const liveOn = (d: DeviceConfig) => {
     const deviceId = liveDeviceId(d);
@@ -120,8 +131,8 @@ export default function RoomDetail({
             <div>
               <h2 id="room-detail-title">{name}</h2>
               <p className="room-detail-sub">
-                {[...devices, ...switches].length} device
-                {[...devices, ...switches].length === 1 ? "" : "s"}
+                {allDevices.length} device
+                {allDevices.length === 1 ? "" : "s"}
               </p>
             </div>
           </div>
@@ -161,17 +172,7 @@ export default function RoomDetail({
           </div>
         )}
 
-        {switches.length > 0 && (
-          <div className="switch-row">
-            <RoutinePanel
-              roomId={routineId}
-              fallback={switches.map((sw) => ({
-                deviceId: (sw as { deviceId?: string }).deviceId!,
-                label: sw.label,
-              }))}
-            />
-          </div>
-        )}
+        <RoutineSwitchRow roomId={routineId} switches={switches} />
 
         <ul className="room-detail-list">
           {devices.map((config) => (
@@ -190,6 +191,39 @@ export default function RoomDetail({
             </li>
           ))}
         </ul>
+
+        {nested.map((room) => (
+          <section
+            key={room.id}
+            className="room-detail-nested"
+            aria-label={room.name}
+          >
+            <h3 className="room-detail-nested-title">{room.name}</h3>
+            <RoutineSwitchRow
+              roomId={room.routineId}
+              switches={room.switches ?? []}
+            />
+            <ul className="room-detail-list">
+              {room.devices.map((config) => (
+                <li key={config.id} className="room-detail-item">
+                  <CardDevice
+                    config={config}
+                    state={
+                      isToggleableKind(config.kind)
+                        ? dummyOn[config.id]
+                        : undefined
+                    }
+                    onToggle={
+                      isToggleableKind(config.kind)
+                        ? () => onDummyToggle(config.id)
+                        : undefined
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
       </motion.section>
     </motion.div>
   );

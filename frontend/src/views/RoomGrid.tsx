@@ -22,6 +22,7 @@ export default function RoomGrid({
           devices={room.devices}
           switches={room.switches}
           routineId={room.routineId}
+          nested={room.nested}
           dummyOn={dummyOn}
           onDummyToggle={onDummyToggle}
           onExpand={onExpand}

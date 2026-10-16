@@ -1,6 +1,6 @@
 import { isToggleableKind, type DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
-import { RoutinePanel } from "../features/routines";
+import { RoutineSwitchRow } from "../features/routines";
 import {
   Sofa,
   UtensilsCrossed,
@@ -17,11 +17,13 @@ import type { MouseEvent } from "react";
 import { useTimers } from "../hooks/useTimers";
 import { motion, useReducedMotion } from "framer-motion";
 import { motionMs, motionEase } from "../hooks/motionTokens";
+import type { Room } from "./rooms";
 
 const ROOM_ICON: Record<string, typeof Sofa> = {
   reception: Sofa,
   kitchen: UtensilsCrossed,
   toilet: Bath,
+  "toilet-master": Bath,
   corridor: Footprints,
   bed1: BedSingle,
   bed2: BedDouble,
@@ -38,6 +40,10 @@ interface RoomCardProps {
   switches?: DeviceConfig[];
   /** Backend routine id — renders the reusable RoutinePanel when set. */
   routineId?: string;
+  /** Rooms rendered as these, inside this card (e.g. a toilet in a suite). */
+  nested?: Room[];
+  /** Nested-card styling; set automatically when rendered inside another card. */
+  inset?: boolean;
   dummyOn?: Record<string, boolean>;
   onDummyToggle?: (id: string) => void;
   /** Opens the full-screen room detail view for this room. */
@@ -45,13 +51,18 @@ interface RoomCardProps {
 }
 
 /** Room summary with a warm tint when a light is on. Device controls stop
- *  propagation so opening the detail view never also toggles a device. */
+ *  propagation so opening the detail view never also toggles a device.
+ *
+ *  A room can contain nested rooms (see `nested`), rendered by reusing this
+ *  very component — the same card, one level in. */
 export default function RoomCard({
   id,
   name,
   devices,
   switches = [],
   routineId,
+  nested = [],
+  inset = false,
   dummyOn,
   onDummyToggle,
   onExpand,
@@ -66,7 +77,13 @@ export default function RoomCard({
   const timerByDeviceId = new Map(
     timers.map((timer) => [timer.deviceId, timer.remainingSeconds]),
   );
-  const allDevices = [...devices, ...switches];
+  // Nested rooms count towards this card's summary — the master toilet is part
+  // of the master suite, so its lights warm the suite's card too.
+  const nestedDevices = nested.flatMap((room) => [
+    ...room.devices,
+    ...(room.switches ?? []),
+  ]);
+  const allDevices = [...devices, ...switches, ...nestedDevices];
   const valueFor = (config: DeviceConfig) =>
     deviceBooleanValue(config, liveDevices, dummyOn);
   const allLights = allDevices.filter((d) => d.kind === "light");
@@ -88,6 +105,7 @@ export default function RoomCard({
       transition={{ duration: reduced ? 0 : motionMs("view") / 1000, ease: motionEase() }}
       className="room-card"
       data-on={hasActiveLight ? "true" : "false"}
+      data-inset={inset ? "true" : "false"}
       onClick={() => onExpand?.(id)}
       role="group"
     >
@@ -120,17 +138,7 @@ export default function RoomCard({
           </span>
         )}
       </div>}
-      {switches.length > 0 && (
-        <div className="switch-row" onClick={stopRowClick}>
-          <RoutinePanel
-            roomId={routineId}
-            fallback={switches.map((sw) => ({
-              deviceId: (sw as { deviceId?: string }).deviceId!,
-              label: sw.label,
-            }))}
-          />
-        </div>
-      )}
+      <RoutineSwitchRow roomId={routineId} switches={switches} stopPropagation />
       <ul className="room-card-list">
         {previewDevices.map((config) => (
           <li key={config.id} className="room-card-item" onClick={stopRowClick}>
@@ -148,6 +156,25 @@ export default function RoomCard({
           </li>
         ))}
       </ul>
+      {nested.length > 0 && (
+        <div className="room-card-nested" onClick={stopRowClick}>
+          {nested.map((room) => (
+            <RoomCard
+              key={room.id}
+              inset
+              id={room.id}
+              name={room.name}
+              devices={room.devices}
+              switches={room.switches}
+              routineId={room.routineId}
+              nested={room.nested}
+              dummyOn={dummyOn}
+              onDummyToggle={onDummyToggle}
+              onExpand={onExpand}
+            />
+          ))}
+        </div>
+      )}
     </motion.section>
   );
 }
