@@ -6,6 +6,11 @@ export interface Room {
   devices: DeviceConfig[];
   /** Live Sonoff 3-gang switch relays shown as balanced switch cards. */
   switches?: DeviceConfig[];
+  /**
+   * Backend routine id (see GET /api/rooms). When set, the room renders the
+   * reusable RoutinePanel: role text, press hints, live state and countdowns.
+   */
+  routineId?: string;
   /** Grid span class for the room's bento card (defaults to wide). */
   span?: string;
 }
@@ -114,11 +119,35 @@ export const ROOMS: Room[] = [
   {
     id: "toilet",
     name: "Main Toilet",
-    devices: [
-      { kind: "light", id: "toilet_main_led", label: "Toilet LED Bar" },
-      { kind: "light", id: "toilet_main_spots", label: "Toilet Spotlights" },
-      { kind: "light", id: "toilet_main_exhaust", label: "Toilet Exhaust Fan" },
+    // The three gangs live on the physical Sonoff T3US3C switch (Tasmota topic
+    // "mainToilet") and are driven through the reusable backend "toilet"
+    // routine. Each click advances one stage: gang1 LED profile 10 → 30 → off,
+    // gang2 Spotlights 10 → 30 → off, gang3 Exhaust 10 → off (single stage).
+    // Roles + stage lists come from the backend (RoutinePanel).
+    routineId: "toilet",
+    devices: [],
+    switches: [
+      {
+        kind: "light",
+        id: "toilet-main-g1",
+        deviceId: "toilet-main-g1",
+        label: "LED profile",
+      },
+      {
+        kind: "light",
+        id: "toilet-main-g2",
+        deviceId: "toilet-main-g2",
+        label: "Spotlights",
+      },
+      {
+        kind: "light",
+        id: "toilet-main-g3",
+        deviceId: "toilet-main-g3",
+        label: "Exhaust fan",
+      },
     ],
+    // Full row so the 3 routine cards sit side-by-side (like Reception).
+    span: "room-card--full",
   },
   {
     id: "corridor",
@@ -167,10 +196,25 @@ export const ROOMS: Room[] = [
 ];
 
 /** Live device ids (MQTT-backed) that must round-trip through useHomeStore. */
-export const LIVE_DEVICE_IDS = ["light1", "sonoff1", "sonoff2", "sonoff3"];
+export const LIVE_DEVICE_IDS = [
+  "light1",
+  "sonoff1",
+  "sonoff2",
+  "sonoff3",
+  "toilet-main-g1",
+  "toilet-main-g2",
+  "toilet-main-g3",
+];
 
 /** Sonoff 3-gang relay ids rendered as balanced switch cards. */
-export const SONOFF_DEVICE_IDS = ["sonoff1", "sonoff2", "sonoff3"];
+export const SONOFF_DEVICE_IDS = [
+  "sonoff1",
+  "sonoff2",
+  "sonoff3",
+  "toilet-main-g1",
+  "toilet-main-g2",
+  "toilet-main-g3",
+];
 
 /** True when a device id belongs to the physical Sonoff 3-gang switch. */
 export function isSonoffDevice(deviceId?: string): boolean {

@@ -176,6 +176,22 @@
   grid-row: 1;
 }
 
+/* Label + role hint stacked for routine gang cards (SwitchCard `hint` prop). */
+.switch-card-text {
+  display: flex;
+  flex-direction: column;
+  grid-column: 2;
+  grid-row: 1;
+  gap: 1px;
+  min-width: 0;
+}
+
+.switch-card-hint {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
 .switch-card-toggle {
   grid-column: 4;
   grid-row: 1;

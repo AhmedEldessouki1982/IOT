@@ -23,15 +23,27 @@ function timerGangForDeviceId(deviceId: string): number | null {
 export default function SwitchCard({
   deviceId,
   label,
+  hint,
   remainingSeconds,
   durationSeconds,
   expiresAt,
+  onPress,
 }: {
   deviceId: string;
   label: string;
+  /** Optional role hint under the label, e.g. "10m → 30m → off". */
+  hint?: string;
   remainingSeconds?: number;
   durationSeconds?: number;
   expiresAt?: string;
+  /**
+   * Optional press override (routine mode): called on every press/tap instead of
+   * the built-in legacy button call. Lets the room-routine layer own routing
+   * (each press advances one cycle stage) while this card keeps the exact same
+   * look and gesture handling. The `pressType` argument tells the override
+   * whether it was a tap or a long press; routine cards treat both as one click.
+   */
+  onPress?: (pressType: "single" | "long") => void;
 }) {
   const state = useHomeStore((s) => s.devices[deviceId]?.state.on);
   const on = state === true;
@@ -43,7 +55,7 @@ export default function SwitchCard({
 
   const manualOff = () => void setBoolean(deviceId, "on", false);
   const toggleLegacy = () => void toggle(deviceId);
-  const pressButton = (pressType: "single" | "long") => {
+  const defaultPressButton = (pressType: "single" | "long") => {
     if (!usesTimerGesture || !timerGang) {
       toggleLegacy();
       return;
@@ -57,6 +69,7 @@ export default function SwitchCard({
       pressType,
     }).catch(() => {});
   };
+  const pressButton = onPress ?? defaultPressButton;
   const press = useLongPress(
     () => pressButton("single"),
     () => pressButton("long"),
@@ -72,7 +85,14 @@ export default function SwitchCard({
       >
         <Power size={15} strokeWidth={1.8} />
       </span>
-      <span className="switch-card-label">{label}</span>
+      {hint ? (
+        <span className="switch-card-text">
+          <span className="switch-card-label">{label}</span>
+          <span className="switch-card-hint">{hint}</span>
+        </span>
+      ) : (
+        <span className="switch-card-label">{label}</span>
+      )}
       <TimerBadge seconds={remainingSeconds ?? 0} durationSeconds={durationSeconds} expiresAt={expiresAt} deviceId={deviceId} />
       <button
         type="button"

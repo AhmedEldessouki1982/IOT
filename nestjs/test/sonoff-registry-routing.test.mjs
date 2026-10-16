@@ -133,6 +133,33 @@ describe("SonoffService registry routing", () => {
     );
   });
 
+  it("ignores a device echo that a newer command has superseded", () => {
+    const { mqtt, deviceService, broadcasts } = makeService([
+      {
+        switchId: "toilet-main",
+        base: "tasmota_TOILET",
+        gangs: 3,
+        roomType: "toilet",
+        roomId: "toilet",
+      },
+    ]);
+
+    // Two commands issued within one device round-trip: OFF then ON.
+    mqtt.deliver("devices/toilet-main-g1/cmd", '{"on":false}');
+    mqtt.deliver("devices/toilet-main-g1/cmd", '{"on":true}');
+
+    // The device echoes them in order; the stale OFF must not win.
+    mqtt.deliver("stat/tasmota_TOILET/POWER1", "OFF");
+    assert.equal(deviceService.getState("toilet-main-g1"), undefined);
+
+    mqtt.deliver("stat/tasmota_TOILET/POWER1", "ON");
+    assert.equal(deviceService.getState("toilet-main-g1")?.state.on, true);
+    assert.deepEqual(
+      broadcasts.map((state) => state.state.on),
+      [true],
+    );
+  });
+
   it("maps Tasmota RESULT button actions to the matching gang", () => {
     const { mqtt, buttonPresses } = makeService([
       {

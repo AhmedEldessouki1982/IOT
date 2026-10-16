@@ -147,6 +147,16 @@ export class TimersService implements OnModuleDestroy {
     return remaining;
   }
 
+  /**
+   * Full duration (seconds) of the RUNNING timer for a gang, or null when idle.
+   * Used to derive which press stage a gang is currently in, so the stage
+   * survives a backend restart (persisted timers keep `durationSeconds`).
+   */
+  getDurationSeconds(deviceId: string, gang: number): number | null {
+    const existing = this.timers.get(this.getKey(deviceId, gang));
+    return existing?.durationSeconds ?? null;
+  }
+
   getAll(): TimerEntry[] {
     const result: TimerEntry[] = [];
     for (const { deviceId, gang, expiresAt, durationSeconds } of this.timers.values()) {

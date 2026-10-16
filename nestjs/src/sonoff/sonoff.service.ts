@@ -187,11 +187,20 @@ export class SonoffService implements OnModuleInit {
   private setGangOutput(gang: SonoffGang, on: boolean): void {
     const topic = `cmnd/${gang.base}/POWER${gang.gang}`;
     const payload = on ? "ON" : "OFF";
+    // Scenes and the legacy endpoint publish here directly, bypassing
+    // DeviceService.sendCommand, so pair the echo here too.
+    this.deviceService.noteRelayCommand(gang.deviceId, on);
     this.mqtt.publish(topic, payload);
     this.logger.log(`Sonoff publish ${topic} -> ${payload}`);
   }
 
   private recordState(deviceId: string, on: boolean): void {
+    if (this.deviceService.resolveRelayEcho(deviceId, on) === "stale") {
+      // Echo of a command a newer one already superseded: dropping it keeps the
+      // later state (and any timer armed with it) intact.
+      return;
+    }
+
     const changed = this.deviceService.setState(deviceId, {
       type: "switch",
       state: { on },

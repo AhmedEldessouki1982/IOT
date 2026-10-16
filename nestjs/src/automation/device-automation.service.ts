@@ -8,10 +8,6 @@ import { PressType, RoomType } from "../common/press.types";
 import { SonoffRegistryService } from "../sonoff/sonoff-registry.service";
 import { MqttConnectionService } from "../mqtt/mqtt-connection.service";
 
-export function shouldRestartTimerOnPress(): boolean {
-  return true;
-}
-
 @Injectable()
 export class DeviceAutomationService implements OnModuleInit {
   constructor(
@@ -32,33 +28,74 @@ export class DeviceAutomationService implements OnModuleInit {
     return this.sonoffRegistry.getRoomTypeForDevice(deviceId);
   }
 
+  /**
+   * Advance one press stage for a gang (a single click, from either the wall
+   * switch or the dashboard). `pressType` is accepted for compatibility with the
+   * Tasmota SINGLE/HOLD mapping but no longer selects a duration: both the tap
+   * and the hold advance exactly one stage.
+   *
+   * Stage i -> arm minutes `stages[i]`; the click after the last stage turns
+   * the gang off. The current stage is derived from the running timer's
+   * duration, so it survives a restart.
+   */
   handleButtonPress(
     deviceId: string,
     gang: number,
-    pressType: PressType,
+    _pressType?: PressType,
   ): void {
     const roomType = this.getRoomTypeFor(deviceId);
     if (!roomType) return;
-    const rules = TIMER_RULES[roomType];
-    const rule = rules[gang];
+    const rule = TIMER_RULES[roomType]?.[gang];
     if (!rule) return;
-    if (rule.noTimer) {
+
+    // No stages (or explicitly no timer): a plain on/off toggle.
+    if (rule.noTimer || rule.stages.length === 0) {
       this.timers.cancel(deviceId, gang);
-      this.turnOn(deviceId, gang);
+      if (this.deviceService.getState(deviceId)?.state.on === true) {
+        this.turnOff(deviceId, gang);
+      } else {
+        this.turnOn(deviceId, gang);
+      }
       return;
     }
-    const duration = rule.durations[pressType] ?? rule.durations.single;
-    if (duration === undefined || duration <= 0) {
+
+    const minutes = this.nextStageMinutes(rule.stages, deviceId, gang);
+    if (minutes === null) {
       this.timers.cancel(deviceId, gang);
-      this.turnOn(deviceId, gang);
+      this.turnOff(deviceId, gang);
       return;
     }
     this.turnOn(deviceId, gang);
-    if (shouldRestartTimerOnPress()) {
-      this.timers.start(deviceId, gang, duration, () => {
-        this.turnOff(deviceId, gang);
-      });
+    this.timers.start(deviceId, gang, minutes, () => {
+      this.turnOff(deviceId, gang);
+    });
+  }
+
+  /**
+   * Minutes for the next click: the stage after the currently running one, or
+   * null when the cycle is finished (the click should turn the gang off).
+   */
+  private nextStageMinutes(
+    stages: number[],
+    deviceId: string,
+    gang: number,
+  ): number | null {
+    const activeSeconds = this.timers.getDurationSeconds(deviceId, gang);
+    const on = this.deviceService.getState(deviceId)?.state.on === true;
+
+    if (activeSeconds === null) {
+      // No countdown running. Start the cycle — unless the relay is on with no
+      // timer (e.g. set by a scene), in which case this click turns it off.
+      return on ? null : stages[0];
     }
+
+    const index = stages.findIndex(
+      (minutes) => minutes * 60 === activeSeconds,
+    );
+    // Unknown/unremembered stage: fall back to restarting the cycle.
+    if (index === -1) return stages[0];
+    const next = index + 1;
+    return next < stages.length ? stages[next] : null;
   }
 
   onManualOff(deviceId: string, gang: number): void {
@@ -72,11 +109,29 @@ export class DeviceAutomationService implements OnModuleInit {
     this.onManualOff(gang.deviceId, gang.gang);
   }
 
+  /**
+   * Command a relay AND record the intended state immediately. The device's
+   * MQTT echo arrives ~150ms later; without this the cycle logic (and the
+   * response of the press endpoint) reads a stale `on` for that window, which
+   * made back-to-back presses take the wrong branch. The echo deep-equals the
+   * optimistic entry, so it still dedupes to no history row and no broadcast.
+   */
+  private setRelay(deviceId: string, gang: number, on: boolean): void {
+    this.deviceService.sendCommand(deviceId, { on });
+    // Broadcast the intended state now: the echo deep-equals this entry, so
+    // SonoffService.recordState dedupes it to a no-op and would skip the
+    // WebSocket push the dashboard relies on.
+    if (this.deviceService.setState(deviceId, { state: { on } })) {
+      const state = this.deviceService.getState(deviceId);
+      if (state) this.gateway.broadcast(state);
+    }
+  }
+
   private turnOn(deviceId: string, gang: number): void {
-    this.deviceService.sendCommand(deviceId, { on: true });
+    this.setRelay(deviceId, gang, true);
   }
 
   private turnOff(deviceId: string, gang: number): void {
-    this.deviceService.sendCommand(deviceId, { on: false });
+    this.setRelay(deviceId, gang, false);
   }
 }

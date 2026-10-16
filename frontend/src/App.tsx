@@ -376,6 +376,7 @@ export default function App() {
             name={openRoom.name}
             devices={openRoom.devices}
             switches={openRoom.switches}
+            routineId={openRoom.routineId}
             dummyOn={dummyOn}
             onDummyToggle={toggleDummy}
             onClose={() => setOpenRoomId(null)}

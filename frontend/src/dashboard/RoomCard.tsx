@@ -1,6 +1,6 @@
 import { isToggleableKind, type DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
-import SwitchCard from "../components/SwitchCard";
+import { RoutinePanel } from "../features/routines";
 import {
   Sofa,
   UtensilsCrossed,
@@ -36,6 +36,8 @@ interface RoomCardProps {
   devices: DeviceConfig[];
   /** Live Sonoff switch relays to show as balanced switch cards. */
   switches?: DeviceConfig[];
+  /** Backend routine id — renders the reusable RoutinePanel when set. */
+  routineId?: string;
   dummyOn?: Record<string, boolean>;
   onDummyToggle?: (id: string) => void;
   /** Opens the full-screen room detail view for this room. */
@@ -49,6 +51,7 @@ export default function RoomCard({
   name,
   devices,
   switches = [],
+  routineId,
   dummyOn,
   onDummyToggle,
   onExpand,
@@ -119,18 +122,13 @@ export default function RoomCard({
       </div>}
       {switches.length > 0 && (
         <div className="switch-row" onClick={stopRowClick}>
-          {switches.map((sw) => (
-            <SwitchCard
-              key={sw.id}
-              deviceId={(sw as { deviceId?: string }).deviceId!}
-              label={sw.label}
-              remainingSeconds={timerByDeviceId.get(
-                (sw as { deviceId?: string }).deviceId!,
-              )}
-              durationSeconds={timers.find(t => t.deviceId === (sw as {deviceId?: string}).deviceId)?.durationSeconds}
-              expiresAt={timers.find(t => t.deviceId === (sw as {deviceId?: string}).deviceId)?.expiresAt}
-            />
-          ))}
+          <RoutinePanel
+            roomId={routineId}
+            fallback={switches.map((sw) => ({
+              deviceId: (sw as { deviceId?: string }).deviceId!,
+              label: sw.label,
+            }))}
+          />
         </div>
       )}
       <ul className="room-card-list">

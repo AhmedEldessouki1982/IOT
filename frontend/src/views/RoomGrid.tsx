@@ -21,6 +21,7 @@ export default function RoomGrid({
           name={room.name}
           devices={room.devices}
           switches={room.switches}
+          routineId={room.routineId}
           dummyOn={dummyOn}
           onDummyToggle={onDummyToggle}
           onExpand={onExpand}

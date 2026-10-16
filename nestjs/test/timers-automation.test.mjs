@@ -122,16 +122,16 @@ describe("timer automation", () => {
     assert.equal(timers.getAll()[0].remainingSeconds, 5);
     assert.equal("durationSeconds" in timers.getAll()[0], false);
   });
-  it("publishes ON for a toilet SINGLE press and OFF after the configured minutes", () => {
-    const { automation, mqtt } = makeAutomation([
-      {
-        switchId: "toilet-main",
-        base: "tasmota_TOILET",
-        gangs: 3,
-        roomType: "toilet",
-        roomId: "toilet",
-      },
-    ]);
+  const TOILET_SWITCH = {
+    switchId: "toilet-main",
+    base: "tasmota_TOILET",
+    gangs: 3,
+    roomType: "toilet",
+    roomId: "toilet",
+  };
+
+  it("first click arms stage 1 (10 min) and publishes OFF on expiry", () => {
+    const { automation, mqtt } = makeAutomation([TOILET_SWITCH]);
 
     automation.handleButtonPress("toilet-main-g1", 1, "single");
 
@@ -148,20 +148,66 @@ describe("timer automation", () => {
     ]);
   });
 
-  it("uses the long duration for a LONG press", () => {
-    const { automation } = makeAutomation([
-      {
-        switchId: "toilet-main",
-        base: "tasmota_TOILET",
-        gangs: 3,
-        roomType: "toilet",
-        roomId: "toilet",
-      },
+  it("second click restarts with stage 2 (30 min), for a tap or a hold", () => {
+    const { automation, timers } = makeAutomation([TOILET_SWITCH]);
+
+    automation.handleButtonPress("toilet-main-g1", 1, "single");
+    assert.equal(fakeTimeouts[0].delay, 10 * 60 * 1000);
+
+    // a long press advances exactly one stage, with a fresh full 30 min
+    automation.handleButtonPress("toilet-main-g1", 1, "long");
+
+    assert.equal(fakeTimeouts[1].delay, 30 * 60 * 1000);
+    assert.equal(timers.getDurationSeconds("toilet-main-g1", 1), 30 * 60);
+    assert.equal(timers.getRemaining("toilet-main-g1", 1), 30 * 60);
+  });
+
+  it("third click switches the gang off", () => {
+    const { automation, timers, mqtt } = makeAutomation([TOILET_SWITCH]);
+
+    automation.handleButtonPress("toilet-main-g1", 1, "single");
+    automation.handleButtonPress("toilet-main-g1", 1, "single");
+    const before = mqtt.published.length;
+
+    automation.handleButtonPress("toilet-main-g1", 1, "single");
+
+    assert.deepEqual(mqtt.published.slice(before), [
+      { topic: "devices/toilet-main-g1/cmd", payload: '{"on":false}' },
     ]);
+    assert.equal(timers.getDurationSeconds("toilet-main-g1", 1), null);
+    assert.equal(fakeTimeouts[1].cleared, true);
+  });
 
-    automation.handleButtonPress("toilet-main-g2", 2, "long");
+  it("exhaust fan has a single 10 min stage, so click 2 turns it off", () => {
+    const { automation, timers, mqtt } = makeAutomation([TOILET_SWITCH]);
 
-    assert.equal(fakeTimeouts[0].delay, 20 * 60 * 1000);
+    automation.handleButtonPress("toilet-main-g3", 3, "single");
+    assert.equal(fakeTimeouts[0].delay, 10 * 60 * 1000);
+
+    const before = mqtt.published.length;
+    automation.handleButtonPress("toilet-main-g3", 3, "long");
+
+    assert.deepEqual(mqtt.published.slice(before), [
+      { topic: "devices/toilet-main-g3/cmd", payload: '{"on":false}' },
+    ]);
+    assert.equal(timers.getDurationSeconds("toilet-main-g3", 3), null);
+    assert.equal(fakeTimeouts[0].cleared, true);
+  });
+
+  it("clicking a gang that is on without a timer switches it off", () => {
+    const { automation, deviceService, mqtt } = makeAutomation([TOILET_SWITCH]);
+
+    deviceService.setState("toilet-main-g1", {
+      type: "switch",
+      state: { on: true },
+    });
+
+    automation.handleButtonPress("toilet-main-g1", 1, "single");
+
+    assert.deepEqual(mqtt.published, [
+      { topic: "devices/toilet-main-g1/cmd", payload: '{"on":false}' },
+    ]);
+    assert.equal(fakeTimeouts.length, 0);
   });
 
   it("manual OFF cancels that gang timer", () => {
@@ -186,8 +232,8 @@ describe("timer automation", () => {
     assert.deepEqual(timerPersistence.saved, []);
   });
 
-  it("bedroom gang 1 stays on without creating a timer", () => {
-    const { automation, mqtt } = makeAutomation([
+  it("bedroom gang 1 toggles on/off without creating a timer", () => {
+    const { automation, mqtt, deviceService } = makeAutomation([
       {
         switchId: "bedroom-main",
         base: "tasmota_BED",
@@ -202,6 +248,19 @@ describe("timer automation", () => {
     assert.deepEqual(mqtt.published, [
       { topic: "devices/bedroom-main-g1/cmd", payload: '{"on":true}' },
     ]);
+    assert.equal(fakeTimeouts.length, 0);
+
+    // once the relay is on, the next click switches it off (still no timer)
+    deviceService.setState("bedroom-main-g1", {
+      type: "switch",
+      state: { on: true },
+    });
+    automation.handleButtonPress("bedroom-main-g1", 1, "long");
+
+    assert.deepEqual(mqtt.published[1], {
+      topic: "devices/bedroom-main-g1/cmd",
+      payload: '{"on":false}',
+    });
     assert.equal(fakeTimeouts.length, 0);
   });
 

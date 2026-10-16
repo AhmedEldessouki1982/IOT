@@ -2,7 +2,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { X, Lightbulb, Lock } from "lucide-react";
 import { isToggleableKind, type DeviceConfig } from "../features/devices";
 import CardDevice from "../features/devices/CardDevice";
-import SwitchCard from "../components/SwitchCard";
+import { RoutinePanel } from "../features/routines";
 import { ROOM_ICON_MAP } from "./RoomCard";
 import { BedSingle } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
@@ -12,7 +12,6 @@ import {
   liveDeviceId,
   liveStateKey,
 } from "../features/devices/deviceRuntime";
-import { useTimers } from "../hooks/useTimers";
 import { markLocalAction } from "../hooks/localActions";
 import { motionEase } from "../hooks/motionTokens";
 
@@ -22,6 +21,8 @@ interface RoomDetailProps {
   devices: DeviceConfig[];
   /** Live Sonoff switch relays to show as balanced switch cards. */
   switches?: DeviceConfig[];
+  /** Backend routine id — renders the reusable RoutinePanel when set. */
+  routineId?: string;
   dummyOn: Record<string, boolean>;
   onDummyToggle: (id: string) => void;
   onClose: () => void;
@@ -33,6 +34,7 @@ export default function RoomDetail({
   name,
   devices,
   switches = [],
+  routineId,
   dummyOn,
   onDummyToggle,
   onClose,
@@ -51,10 +53,6 @@ export default function RoomDetail({
   // carries a deviceId rounds-trips here; the rest are local dummy toggles.
   const liveDevices = useHomeStore((s) => s.devices);
   const setLiveBoolean = useHomeStore((s) => s.setBoolean);
-  const timers = useTimers();
-  const timerByDeviceId = new Map(
-    timers.map((timer) => [timer.deviceId, timer.remainingSeconds]),
-  );
 
   const allLights = [...devices, ...switches].filter((d) => d.kind === "light");
   const lockIds = devices.filter((d) => d.kind === "lock").map((d) => d.id);
@@ -165,18 +163,13 @@ export default function RoomDetail({
 
         {switches.length > 0 && (
           <div className="switch-row">
-            {switches.map((sw) => (
-              <SwitchCard
-                key={sw.id}
-                deviceId={(sw as { deviceId?: string }).deviceId!}
-                label={sw.label}
-                remainingSeconds={timerByDeviceId.get(
-                  (sw as { deviceId?: string }).deviceId!,
-                )}
-                durationSeconds={timers.find(t => t.deviceId === (sw as {deviceId?: string}).deviceId)?.durationSeconds}
-                expiresAt={timers.find(t => t.deviceId === (sw as {deviceId?: string}).deviceId)?.expiresAt}
-              />
-            ))}
+            <RoutinePanel
+              roomId={routineId}
+              fallback={switches.map((sw) => ({
+                deviceId: (sw as { deviceId?: string }).deviceId!,
+                label: sw.label,
+              }))}
+            />
           </div>
         )}
 

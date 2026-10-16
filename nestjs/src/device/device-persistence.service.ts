@@ -18,16 +18,42 @@ export class DevicePersistenceService implements OnModuleInit {
   private history = new Map<string, DeviceHistoryEntry[]>();
   private pendingWrite: Promise<void> = Promise.resolve();
 
+  /** Resolved once the on-disk snapshot has been merged into memory. */
+  private readonly ready: Promise<void>;
+
   constructor(config: ConfigService) {
     this.dataDir = resolve(config.get<string>("DATA_DIR") ?? ".data");
     this.statePath = join(this.dataDir, "device-states.json");
     this.historyPath = join(this.dataDir, "device-history.json");
+    // Start loading at construction time: Nest runs providers' onModuleInit
+    // hooks in registration order, so a consumer (DeviceService) would read an
+    // empty snapshot if loading only started here. Awaiting `whenReady()` makes
+    // the read order independent of hook order.
+    this.ready = this.load();
   }
 
   async onModuleInit(): Promise<void> {
+    await this.ready;
+  }
+
+  /** Await the disk snapshot; safe to call from any onModuleInit hook. */
+  async whenReady(): Promise<void> {
+    await this.ready;
+  }
+
+  private async load(): Promise<void> {
     await mkdir(this.dataDir, { recursive: true });
-    this.states = await this.readMap<DeviceState>(this.statePath);
-    this.history = await this.readMap<DeviceHistoryEntry[]>(this.historyPath);
+    // Anything recorded while the read was in flight is newer than the file,
+    // so it is laid over the loaded entries rather than replaced by them.
+    const states = await this.readMap<DeviceState>(this.statePath);
+    for (const [deviceId, state] of this.states) states.set(deviceId, state);
+    this.states = states;
+
+    const history = await this.readMap<DeviceHistoryEntry[]>(this.historyPath);
+    for (const [deviceId, entries] of this.history) {
+      history.set(deviceId, [...(history.get(deviceId) ?? []), ...entries]);
+    }
+    this.history = history;
     // Sanitize legacy files: earlier builds appended a row per MQTT message,
     // so reconnect replays left runs of identical consecutive entries.
     let dropped = 0;

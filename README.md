@@ -29,13 +29,16 @@ The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently 
 | ------------- | ----------------------------------------------------------------------------------------------------- |
 | Reception     | Ceiling light, front door, room temperature, Reception Line 1, Reception Line 2, Door Bulb            |
 | Kitchen       | Main light, gas detector, room temperature, three kitchen light zones, oven, dishwasher, smoke sensor |
-| Main Toilet   | LED bar, spotlights, exhaust fan                                                                      |
+| Main Toilet   | LED profile, Spotlights, Exhaust fan (live routine gangs `toilet-main-g1..3`)                          |
 | Corridor      | Corridor light                                                                                        |
 | Small Bedroom | Bedroom light                                                                                         |
 | Bedroom 2     | Bedroom light                                                                                         |
 | Master Suite  | Bedroom light, room temperature, toilet LED bar, toilet spotlights, exhaust fan                       |
 
-Live MQTT-backed ids today are `light1`, `sonoff1`, `sonoff2`, and `sonoff3`. The remaining 22 UI devices are local demo controls or read-only demo sensors until their real ids are added to the room config and backend registry.
+Live MQTT-backed ids today are `light1`, `sonoff1`, `sonoff2`, `sonoff3`, and the
+Main Toilet routine gangs `toilet-main-g1`, `toilet-main-g2`, `toilet-main-g3`.
+The remaining UI devices are local demo controls or read-only demo sensors until
+their real ids are added to the room config and backend registry.
 
 The 3D feature is deliberately isolated for now. This active dashboard does not expose a 3D viewer or GLB workflow.
 
@@ -118,10 +121,14 @@ REST and Socket.IO contracts kept stable:
 | `POST`       | `/devices/:id/command`    | Publish a JSON command to `devices/<id>/cmd`                       |
 | `GET`        | `/api/timers`             | Active timers as `{ deviceId, gang, expiresAt, remainingSeconds }` |
 | `POST`       | `/api/devices/:id/button` | Manual/test trigger for timer press handling                       |
+| `GET`        | `/api/rooms`              | Every routine room with roles, live state and timers              |
+| `GET`        | `/api/rooms/:roomId`      | One routine room                                                   |
+| `POST`       | `/api/rooms/:roomId/gangs/:gang/press` | Advance one press stage (`10m` → `30m` → `off`)   |
+| `DELETE`     | `/api/rooms/:roomId/gangs/:gang/timer` | Cancel a gang countdown                            |
 | Socket.IO    | `device:state`            | Latest device state                                                |
 | Socket.IO    | `timer:update`            | Full active timer list                                             |
 
-The older `/sonoff` routes are still available for Reception relay compatibility. Route prefixes are intentionally mixed (`/devices`, `/sonoff`, `/api/timers`, `/api/devices/:id/button`) to preserve the existing contracts.
+The older `/sonoff` routes are still available for Reception relay compatibility. Route prefixes are intentionally mixed (`/devices`, `/sonoff`, `/api/timers`, `/api/devices/:id/button`, `/api/rooms`) to preserve the existing contracts.
 
 ## Sonoff Registry
 
@@ -140,7 +147,7 @@ Use `SONOFF_SWITCHES_JSON` or `SONOFF_SWITCHES_FILE` for multiple wall switches.
 ```json
 {
   "switchId": "toilet-main",
-  "base": "tasmota_TOILET",
+  "base": "mainToilet",
   "gangs": 3,
   "roomType": "toilet",
   "roomId": "toilet"
@@ -172,7 +179,7 @@ Example registry with Reception plus one toilet switch:
   },
   {
     "switchId": "toilet-main",
-    "base": "tasmota_TOILET",
+    "base": "mainToilet",
     "gangs": 3,
     "roomType": "toilet",
     "roomId": "toilet"
@@ -182,24 +189,40 @@ Example registry with Reception plus one toilet switch:
 
 Do not add registry entries for rooms until the actual Tasmota topic base and room mapping are known.
 
-## Timers
+## Routines
 
-Timer rules live in `nestjs/src/timers/timer.config.ts`:
+Routine presets live in one place: `nestjs/src/routines/routine.config.ts`.
+`nestjs/src/timers/timer.config.ts` derives `TIMER_RULES` from them, so there is
+no duplicate table.
 
-| Room type | Gang          | Single press | Long press |
-| --------- | ------------- | ------------ | ---------- |
-| `toilet`  | 1 LED         | 10 min       | 30 min     |
-| `toilet`  | 2 spotlights  | 10 min       | 20 min     |
-| `toilet`  | 3 exhaust fan | 10 min       | 10 min     |
-| `bedroom` | 1 LED         | no timer     | no timer   |
-| `bedroom` | 2 spotlights  | 20 min       | 30 min     |
-| `none`    | any           | no timer     | no timer   |
+Every gang is driven by **clicks, not press length**: each click advances one
+stage, and the click after the last stage switches the gang off. On the wall
+switch a tap (`SINGLE`) and a hold (`HOLD`) are both one click, and so is a
+click on the dashboard card.
+
+| Room type | Gang          | Click cycle                 |
+| --------- | ------------- | --------------------------- |
+| `toilet`  | 1 LED profile | 10 min → 30 min → off       |
+| `toilet`  | 2 spotlights  | 10 min → 30 min → off       |
+| `toilet`  | 3 exhaust fan | 10 min → off (single stage) |
+| `bedroom` | 1 LED         | on/off toggle (no timer)    |
+| `bedroom` | 2 spotlights  | 20 min → 30 min → off       |
+| `none`    | any           | plain relay toggle          |
+
+`RoutinesModule` exposes each routine room as roles + stage lists + the card
+hint (`10m → 30m → off`) + live state + timers (`GET /api/rooms/...`) and
+accepts a press that advances a stage. The dashboard renders this with the
+reusable `RoutinePanel` / `RoutineGangCard` components
+(`frontend/src/features/routines/`), so a second toilet (e.g. the master) is one
+registry entry with `roomType: "toilet"` and its own `roomId` — no new code.
 
 Press behavior:
 
-- A tap while a timed gang is off starts the single-press timer.
-- A long press while a timed gang is off starts the long-press timer.
-- Pressing a timed gang that is already on restarts the timer with the new duration.
+- A click while no timer runs arms stage 1 (10 min) and turns the relay on.
+- A click while a stage runs arms the next stage with a **fresh full duration** (a second click restarts a full 30 min, it does not add on).
+- The click after the last stage switches the relay off and cancels the timer.
+- The current stage is derived from the running timer's duration, so it survives a backend restart.
+- A gang that is on **without** a timer (e.g. set by a scene) is switched off by the next click.
 - Manual OFF from UI or device state cancels that gang's active timer.
 - Active timers persist under `DATA_DIR` and are restored after restart. Expired persisted timers publish OFF after the MQTT connection is ready.
 

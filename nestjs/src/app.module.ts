@@ -5,6 +5,7 @@ import { DeviceModule } from "./device/device.module";
 import { SonoffModule } from "./sonoff/sonoff.module";
 import { TimersModule } from "./timers/timers.module";
 import { AutomationModule } from "./automation/automation.module";
+import { RoutinesModule } from "./routines";
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AutomationModule } from "./automation/automation.module";
     SonoffModule,
     TimersModule,
     AutomationModule,
+    RoutinesModule,
   ],
 })
 export class AppModule {}
