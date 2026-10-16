@@ -5,12 +5,27 @@ import { RoomType } from "../common/press.types";
 
 export type SonoffRoomType = RoomType | "none";
 
+/**
+ * How a switch's wall buttons are wired in Tasmota (`SetOption73`):
+ *
+ * - "detached" (`SetOption73 1`) — presses publish `ButtonN` events and the
+ *   backend drives the relay. Offline, a touch does nothing.
+ * - "local" (`SetOption73 0`) — a press toggles its own relay on the device, so
+ *   the wall keeps working when the backend, broker or network is down; the
+ *   backend only supervises the result with a timer.
+ *
+ * Anything other than "local" is read as "detached" so an absent or mistyped
+ * value never silently switches a config over to the other behaviour.
+ */
+export type SonoffButtonMode = "detached" | "local";
+
 export interface SonoffSwitchConfig {
   switchId: string;
   base: string;
   gangs: 1 | 2 | 3;
   roomType: SonoffRoomType;
   roomId: string;
+  buttonMode: SonoffButtonMode;
 }
 
 export interface SonoffGang {
@@ -20,6 +35,7 @@ export interface SonoffGang {
   deviceId: string;
   roomType: SonoffRoomType;
   roomId: string;
+  buttonMode: SonoffButtonMode;
 }
 
 interface RawSonoffSwitchConfig {
@@ -28,6 +44,7 @@ interface RawSonoffSwitchConfig {
   gangs?: unknown;
   roomType?: unknown;
   roomId?: unknown;
+  buttonMode?: unknown;
 }
 
 const LEGACY_SWITCH_ID = "reception";
@@ -63,6 +80,7 @@ function normalizeSwitchConfig(
     gangs,
     roomType: roomType as SonoffRoomType,
     roomId: roomId || switchId,
+    buttonMode: raw.buttonMode === "local" ? "local" : "detached",
   };
 }
 
@@ -76,6 +94,7 @@ export function expandSwitchConfig(config: SonoffSwitchConfig): SonoffGang[] {
       deviceId: deviceIdForGang(config.switchId, gang),
       roomType: config.roomType,
       roomId: config.roomId,
+      buttonMode: config.buttonMode,
     };
   });
 }
@@ -123,7 +142,11 @@ export class SonoffRegistryService {
     return this.byDeviceId.get(deviceId);
   }
 
-  getGangForButton(
+  /**
+   * Resolve a gang from a switch id (or a bare device id) plus its 1-based
+   * gang number — the same lookup the relay-state and button paths share.
+   */
+  getGangForSwitch(
     deviceOrSwitchId: string,
     gang: number,
   ): SonoffGang | undefined {
@@ -162,6 +185,7 @@ export class SonoffRegistryService {
         gangs: 3,
         roomType: "none",
         roomId: LEGACY_ROOM_ID,
+        buttonMode: "detached",
       },
     ];
   }

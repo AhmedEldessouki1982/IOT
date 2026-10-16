@@ -1,15 +1,16 @@
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { TimersService } from "../timers/timers.service";
 import { DeviceService, DeviceState } from "../device/device.service";
 import { DeviceGateway } from "../device/device.gateway";
-import { TIMER_RULES } from "../timers/timer.config";
-import { PressType, RoomType } from "../common/press.types";
+import { GangTimerRule, TIMER_RULES } from "../timers/timer.config";
 import { SonoffRegistryService } from "../sonoff/sonoff-registry.service";
 import { MqttConnectionService } from "../mqtt/mqtt-connection.service";
 
 @Injectable()
 export class DeviceAutomationService implements OnModuleInit {
+  private readonly logger = new Logger(DeviceAutomationService.name);
+
   constructor(
     private readonly timers: TimersService,
     private readonly deviceService: DeviceService,
@@ -24,28 +25,22 @@ export class DeviceAutomationService implements OnModuleInit {
     });
   }
 
-  getRoomTypeFor(deviceId: string): RoomType | null {
-    return this.sonoffRegistry.getRoomTypeForDevice(deviceId);
+  /** Timer rule for a gang, or null when the gang belongs to no routine. */
+  private ruleFor(deviceId: string, gang: number): GangTimerRule | null {
+    const roomType = this.sonoffRegistry.getRoomTypeForDevice(deviceId);
+    return roomType ? (TIMER_RULES[roomType][gang] ?? null) : null;
   }
 
   /**
-   * Advance one press stage for a gang (a single click, from either the wall
-   * switch or the dashboard). `pressType` is accepted for compatibility with the
-   * Tasmota SINGLE/HOLD mapping but no longer selects a duration: both the tap
-   * and the hold advance exactly one stage.
+   * Advance one press stage for a gang (one click, from the dashboard or a
+   * detached wall button). A single tap and a hold are the same click.
    *
    * Stage i -> arm minutes `stages[i]`; the click after the last stage turns
    * the gang off. The current stage is derived from the running timer's
    * duration, so it survives a restart.
    */
-  handleButtonPress(
-    deviceId: string,
-    gang: number,
-    _pressType?: PressType,
-  ): void {
-    const roomType = this.getRoomTypeFor(deviceId);
-    if (!roomType) return;
-    const rule = TIMER_RULES[roomType]?.[gang];
+  handleButtonPress(deviceId: string, gang: number): void {
+    const rule = this.ruleFor(deviceId, gang);
     if (!rule) return;
 
     // No stages (or explicitly no timer): a plain on/off toggle.
@@ -96,6 +91,26 @@ export class DeviceAutomationService implements OnModuleInit {
     if (index === -1) return stages[0];
     const next = index + 1;
     return next < stages.length ? stages[next] : null;
+  }
+
+  /**
+   * Supervise a physical ON on a `local` wall switch: the relay has already
+   * toggled on the device (that is what keeps it working offline), so the
+   * backend only arms the gang's first stage as an auto-off. The OFF side is
+   * covered by `onDeviceStateChanged`, which cancels the running timer.
+   */
+  handleLocalRelayOn(deviceId: string, gang: number): void {
+    const rule = this.ruleFor(deviceId, gang);
+    if (!rule || rule.noTimer || rule.stages.length === 0) return;
+    // A stage already running belongs to the click cycle, not to us.
+    if (this.timers.getDurationSeconds(deviceId, gang) !== null) return;
+
+    this.timers.start(deviceId, gang, rule.stages[0], () => {
+      this.turnOff(deviceId, gang);
+    });
+    this.logger.log(
+      `Local wall ON ${deviceId} -> supervisor auto-off ${rule.stages[0]}m`,
+    );
   }
 
   onManualOff(deviceId: string, gang: number): void {

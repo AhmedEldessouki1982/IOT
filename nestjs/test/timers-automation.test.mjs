@@ -133,7 +133,7 @@ describe("timer automation", () => {
   it("first click arms stage 1 (10 min) and publishes OFF on expiry", () => {
     const { automation, mqtt } = makeAutomation([TOILET_SWITCH]);
 
-    automation.handleButtonPress("toilet-main-g1", 1, "single");
+    automation.handleButtonPress("toilet-main-g1", 1);
 
     assert.deepEqual(mqtt.published, [
       { topic: "devices/toilet-main-g1/cmd", payload: '{"on":true}' },
@@ -148,14 +148,14 @@ describe("timer automation", () => {
     ]);
   });
 
-  it("second click restarts with stage 2 (30 min), for a tap or a hold", () => {
+  it("second click restarts with stage 2 (30 min)", () => {
     const { automation, timers } = makeAutomation([TOILET_SWITCH]);
 
-    automation.handleButtonPress("toilet-main-g1", 1, "single");
+    automation.handleButtonPress("toilet-main-g1", 1);
     assert.equal(fakeTimeouts[0].delay, 10 * 60 * 1000);
 
-    // a long press advances exactly one stage, with a fresh full 30 min
-    automation.handleButtonPress("toilet-main-g1", 1, "long");
+    // the next click advances exactly one stage, with a fresh full 30 min
+    automation.handleButtonPress("toilet-main-g1", 1);
 
     assert.equal(fakeTimeouts[1].delay, 30 * 60 * 1000);
     assert.equal(timers.getDurationSeconds("toilet-main-g1", 1), 30 * 60);
@@ -165,11 +165,11 @@ describe("timer automation", () => {
   it("third click switches the gang off", () => {
     const { automation, timers, mqtt } = makeAutomation([TOILET_SWITCH]);
 
-    automation.handleButtonPress("toilet-main-g1", 1, "single");
-    automation.handleButtonPress("toilet-main-g1", 1, "single");
+    automation.handleButtonPress("toilet-main-g1", 1);
+    automation.handleButtonPress("toilet-main-g1", 1);
     const before = mqtt.published.length;
 
-    automation.handleButtonPress("toilet-main-g1", 1, "single");
+    automation.handleButtonPress("toilet-main-g1", 1);
 
     assert.deepEqual(mqtt.published.slice(before), [
       { topic: "devices/toilet-main-g1/cmd", payload: '{"on":false}' },
@@ -181,11 +181,11 @@ describe("timer automation", () => {
   it("exhaust fan has a single 10 min stage, so click 2 turns it off", () => {
     const { automation, timers, mqtt } = makeAutomation([TOILET_SWITCH]);
 
-    automation.handleButtonPress("toilet-main-g3", 3, "single");
+    automation.handleButtonPress("toilet-main-g3", 3);
     assert.equal(fakeTimeouts[0].delay, 10 * 60 * 1000);
 
     const before = mqtt.published.length;
-    automation.handleButtonPress("toilet-main-g3", 3, "long");
+    automation.handleButtonPress("toilet-main-g3", 3);
 
     assert.deepEqual(mqtt.published.slice(before), [
       { topic: "devices/toilet-main-g3/cmd", payload: '{"on":false}' },
@@ -202,7 +202,7 @@ describe("timer automation", () => {
       state: { on: true },
     });
 
-    automation.handleButtonPress("toilet-main-g1", 1, "single");
+    automation.handleButtonPress("toilet-main-g1", 1);
 
     assert.deepEqual(mqtt.published, [
       { topic: "devices/toilet-main-g1/cmd", payload: '{"on":false}' },
@@ -221,7 +221,7 @@ describe("timer automation", () => {
       },
     ]);
 
-    automation.handleButtonPress("toilet-main-g1", 1, "single");
+    automation.handleButtonPress("toilet-main-g1", 1);
     deviceService.setState("toilet-main-g1", {
       type: "switch",
       state: { on: false },
@@ -243,7 +243,7 @@ describe("timer automation", () => {
       },
     ]);
 
-    automation.handleButtonPress("bedroom-main-g1", 1, "single");
+    automation.handleButtonPress("bedroom-main-g1", 1);
 
     assert.deepEqual(mqtt.published, [
       { topic: "devices/bedroom-main-g1/cmd", payload: '{"on":true}' },
@@ -255,7 +255,7 @@ describe("timer automation", () => {
       type: "switch",
       state: { on: true },
     });
-    automation.handleButtonPress("bedroom-main-g1", 1, "long");
+    automation.handleButtonPress("bedroom-main-g1", 1);
 
     assert.deepEqual(mqtt.published[1], {
       topic: "devices/bedroom-main-g1/cmd",

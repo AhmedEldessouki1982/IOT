@@ -156,13 +156,14 @@ Use `SONOFF_SWITCHES_JSON` or `SONOFF_SWITCHES_FILE` for multiple wall switches.
 
 Fields:
 
-| Field      | Meaning                                          |
-| ---------- | ------------------------------------------------ |
-| `switchId` | Stable app id for the physical switch            |
-| `base`     | Tasmota MQTT topic base                          |
-| `gangs`    | Relay count: `1`, `2`, or `3`                    |
-| `roomType` | Timer profile: `toilet`, `bedroom`, or `none`    |
-| `roomId`   | Stable room id for future customer configuration |
+| Field        | Meaning                                          |
+| ------------ | ------------------------------------------------ |
+| `switchId`   | Stable app id for the physical switch            |
+| `base`       | Tasmota MQTT topic base                          |
+| `gangs`      | Relay count: `1`, `2`, or `3`                    |
+| `roomType`   | Timer profile: `toilet`, `bedroom`, or `none`    |
+| `roomId`     | Stable room id for future customer configuration |
+| `buttonMode` | `local` = a wall touch drives its own relay, so the switch works offline and the backend only adds the timer; `detached` (default) = the backend drives the relay |
 
 Backward compatibility: when only `SONOFF_BASE` is set, it creates a legacy Reception registry entry with `switchId: "reception"`, `roomType: "none"`, and device ids `sonoff1`, `sonoff2`, `sonoff3`. New switches generate deterministic ids as `<switchId>-g<n>`, for example `toilet-main-g1`.
 
@@ -182,7 +183,8 @@ Example registry with Reception plus one toilet switch:
     "base": "mainToilet",
     "gangs": 3,
     "roomType": "toilet",
-    "roomId": "toilet"
+    "roomId": "toilet",
+    "buttonMode": "local"
   }
 ]
 ```
@@ -195,10 +197,12 @@ Routine presets live in one place: `nestjs/src/routines/routine.config.ts`.
 `nestjs/src/timers/timer.config.ts` derives `TIMER_RULES` from them, so there is
 no duplicate table.
 
-Every gang is driven by **clicks, not press length**: each click advances one
-stage, and the click after the last stage switches the gang off. On the wall
-switch a tap (`SINGLE`) and a hold (`HOLD`) are both one click, and so is a
-click on the dashboard card.
+Every gang is driven by **clicks, not press length**. A dashboard click advances
+one stage; the click after the last stage switches the gang off. A `detached`
+wall switch behaves the same way (a tap `SINGLE` and a hold `HOLD` are each one
+click), while a `local` wall switch is a plain on/off — the device switches its
+own relay, which is what keeps it working offline, and the backend adds the
+gang's first stage as a supervisor auto-off.
 
 | Room type | Gang          | Click cycle                 |
 | --------- | ------------- | --------------------------- |
@@ -223,12 +227,15 @@ Press behavior:
 - The click after the last stage switches the relay off and cancels the timer.
 - The current stage is derived from the running timer's duration, so it survives a backend restart.
 - A gang that is on **without** a timer (e.g. set by a scene) is switched off by the next click.
+- On a `local` wall switch, a touch that switches the relay **on** arms stage 1 (10 min) as a supervisor auto-off, unless a stage is already running.
+- On a `local` wall switch, a touch that switches it **off** cancels that gang's timer, like any other off. The wall keeps working with no timer while the backend, broker or network is down.
 - Manual OFF from UI or device state cancels that gang's active timer.
 - Active timers persist under `DATA_DIR` and are restored after restart. Expired persisted timers publish OFF after the MQTT connection is ready.
 
 Frontend timer badges use one initial `GET /api/timers`, `timer:update` Socket.IO events, and a local one-second countdown tick.
 
-Tasmota button-action setup notes are in `docs/tasmota-setup.md`.
+Tasmota relay modes (`buttonMode`), button actions and required device settings
+are in `docs/tasmota-setup.md`.
 
 ## Verification
 

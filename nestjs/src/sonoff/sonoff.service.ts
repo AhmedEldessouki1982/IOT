@@ -8,7 +8,6 @@ import {
   SonoffSwitchConfig,
 } from "./sonoff-registry.service";
 import { DeviceAutomationService } from "../automation/device-automation.service";
-import { PressType } from "../common/press.types";
 
 @Injectable()
 export class SonoffService implements OnModuleInit {
@@ -106,15 +105,10 @@ export class SonoffService implements OnModuleInit {
     const text = buffer.toString().trim().toUpperCase();
     if (text !== "ON" && text !== "OFF") return;
 
-    const gang = this.registry
-      .getGangs()
-      .find(
-        (candidate) =>
-          candidate.switchId === entry.switchId && candidate.gang === channel,
-      );
+    const gang = this.registry.getGangForSwitch(entry.switchId, channel);
     if (!gang) return;
 
-    this.recordState(gang.deviceId, text === "ON");
+    this.recordState(gang, text === "ON");
   }
 
   private handleResult(topic: string, buffer: Buffer): void {
@@ -138,24 +132,29 @@ export class SonoffService implements OnModuleInit {
     for (const [key, value] of Object.entries(payload)) {
       const buttonMatch = /^Button(\d+)$/.exec(key);
       if (!buttonMatch) continue;
-      const gangNumber = Number(buttonMatch[1]);
-      const pressType = this.pressTypeFromResult(value);
-      if (!pressType) continue;
+      // A local switch toggles its own relay, so it publishes no actions; if it
+      // ever does, they must not drive the cycle the relay change already ran.
+      if (entry.buttonMode !== "detached") continue;
+      if (!this.isPressAction(value)) continue;
 
-      const gang = this.registry.getGangForButton(entry.switchId, gangNumber);
+      const gang = this.registry.getGangForSwitch(
+        entry.switchId,
+        Number(buttonMatch[1]),
+      );
       if (!gang) continue;
-      this.automation.handleButtonPress(gang.deviceId, gang.gang, pressType);
+      this.automation.handleButtonPress(gang.deviceId, gang.gang);
     }
   }
 
-  private pressTypeFromResult(value: unknown): PressType | null {
+  /**
+   * SINGLE and HOLD each count as one click; DOUBLE and anything else do not.
+   */
+  private isPressAction(value: unknown): boolean {
     if (!value || typeof value !== "object" || Array.isArray(value)) {
-      return null;
+      return false;
     }
     const action = (value as { Action?: unknown }).Action;
-    if (action === "SINGLE") return "single";
-    if (action === "HOLD") return "long";
-    return null;
+    return action === "SINGLE" || action === "HOLD";
   }
 
   setOutput(channel: number, on: boolean): void {
@@ -194,21 +193,28 @@ export class SonoffService implements OnModuleInit {
     this.logger.log(`Sonoff publish ${topic} -> ${payload}`);
   }
 
-  private recordState(deviceId: string, on: boolean): void {
-    if (this.deviceService.resolveRelayEcho(deviceId, on) === "stale") {
-      // Echo of a command a newer one already superseded: dropping it keeps the
-      // later state (and any timer armed with it) intact.
-      return;
-    }
+  /** Apply a relay state the device reported over `stat/<base>/POWER<n>`. */
+  private recordState(gang: SonoffGang, on: boolean): void {
+    const echo = this.deviceService.resolveRelayEcho(gang.deviceId, on);
+    // Echo of a command a newer one already superseded: dropping it keeps the
+    // later state (and any timer armed with it) intact.
+    if (echo === "stale") return;
 
-    const changed = this.deviceService.setState(deviceId, {
+    const changed = this.deviceService.setState(gang.deviceId, {
       type: "switch",
       state: { on },
     });
     if (!changed) return;
 
-    const state = this.deviceService.getState(deviceId);
+    const state = this.deviceService.getState(gang.deviceId);
     if (state) this.gateway.broadcast(state);
-    this.logger.log(`Sonoff ${deviceId} state -> ${on ? "ON" : "OFF"}`);
+    this.logger.log(`Sonoff ${gang.deviceId} state -> ${on ? "ON" : "OFF"}`);
+
+    // A local wall press switched the relay on without us: supervise it. OFF
+    // needs nothing here — the automation's state-changed listener cancels the
+    // gang's running timer.
+    if (echo === "unsolicited" && on && gang.buttonMode === "local") {
+      this.automation.handleLocalRelayOn(gang.deviceId, gang.gang);
+    }
   }
 }

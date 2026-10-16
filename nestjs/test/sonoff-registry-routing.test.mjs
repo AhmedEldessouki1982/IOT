@@ -44,9 +44,11 @@ function makeService(switches) {
   const broadcasts = [];
   const gateway = { broadcast: (state) => broadcasts.push(state) };
   const buttonPresses = [];
+  const localRelayOns = [];
   const automation = {
-    handleButtonPress: (deviceId, gang, pressType) =>
-      buttonPresses.push({ deviceId, gang, pressType }),
+    handleButtonPress: (deviceId, gang) =>
+      buttonPresses.push({ deviceId, gang }),
+    handleLocalRelayOn: (deviceId) => localRelayOns.push(deviceId),
   };
   const service = new SonoffService(
     mqtt,
@@ -55,7 +57,15 @@ function makeService(switches) {
     registry,
     automation,
   );
-  return { service, mqtt, deviceService, broadcasts, registry, buttonPresses };
+  return {
+    service,
+    mqtt,
+    deviceService,
+    broadcasts,
+    registry,
+    buttonPresses,
+    localRelayOns,
+  };
 }
 
 describe("Sonoff registry", () => {
@@ -106,7 +116,7 @@ describe("SonoffService registry routing", () => {
   });
 
   it("keeps state messages isolated to their own switch", () => {
-    const { mqtt, deviceService, broadcasts } = makeService([
+    const { mqtt, deviceService, broadcasts, localRelayOns } = makeService([
       {
         switchId: "switch-a",
         base: "tasmota_A",
@@ -131,6 +141,8 @@ describe("SonoffService registry routing", () => {
       broadcasts.map((state) => state.deviceId),
       ["switch-a-g1"],
     );
+    // detached switches are driven by button actions, never supervised
+    assert.deepEqual(localRelayOns, []);
   });
 
   it("ignores a device echo that a newer command has superseded", () => {
@@ -174,7 +186,7 @@ describe("SonoffService registry routing", () => {
     mqtt.deliver("stat/tasmota_TOILET/RESULT", '{"Button2":{"Action":"HOLD"}}');
 
     assert.deepEqual(buttonPresses, [
-      { deviceId: "toilet-main-g2", gang: 2, pressType: "long" },
+      { deviceId: "toilet-main-g2", gang: 2 },
     ]);
   });
 });

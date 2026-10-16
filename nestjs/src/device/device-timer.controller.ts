@@ -52,14 +52,14 @@ export class DeviceTimerController {
       throw new BadRequestException("pressType must be `single` or `long`");
     }
 
-    const gang = this.sonoffRegistry.getGangForButton(id, body.gang);
+    const gang = this.sonoffRegistry.getGangForSwitch(id, body.gang);
     if (!gang) {
       throw new NotFoundException(
         `No Sonoff gang found for ${id}/${body.gang}`,
       );
     }
 
-    this.automation.handleButtonPress(gang.deviceId, gang.gang, body.pressType);
+    this.automation.handleButtonPress(gang.deviceId, gang.gang);
     return {
       ok: true,
       id,

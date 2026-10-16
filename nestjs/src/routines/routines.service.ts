@@ -91,7 +91,7 @@ export class RoutinesService {
     if (!target) {
       throw new NotFoundException(`Room "${roomId}" has no gang ${gang}`);
     }
-    this.automation.handleButtonPress(target.deviceId, gang, "single");
+    this.automation.handleButtonPress(target.deviceId, gang);
     this.logger.log(
       `Routine click room=${roomId} gang=${gang} -> ${target.deviceId}`,
     );
