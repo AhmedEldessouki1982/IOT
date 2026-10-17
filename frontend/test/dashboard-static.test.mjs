@@ -115,6 +115,22 @@ describe("dashboard feature boundaries", () => {
     assert.equal(scenes.includes('id: "girlRoom-g2"'), true);
   });
 
+  it("adds the Omar Room as a third manual room", () => {
+    const rooms = read("src/dashboard/rooms.ts");
+    const roomCard = read("src/dashboard/RoomCard.tsx");
+    const scenes = read("src/dashboard/scenes.ts");
+
+    // three real gangs, same plain-room shape as the girl's bedroom switch
+    assert.equal(rooms.includes('id: "omarRoom-g1"'), true);
+    assert.equal(rooms.includes('id: "omarRoom-g3"'), true);
+
+    // the boy's room counterpart to the Girl Room's Venus (♀) marker
+    assert.equal(roomCard.includes("omarRoom: Mars"), true);
+
+    // the Away scene tracks the room list, so the new gangs join it too
+    assert.equal(scenes.includes('id: "omarRoom-g2"'), true);
+  });
+
   it("keeps device registry operations available for business deployments", () => {
     const app = read("src/views/DevicesView.tsx");
     const css = read("src/styles/components/panels.css");

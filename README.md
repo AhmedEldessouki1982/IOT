@@ -23,7 +23,7 @@ A local-first smart-home dashboard and MQTT bridge for an apartment installation
 
 ## Dashboard Scope
 
-The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently defines **6 top-level rooms** — plus the **Master Toilet nested inside the Master Suite** — and **29 UI devices**:
+The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently defines **7 top-level rooms** — plus the **Master Toilet nested inside the Master Suite** — and **32 UI devices**:
 
 | Room          | Devices                                                                                               |
 | ------------- | ----------------------------------------------------------------------------------------------------- |
@@ -33,6 +33,7 @@ The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently 
 | Corridor      | Corridor light                                                                                        |
 | Master Suite  | Room temperature, live master bedroom switch `masterRoom-g1..3` (LED Profile / Spotlight / Room Utility) — with a **nested Master Toilet** card (live routine gangs `toilet-master-g1..3`) |
 | Girl Room     | Live girl-room switch `girlRoom-g1..3` (LED Profile / Spotlight / Room Utility) |
+| Omar Room     | Live boy's-room switch `omarRoom-g1..3` (LED Profile / Spotlight / Room Utility) |
 
 Nested rooms are ordinary `Room` configs listed under a parent room's `nested`
 array; `RoomCard`, `RoomDetail` and the routine panel render them unchanged.
@@ -40,7 +41,7 @@ array; `RoomCard`, `RoomDetail` and the routine panel render them unchanged.
 
 Live MQTT-backed ids today are `light1`, `sonoff1`, `sonoff2`, `sonoff3`, the
 master bedroom switch `masterRoom-g1..3`, the Girl Room switch
-`girlRoom-g1..3`, and the Main Toilet and Master Toilet routine gangs `toilet-main-g1..3` and `toilet-master-g1..3`.
+`girlRoom-g1..3`, the Omar Room switch `omarRoom-g1..3`, and the Main Toilet and Master Toilet routine gangs `toilet-main-g1..3` and `toilet-master-g1..3`.
 The remaining UI devices are local demo controls or read-only demo sensors until
 their real ids are added to the room config and backend registry.
 
@@ -213,15 +214,23 @@ Example registry with Reception plus both toilets:
     "roomType": "none",
     "roomId": "girlRoom",
     "buttonMode": "local"
+  },
+  {
+    "switchId": "omarRoom",
+    "base": "omarRoom",
+    "gangs": 3,
+    "roomType": "none",
+    "roomId": "omarRoom",
+    "buttonMode": "local"
   }
 ]
 ```
 
 Both toilets share the `toilet` routine, so the second switch is one registry
-entry plus one room config — no new code. The master bedroom switch adds a third
-shape: `roomType: "none"` is a plain on/off switch with **no routine and no
-auto-off timer**, so it is also just one registry entry plus the room's switch
-config.
+entry plus one room config — no new code. The master bedroom, girl's room and Omar's room switches all use a
+third shape: `roomType: "none"` is a plain on/off switch with **no routine and
+no auto-off timer**, so each is also just one registry entry plus the room's
+switch config.
 
 Do not add registry entries for rooms until the actual Tasmota topic base and room mapping are known.
 

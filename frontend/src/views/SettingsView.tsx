@@ -49,7 +49,7 @@ export default function SettingsView({
       <div className="settings-theme"><strong>Appearance</strong><ThemeToggle /></div>
       <section className="kiosk-settings" aria-label="Wall panel settings">
         <label className="kiosk-setting"><span>Wall panel mode</span><button type="button" role="switch" aria-checked={kiosk.enabled} aria-label="Wall panel mode" className="toggle" data-on={kiosk.enabled} onClick={() => kiosk.setEnabled(!kiosk.enabled)}><span className="toggle-knob" /></button></label>
-        <label className="kiosk-setting"><span>Idle minutes (0 disables)</span><input type="number" min="0" max="120" step="1" value={kiosk.minutes} disabled={!kiosk.enabled} onChange={e => kiosk.setMinutes(Number(e.target.value))} /></label>
+        <label className="kiosk-setting"><span>Idle minutes (0 disables)</span><input type="number" id="kiosk-idle-minutes" name="kioskIdleMinutes" aria-label="Idle minutes (0 disables)" min="0" max="120" step="1" value={kiosk.minutes} disabled={!kiosk.enabled} onChange={e => kiosk.setMinutes(Number(e.target.value))} /></label>
       </section>
     </section>
   );

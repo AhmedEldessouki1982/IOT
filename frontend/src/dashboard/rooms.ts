@@ -263,6 +263,37 @@ export const ROOMS: Room[] = [
       },
     ],
   },
+  {
+    id: "omarRoom",
+    name: "Omar Room",
+    devices: [],
+    // Omar's bedroom wall switch (Tasmota topic "omarRoom"), 3 gangs. Same manual
+    // shape as the girl's bedroom switch: registry roomType "none" means no
+    // routine and no auto-off timer, so the wall buttons and these cards just
+    // toggle the relays. No routineId, so RoutinePanel renders the plain live
+    // switch cards — the explicit `routine={Boolean(roomId)}` flag keeps an app
+    // press off the routine endpoint even though the ids end in "-g<n>".
+    switches: [
+      {
+        kind: "light",
+        id: "omarRoom-g1",
+        deviceId: "omarRoom-g1",
+        label: "LED Profile",
+      },
+      {
+        kind: "light",
+        id: "omarRoom-g2",
+        deviceId: "omarRoom-g2",
+        label: "Spotlight",
+      },
+      {
+        kind: "light",
+        id: "omarRoom-g3",
+        deviceId: "omarRoom-g3",
+        label: "Room Utility",
+      },
+    ],
+  },
 ];
 
 /** Every room including nested ones (parents first, then their children). */
@@ -289,6 +320,9 @@ export const LIVE_DEVICE_IDS = [
   "girlRoom-g1",
   "girlRoom-g2",
   "girlRoom-g3",
+  "omarRoom-g1",
+  "omarRoom-g2",
+  "omarRoom-g3",
 ];
 
 /** Sonoff 3-gang relay ids rendered as balanced switch cards. */
@@ -308,6 +342,9 @@ export const SONOFF_DEVICE_IDS = [
   "girlRoom-g1",
   "girlRoom-g2",
   "girlRoom-g3",
+  "omarRoom-g1",
+  "omarRoom-g2",
+  "omarRoom-g3",
 ];
 
 /** True when a device id belongs to the physical Sonoff 3-gang switch. */

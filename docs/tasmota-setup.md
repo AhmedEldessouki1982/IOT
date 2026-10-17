@@ -224,4 +224,41 @@ The two placeholder bedroom cards (`bed1` "Small Bedroom" and `bed2`
 "Bedroom 2", dummy lights `light5`/`light6`) were removed in favour of this real
 switch, and their ids were dropped from the Away scene.
 
+### Omar Room (implemented)
+
+A fifth T3US3C, in Omar's bedroom (`10.10.0.127`, Tasmota `Topic` / `DeviceName`
+`omarRoom`), provisioned with the same recipe as the girl's bedroom switch and
+likewise **manual only** — no routine, no auto-off timer.
+
+| Gang | Tasmota friendly name | Dashboard label | Behaviour |
+| ---- | --------------------- | --------------- | --------- |
+| 1    | `ledProfile`          | LED Profile     | on / off  |
+| 2    | `spotlight`           | Spotlight       | on / off  |
+| 3    | `roomUtility`         | Room Utility    | on / off  |
+
+Registry entry (`.env`):
+
+```json
+{ "switchId": "omarRoom", "base": "omarRoom", "gangs": 3, "roomType": "none", "roomId": "omarRoom", "buttonMode": "local" }
+```
+
+Device ids are `omarRoom-g1..3`, on their own top-level **Omar Room** card in
+`frontend/src/dashboard/rooms.ts`, placed straight after the Girl Room; the card
+icon is lucide's `Mars` glyph (♂), the counterpart to the Girl Room's `Venus`.
+
+This unit arrived as stock firmware on a single-relay module (`Module 1`,
+"Sonoff Basic"), so provisioning started by applying the template:
+
+```text
+Template {"NAME":"TX T3US3C","GPIO":[17,255,0,255,23,22,18,19,21,158,0,0,0],"FLAG":0,"BASE":30}
+Module 0
+```
+
+Everything said about the master and girl bedroom switches applies verbatim
+here: `roomType: "none"` makes `getRoomTypeForDevice` return `null` so nothing is
+ever scheduled (neither `handleLocalRelayOn` nor `handleButtonPress` acts on it),
+`buttonMode: "local"` keeps the wall working while the backend or broker is down,
+and the explicit `routine={Boolean(roomId)}` flag keeps an app press off the
+routine endpoint even though the ids end in `-g<n>`.
+
 

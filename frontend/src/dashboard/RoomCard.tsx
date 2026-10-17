@@ -9,6 +9,7 @@ import {
   BedSingle,
   Crown,
   Venus,
+  Mars,
   ChevronRight,
 } from "lucide-react";
 import { useHomeStore } from "../store/useHomeStore";
@@ -29,6 +30,8 @@ const ROOM_ICON: Record<string, typeof Sofa> = {
   // lucide ships no literal "Girl" glyph — the Venus symbol (♀) is the female
   // marker used for the Girl Room card.
   girlRoom: Venus,
+  // The boy's room counterpart to the Girl Room's Venus (♀) marker.
+  omarRoom: Mars,
 };
 
 export const ROOM_ICON_MAP = ROOM_ICON;
