@@ -78,6 +78,22 @@ describe("dashboard feature boundaries", () => {
     assert.equal(roomDetail.includes('className="room-detail-nested"'), true);
   });
 
+  it("wires the master bedroom switch as a plain, routine-less room", () => {
+    const rooms = read("src/dashboard/rooms.ts");
+    const roomPanel = read("src/features/routines/RoutinePanel.tsx");
+    const switchCard = read("src/components/SwitchCard.tsx");
+
+    // three real gangs on the master card, and the old dummy light is gone
+    assert.equal(rooms.includes('id: "masterRoom-g1"'), true);
+    assert.equal(rooms.includes('id: "masterRoom-g3"'), true);
+    assert.equal(rooms.includes('id: "light7"'), false);
+
+    // a routine-less room toggles plainly; only routine rooms advance a stage,
+    // even though both id shapes end in "-g<n>"
+    assert.equal(roomPanel.includes("routine={Boolean(roomId)}"), true);
+    assert.equal(switchCard.includes("routine ?? timerGang !== null"), true);
+  });
+
   it("keeps device registry operations available for business deployments", () => {
     const app = read("src/views/DevicesView.tsx");
     const css = read("src/styles/components/panels.css");

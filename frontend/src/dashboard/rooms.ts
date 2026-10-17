@@ -176,13 +176,36 @@ export const ROOMS: Room[] = [
     id: "master",
     name: "Master Suite",
     devices: [
-      { kind: "light", id: "light7", label: "Master Bedroom Light" },
       {
         kind: "room-temp",
         id: "master-temp",
         label: "Room Temperature",
         current: 20.9,
         history: [21.1, 21.0, 20.8, 20.9, 21.0, 20.7, 20.9],
+      },
+    ],
+    // Master bedroom wall switch (Tasmota topic "masterRoom"), 3 gangs. Manual
+    // only for now: registry roomType "none" means no routine and no auto-off,
+    // so the wall buttons and these cards just toggle the relays. No routineId,
+    // so RoutinePanel renders the plain live switch cards.
+    switches: [
+      {
+        kind: "light",
+        id: "masterRoom-g1",
+        deviceId: "masterRoom-g1",
+        label: "LED Profile",
+      },
+      {
+        kind: "light",
+        id: "masterRoom-g2",
+        deviceId: "masterRoom-g2",
+        label: "Spotlight",
+      },
+      {
+        kind: "light",
+        id: "masterRoom-g3",
+        deviceId: "masterRoom-g3",
+        label: "Room Utility",
       },
     ],
     // The master toilet is its own switch (Tasmota topic "MasterRoomToilet")
@@ -239,6 +262,9 @@ export const LIVE_DEVICE_IDS = [
   "toilet-master-g1",
   "toilet-master-g2",
   "toilet-master-g3",
+  "masterRoom-g1",
+  "masterRoom-g2",
+  "masterRoom-g3",
 ];
 
 /** Sonoff 3-gang relay ids rendered as balanced switch cards. */
@@ -252,6 +278,9 @@ export const SONOFF_DEVICE_IDS = [
   "toilet-master-g1",
   "toilet-master-g2",
   "toilet-master-g3",
+  "masterRoom-g1",
+  "masterRoom-g2",
+  "masterRoom-g3",
 ];
 
 /** True when a device id belongs to the physical Sonoff 3-gang switch. */

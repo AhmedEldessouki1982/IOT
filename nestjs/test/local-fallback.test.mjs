@@ -301,3 +301,55 @@ describe("a second toilet on the shared routine", () => {
     ]);
   });
 });
+
+const MASTER_BEDROOM = {
+  switchId: "masterRoom",
+  base: "masterRoom",
+  gangs: 3,
+  roomType: "none",
+  roomId: "masterRoom",
+  buttonMode: "local",
+};
+
+describe("a plain (roomType none) switch — no routine, no timer", () => {
+  it("maps its gangs and drives the relays from the dashboard", () => {
+    const { mqtt, registry } = makeRig([MASTER_BEDROOM]);
+
+    assert.deepEqual(
+      registry.getGangs().map((gang) => gang.deviceId),
+      ["masterRoom-g1", "masterRoom-g2", "masterRoom-g3"],
+    );
+    // no routine room type, so automation never treats it as a routine gang
+    assert.equal(registry.getRoomTypeForDevice("masterRoom-g1"), null);
+
+    mqtt.deliver("devices/masterRoom-g2/cmd", '{"on":true}');
+
+    assert.deepEqual(mqtt.published, [
+      { topic: "cmnd/masterRoom/POWER2", payload: "ON" },
+    ]);
+  });
+
+  it("arms no timer for a wall touch or a press, but still records state", () => {
+    const { mqtt, timers, deviceService, automation } = makeRig([
+      MASTER_BEDROOM,
+    ]);
+
+    mqtt.deliver("stat/masterRoom/POWER1", "ON");
+    automation.handleButtonPress("masterRoom-g1", 1);
+    automation.handleLocalRelayOn("masterRoom-g3", 3);
+
+    // the wall touch is still tracked, so the app shows the true relay state
+    assert.equal(deviceService.getState("masterRoom-g1")?.state.on, true);
+    // ...but nothing is ever scheduled to switch it off
+    assert.equal(timers.getDurationSeconds("masterRoom-g1", 1), null);
+    assert.equal(timers.getDurationSeconds("masterRoom-g3", 3), null);
+    assert.equal(fakeTimeouts.length, 0);
+  });
+
+  it("keeps a manual and a routine switch apart on the same broker", () => {
+    const { registry } = makeRig([LOCAL_TOILET, MASTER_BEDROOM]);
+
+    assert.equal(registry.getRoomTypeForDevice("toilet-main-g1"), "toilet");
+    assert.equal(registry.getRoomTypeForDevice("masterRoom-g1"), null);
+  });
+});

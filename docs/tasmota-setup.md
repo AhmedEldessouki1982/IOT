@@ -150,3 +150,44 @@ level in. `routineId` must equal the registry `roomId` — the room card passes 
 to `GET /api/rooms/<routineId>`, and for the main toilet the two are both
 `"toilet"`.
 
+### Master Bedroom (implemented)
+
+A third T3US3C in the master bedroom (`10.10.0.245`, Tasmota `Topic` /
+`DeviceName` `masterRoom`). This one has **no routine**: the gangs are plain
+on/off lights, toggled from the wall buttons or from the app, with no click cycle
+and no auto-off timer.
+
+| Gang | Tasmota friendly name | Dashboard label | Behaviour |
+| ---- | --------------------- | --------------- | --------- |
+| 1    | `ledProfile`          | LED Profile     | on / off  |
+| 2    | `spotlight`           | Spotlight       | on / off  |
+| 3    | `roomUtility`         | Room Utility    | on / off  |
+
+Registry entry (`.env`):
+
+```json
+{ "switchId": "masterRoom", "base": "masterRoom", "gangs": 3, "roomType": "none", "roomId": "masterRoom", "buttonMode": "local" }
+```
+
+Device ids are `masterRoom-g1..3`. `roomType: "none"` is what makes it plain:
+`SonoffRegistryService.getRoomTypeForDevice` returns `null`, so
+`DeviceAutomationService` never arms a timer for it — a wall touch
+(`handleLocalRelayOn`) and a dashboard press (`handleButtonPress`) both leave it
+alone. It stays `buttonMode: "local"` so the wall keeps working offline, exactly
+like the toilets, only without the supervisor.
+
+The device settings are the same T3US3C recipe (`SetOption73 0`, `PowerRetain
+1`, `PowerOnState 3`, `SetOption1 1`, `SetOption32 40`, `SetOption19 1`).
+
+In the dashboard the three gangs sit in the Master Suite's own switch row
+(`frontend/src/dashboard/rooms.ts`, room `master`) — no `routineId`, so
+`RoutinePanel` renders the plain live switch cards. The suite's placeholder
+dummy light `light7` was removed in favour of these real relays.
+
+> Note: manual switches share the `<switchId>-g<n>` id shape with routine gangs,
+> so the id alone cannot tell a routine press from a plain toggle. The room
+> config decides: `SwitchCard` receives `routine` explicitly from
+> `RoutinePanel` (`routine={Boolean(roomId)}`), and only a room with a
+> `routineId` advances a backend stage.
+
+

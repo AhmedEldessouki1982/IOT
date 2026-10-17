@@ -28,6 +28,7 @@ export default function SwitchCard({
   durationSeconds,
   expiresAt,
   onPress,
+  routine,
 }: {
   deviceId: string;
   label: string;
@@ -44,6 +45,17 @@ export default function SwitchCard({
    * whether it was a tap or a long press; routine cards treat both as one click.
    */
   onPress?: (pressType: "single" | "long") => void;
+  /**
+   * Whether a press advances the backend routine stage (routine room) instead of
+   * plainly toggling the relay. Callers that know the room render in routine
+   * mode pass this explicitly; when omitted we fall back to the "-g<n>" id
+   * heuristic for backwards compatibility.
+   *
+   * This matters because manual switches share the `<switchId>-g<n>` id shape
+   * with routine gangs (registry roomType "none"), so the id alone cannot tell
+   * a routine press from a plain toggle.
+   */
+  routine?: boolean;
 }) {
   const state = useHomeStore((s) => s.devices[deviceId]?.state.on);
   const on = state === true;
@@ -51,7 +63,7 @@ export default function SwitchCard({
   const setBoolean = useHomeStore((s) => s.setBoolean);
   const online = useHomeStore((s) => s.online);
   const timerGang = timerGangForDeviceId(deviceId);
-  const usesTimerGesture = timerGang !== null;
+  const usesTimerGesture = routine ?? timerGang !== null;
 
   const manualOff = () => void setBoolean(deviceId, "on", false);
   const toggleLegacy = () => void toggle(deviceId);

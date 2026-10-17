@@ -33,15 +33,15 @@ The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently 
 | Corridor      | Corridor light                                                                                        |
 | Small Bedroom | Bedroom light                                                                                         |
 | Bedroom 2     | Bedroom light                                                                                         |
-| Master Suite  | Bedroom light, room temperature — with a **nested Master Toilet** card (live routine gangs `toilet-master-g1..3`) |
+| Master Suite  | Room temperature, live master bedroom switch `masterRoom-g1..3` (LED Profile / Spotlight / Room Utility) — with a **nested Master Toilet** card (live routine gangs `toilet-master-g1..3`) |
 
 Nested rooms are ordinary `Room` configs listed under a parent room's `nested`
 array; `RoomCard`, `RoomDetail` and the routine panel render them unchanged.
 `ALL_ROOMS` flattens the tree for anything that needs every room.
 
-Live MQTT-backed ids today are `light1`, `sonoff1`, `sonoff2`, `sonoff3`, and the
-Main Toilet and Master Toilet routine gangs `toilet-main-g1..3` and
-`toilet-master-g1..3`.
+Live MQTT-backed ids today are `light1`, `sonoff1`, `sonoff2`, `sonoff3`, the
+master bedroom switch `masterRoom-g1..3`, and the Main Toilet and Master Toilet
+routine gangs `toilet-main-g1..3` and `toilet-master-g1..3`.
 The remaining UI devices are local demo controls or read-only demo sensors until
 their real ids are added to the room config and backend registry.
 
@@ -198,12 +198,23 @@ Example registry with Reception plus both toilets:
     "roomType": "toilet",
     "roomId": "toilet-master",
     "buttonMode": "local"
+  },
+  {
+    "switchId": "masterRoom",
+    "base": "masterRoom",
+    "gangs": 3,
+    "roomType": "none",
+    "roomId": "masterRoom",
+    "buttonMode": "local"
   }
 ]
 ```
 
 Both toilets share the `toilet` routine, so the second switch is one registry
-entry plus one room config — no new code.
+entry plus one room config — no new code. The master bedroom switch adds a third
+shape: `roomType: "none"` is a plain on/off switch with **no routine and no
+auto-off timer**, so it is also just one registry entry plus the room's switch
+config.
 
 Do not add registry entries for rooms until the actual Tasmota topic base and room mapping are known.
 

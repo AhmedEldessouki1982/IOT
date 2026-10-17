@@ -53,6 +53,10 @@ export default function RoutinePanel({
             key={gang.deviceId}
             deviceId={gang.deviceId}
             label={gang.label}
+            // Only a room with a backend routine advances stages on press; a
+            // routine-less room (registry roomType "none", e.g. the master
+            // bedroom) just toggles its relay from the app.
+            routine={Boolean(roomId)}
             remainingSeconds={live?.remainingSeconds}
             durationSeconds={live?.durationSeconds}
             expiresAt={live?.expiresAt}
