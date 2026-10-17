@@ -261,4 +261,64 @@ ever scheduled (neither `handleLocalRelayOn` nor `handleButtonPress` acts on it)
 and the explicit `routine={Boolean(roomId)}` flag keeps an app press off the
 routine endpoint even though the ids end in `-g<n>`.
 
+## Provisioning traps (lessons learned)
+
+The things that actually cost time when standing up a new T3US3C, in the order
+they bite. They are kept here (versioned with the project) as well as in the
+`sonoff-tasmota-flash` skill, which lives outside this repo.
+
+**1. "Flashed" is not "configured", and a stock unit is a single-relay module.**
+A fresh unit can be flashed, joined to WiFi and answering `Status 0` while still
+being `Module 1` ("Sonoff Basic") with `DeviceName "Tasmota"`,
+`Topic tasmota_<MAC6>` and an empty `MqttHost`. The quickest tell is the relay
+count: `Power1` answers while `Power2`/`Power3` return
+`{"Command":"Error"}`. Read `Module`, `Topic` and `MqttHost` before assuming
+anything — this is exactly how the Omar Room unit (`10.10.0.127`) arrived.
+
+**2. Applying the template is part of provisioning.** The template comes from the
+Tasmota repository (Blakadder) at
+`templates.blakadder.com/sonoff_TX-T3US3C.html` — note the `sonoff_TX-T3...` URL
+form; `TX_T3US3C.html` 404s. That page serves the **old 13-slot** JSON, which
+Tasmota converts on apply into the 14-slot form (`[32,1,0,1,226,225,33,34,224,
+576,0,0,0,0]`), so both describe the same GPIO map and neither is "wrong":
+
+```text
+Template {"NAME":"TX T3US3C","GPIO":[17,255,0,255,23,22,18,19,21,158,0,0,0],"FLAG":0,"BASE":30}
+Module 0
+```
+
+`Module 0` restarts the device; the three relays appear afterwards.
+
+**3. `Module`, `MqttHost` and `Hostname` are restart boundaries.** A settings
+batch sent in the same breath as one of them is silently lost — `Backlog`
+answers `{}` even when nothing applied. Write the restarting setting on its own,
+poll `Status 2`/`Status 11` until the device answers, then send the next batch,
+and re-read every setting from its own echo.
+
+**4. Empty read-backs right after a batch mean "it rebooted", not "the write
+failed".** Changing `DeviceName`/`Topic` (and `SetOption19`) also restarts the
+network stack, so immediate read-backs come back blank — wait for ping to answer
+first. `SetOption19 1` in particular only stuck when written on its own, apart
+from the identity/options batch.
+
+**5. A new registry entry only reaches the app after a backend restart.** Adding
+a switch to `SONOFF_SWITCHES_JSON` does nothing until the NestJS backend is
+restarted; confirm it took by looking for
+`Subscribed to devices/<switchId>-g<n>/cmd` in the backend log.
+
+**6. Restarting that backend without killing your own shell.** `pkill -f "node
+dist/main.js"` matches the *calling shell's* own command line (it contains the
+same string) and kills the session. Filter on the process name instead:
+
+```bash
+ps -eo pid,args | awk '/dist\/main\.js/ && $2=="node" {print $1}' | xargs -r kill
+```
+
+**7. A further identical switch is pure data.** Once a room exists as a plain
+manual room, the next one needs no new code: one registry entry
+(`roomType: "none"`, `buttonMode: "local"`), one room config, its ids added to
+`LIVE_DEVICE_IDS` and `SONOFF_DEVICE_IDS`, its gangs added to the Away scene
+(the scene test requires every scene id to exist in `rooms.ts`), and an icon in
+`RoomCard.tsx`.
+
 
