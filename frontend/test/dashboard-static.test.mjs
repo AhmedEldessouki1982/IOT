@@ -94,6 +94,27 @@ describe("dashboard feature boundaries", () => {
     assert.equal(switchCard.includes("routine ?? timerGang !== null"), true);
   });
 
+  it("adds the Girl Room as a second manual room and drops the placeholders", () => {
+    const rooms = read("src/dashboard/rooms.ts");
+    const roomCard = read("src/dashboard/RoomCard.tsx");
+    const scenes = read("src/dashboard/scenes.ts");
+
+    // three real gangs, same plain-room shape as the master bedroom switch
+    assert.equal(rooms.includes('id: "girlRoom-g1"'), true);
+    assert.equal(rooms.includes('id: "girlRoom-g3"'), true);
+    assert.equal(rooms.includes('id: "bed1"'), false);
+    assert.equal(rooms.includes('id: "bed2"'), false);
+
+    // lucide ships no "Girl" glyph, so the card uses the Venus symbol (♀)
+    assert.equal(roomCard.includes("girlRoom: Venus"), true);
+
+    // the Away scene tracks the room list — dropped rooms leave the scene,
+    // and the new gangs join it
+    assert.equal(scenes.includes('id: "light5"'), false);
+    assert.equal(scenes.includes('id: "light6"'), false);
+    assert.equal(scenes.includes('id: "girlRoom-g2"'), true);
+  });
+
   it("keeps device registry operations available for business deployments", () => {
     const app = read("src/views/DevicesView.tsx");
     const css = read("src/styles/components/panels.css");

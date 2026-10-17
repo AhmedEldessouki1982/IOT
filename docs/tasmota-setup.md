@@ -190,4 +190,38 @@ dummy light `light7` was removed in favour of these real relays.
 > `RoutinePanel` (`routine={Boolean(roomId)}`), and only a room with a
 > `routineId` advances a backend stage.
 
+### Girl Room (implemented)
+
+A fourth T3US3C, in the girl's bedroom (`10.10.0.184`, Tasmota `Topic` /
+`DeviceName` `girlRoom`), provisioned with the same recipe as the master
+bedroom switch and likewise **manual only** — no routine, no auto-off timer.
+
+| Gang | Tasmota friendly name | Dashboard label | Behaviour |
+| ---- | --------------------- | --------------- | --------- |
+| 1    | `ledProfile`          | LED Profile     | on / off  |
+| 2    | `spotlight`           | Spotlight       | on / off  |
+| 3    | `roomUtility`         | Room Utility    | on / off  |
+
+Registry entry (`.env`):
+
+```json
+{ "switchId": "girlRoom", "base": "girlRoom", "gangs": 3, "roomType": "none", "roomId": "girlRoom", "buttonMode": "local" }
+```
+
+Device ids are `girlRoom-g1..3`. In the dashboard they live on their own
+top-level **Girl Room** card in `frontend/src/dashboard/rooms.ts`, placed
+straight after the Master Suite; the card icon is lucide's `Venus` glyph (♀),
+since lucide ships no literal "Girl" icon.
+
+Everything said about the master bedroom switch applies verbatim here:
+`roomType: "none"` makes `getRoomTypeForDevice` return `null` so nothing is ever
+scheduled (neither `handleLocalRelayOn` nor `handleButtonPress` acts on it),
+`buttonMode: "local"` keeps the wall working while the backend or broker is
+down, and the explicit `routine={Boolean(roomId)}` flag keeps an app press off
+the routine endpoint even though the ids end in `-g<n>`.
+
+The two placeholder bedroom cards (`bed1` "Small Bedroom" and `bed2`
+"Bedroom 2", dummy lights `light5`/`light6`) were removed in favour of this real
+switch, and their ids were dropped from the Away scene.
+
 

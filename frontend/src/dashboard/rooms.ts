@@ -163,16 +163,6 @@ export const ROOMS: Room[] = [
     devices: [{ kind: "light", id: "light4", label: "Corridor Light" }],
   },
   {
-    id: "bed1",
-    name: "Small Bedroom",
-    devices: [{ kind: "light", id: "light5", label: "Small Bedroom Light" }],
-  },
-  {
-    id: "bed2",
-    name: "Bedroom 2",
-    devices: [{ kind: "light", id: "light6", label: "Bedroom 2 Light" }],
-  },
-  {
     id: "master",
     name: "Master Suite",
     devices: [
@@ -242,6 +232,37 @@ export const ROOMS: Room[] = [
       },
     ],
   },
+  {
+    id: "girlRoom",
+    name: "Girl Room",
+    devices: [],
+    // Girl's bedroom wall switch (Tasmota topic "girlRoom"), 3 gangs. Same
+    // manual shape as the master bedroom switch: registry roomType "none" means
+    // no routine and no auto-off timer, so the wall buttons and these cards just
+    // toggle the relays. No routineId, so RoutinePanel renders the plain live
+    // switch cards — which the explicit `routine={Boolean(roomId)}` flag keeps
+    // off the routine press endpoint even though the ids end in "-g<n>".
+    switches: [
+      {
+        kind: "light",
+        id: "girlRoom-g1",
+        deviceId: "girlRoom-g1",
+        label: "LED Profile",
+      },
+      {
+        kind: "light",
+        id: "girlRoom-g2",
+        deviceId: "girlRoom-g2",
+        label: "Spotlight",
+      },
+      {
+        kind: "light",
+        id: "girlRoom-g3",
+        deviceId: "girlRoom-g3",
+        label: "Room Utility",
+      },
+    ],
+  },
 ];
 
 /** Every room including nested ones (parents first, then their children). */
@@ -265,6 +286,9 @@ export const LIVE_DEVICE_IDS = [
   "masterRoom-g1",
   "masterRoom-g2",
   "masterRoom-g3",
+  "girlRoom-g1",
+  "girlRoom-g2",
+  "girlRoom-g3",
 ];
 
 /** Sonoff 3-gang relay ids rendered as balanced switch cards. */
@@ -281,6 +305,9 @@ export const SONOFF_DEVICE_IDS = [
   "masterRoom-g1",
   "masterRoom-g2",
   "masterRoom-g3",
+  "girlRoom-g1",
+  "girlRoom-g2",
+  "girlRoom-g3",
 ];
 
 /** True when a device id belongs to the physical Sonoff 3-gang switch. */

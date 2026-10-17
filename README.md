@@ -23,7 +23,7 @@ A local-first smart-home dashboard and MQTT bridge for an apartment installation
 
 ## Dashboard Scope
 
-The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently defines **7 top-level rooms** — plus the **Master Toilet nested inside the Master Suite** — and **26 UI devices**:
+The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently defines **6 top-level rooms** — plus the **Master Toilet nested inside the Master Suite** — and **29 UI devices**:
 
 | Room          | Devices                                                                                               |
 | ------------- | ----------------------------------------------------------------------------------------------------- |
@@ -31,17 +31,16 @@ The frontend source of truth is `frontend/src/dashboard/rooms.ts`. It currently 
 | Kitchen       | Main light, gas detector, room temperature, three kitchen light zones, oven, dishwasher, smoke sensor |
 | Main Toilet   | LED profile, Spotlights, Exhaust fan (live routine gangs `toilet-main-g1..3`)                          |
 | Corridor      | Corridor light                                                                                        |
-| Small Bedroom | Bedroom light                                                                                         |
-| Bedroom 2     | Bedroom light                                                                                         |
 | Master Suite  | Room temperature, live master bedroom switch `masterRoom-g1..3` (LED Profile / Spotlight / Room Utility) — with a **nested Master Toilet** card (live routine gangs `toilet-master-g1..3`) |
+| Girl Room     | Live girl-room switch `girlRoom-g1..3` (LED Profile / Spotlight / Room Utility) |
 
 Nested rooms are ordinary `Room` configs listed under a parent room's `nested`
 array; `RoomCard`, `RoomDetail` and the routine panel render them unchanged.
 `ALL_ROOMS` flattens the tree for anything that needs every room.
 
 Live MQTT-backed ids today are `light1`, `sonoff1`, `sonoff2`, `sonoff3`, the
-master bedroom switch `masterRoom-g1..3`, and the Main Toilet and Master Toilet
-routine gangs `toilet-main-g1..3` and `toilet-master-g1..3`.
+master bedroom switch `masterRoom-g1..3`, the Girl Room switch
+`girlRoom-g1..3`, and the Main Toilet and Master Toilet routine gangs `toilet-main-g1..3` and `toilet-master-g1..3`.
 The remaining UI devices are local demo controls or read-only demo sensors until
 their real ids are added to the room config and backend registry.
 
@@ -205,6 +204,14 @@ Example registry with Reception plus both toilets:
     "gangs": 3,
     "roomType": "none",
     "roomId": "masterRoom",
+    "buttonMode": "local"
+  },
+  {
+    "switchId": "girlRoom",
+    "base": "girlRoom",
+    "gangs": 3,
+    "roomType": "none",
+    "roomId": "girlRoom",
     "buttonMode": "local"
   }
 ]
